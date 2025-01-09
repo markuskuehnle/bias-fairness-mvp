@@ -62,10 +62,10 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ### Phase 1: Initial Development in Notebooks
 
-1. **Define Scope**
+✅ 1. **Define Scope**
    - Identify key functionalities: predicting role fit, analyzing bias, visualizing fairness metrics, and exploring counterfactuals.
 
-2. **Data Exploration**
+✅ 2. **Data Exploration**
    - Understand and clean the dataset.
    - Analyze distributions of sensitive features (e.g., gender, age, race).
    - Engineer features like age, tenure, and department alignment.
