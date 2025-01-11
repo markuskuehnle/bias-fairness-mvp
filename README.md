@@ -70,16 +70,22 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
    - Analyze distributions of sensitive features (e.g., gender, age, race).
    - Engineer features like age, tenure, and department alignment.
 
-3. **Train Biased Models**
+✅ 3. **Enhance Dataset with Simulated Data**
+   - Augment the dataset with simulated information for skills, certifications, and education levels tailored to each role.
+   - Introduce a scoring system to calculate fit points based on qualifications, ensuring alignment with real-world expectations for each role.
+   - Adjust qualifications dynamically for employees with higher performance scores to reflect logical consistency.
+   - Validate the updates by correlating features and ensuring thresholds for role fit are met realistically.
+
+4. **Train Biased Models**
    - Use historical data containing biases to train a baseline model.
    - Train a biased classifier (e.g., logistic regression, decision tree).
    - Visualize biased decisions using SHAP or LIME.
 
-4. **Demonstrate Bias**
+5. **Demonstrate Bias**
    - Implement bias metrics in the notebook.
    - Show which features contributed most to biased decisions.
 
-5. **Counterfactual Analysis**
+6. **Counterfactual Analysis**
    - Develop a module to simulate "what-if" scenarios:
      - Example: "What if the candidate’s gender were different?"
      - Measure changes in prediction probability and decision outcomes.
