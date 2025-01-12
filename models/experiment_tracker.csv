@@ -1,0 +1,2 @@
+Timestamp,Model Name,Parameters,Comments,Class 0 Precision,Class 0 Recall,Class 0 F1-Score,Class 0 Support,Confusion Matrix
+2025-01-12 21:31:07,Logistic Regression,"{'max_iter': 1000, 'class_weight': 'balanced'}",,0.27702702702702703,0.7192982456140351,0.4,57.0,"[[41, 16], [107, 149]]"
