@@ -76,16 +76,21 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
    - Adjust qualifications dynamically for employees with higher performance scores to reflect logical consistency.
    - Validate the updates by correlating features and ensuring thresholds for role fit are met realistically.
 
-4. **Train Biased Models**
+✅ 4. **Encode and Prepare Data**
+   - Transform categorical features using one-hot encoding, label encoding, and multi-label binarization.  
+   - Encode multi-label columns (e.g., skills, certifications) and combined them with the main dataset.  
+   - Save the processed dataset and encoding models for consistency in downstream tasks.  
+
+5. **Train Biased Models**
    - Use historical data containing biases to train a baseline model.
    - Train a biased classifier (e.g., logistic regression, decision tree).
    - Visualize biased decisions using SHAP or LIME.
 
-5. **Demonstrate Bias**
+6. **Demonstrate Bias**
    - Implement bias metrics in the notebook.
    - Show which features contributed most to biased decisions.
 
-6. **Counterfactual Analysis**
+7. **Counterfactual Analysis**
    - Develop a module to simulate "what-if" scenarios:
      - Example: "What if the candidate’s gender were different?"
      - Measure changes in prediction probability and decision outcomes.
