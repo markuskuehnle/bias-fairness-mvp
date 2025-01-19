@@ -86,7 +86,7 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
    - Train a biased classifier (e.g., logistic regression, decision tree).
    - Visualize biased decisions using SHAP or LIME.
 
-6. **Demonstrate Bias**
+✅ 6. **Demonstrate Bias**
    - Implement bias metrics in the notebook.
    - Show which features contributed most to biased decisions.
 
