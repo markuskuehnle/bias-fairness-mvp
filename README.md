@@ -81,7 +81,7 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
    - Encode multi-label columns (e.g., skills, certifications) and combined them with the main dataset.  
    - Save the processed dataset and encoding models for consistency in downstream tasks.  
 
-5. **Train Biased Models**
+✅ 5. **Train Biased Models**
    - Use historical data containing biases to train a baseline model.
    - Train a biased classifier (e.g., logistic regression, decision tree).
    - Visualize biased decisions using SHAP or LIME.
