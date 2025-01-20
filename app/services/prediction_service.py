@@ -76,7 +76,7 @@ def predict_candidate_with_shap(candidate_row: pd.Series, model: object) -> dict
     feature_importance = pd.DataFrame({
         'Feature': prepared_data.columns,
         'SHAP Value': shap_values.values[0]
-    }).sort_values(by='SHAP Value', ascending=False).head(10)
+    }).sort_values(by='SHAP Value', ascending=False).head(5)
 
     return {
         "prediction_probability": prediction_proba,
