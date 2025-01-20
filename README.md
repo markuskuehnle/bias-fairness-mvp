@@ -90,7 +90,7 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
    - Implement bias metrics in the notebook.
    - Show which features contributed most to biased decisions.
 
-7. **Counterfactual Analysis**
+✅ 7. **Counterfactual Analysis**
    - Develop a module to simulate "what-if" scenarios:
      - Example: "What if the candidate’s gender were different?"
      - Measure changes in prediction probability and decision outcomes.
