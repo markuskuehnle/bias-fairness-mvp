@@ -17,4 +17,4 @@ def get_candidates():
         filtered_candidates = filter_candidate_columns(candidates)
         return filtered_candidates.to_dict(orient="records")
     except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"{e.__traceback__.tb_lineno},{str(type(e).__name__)}: {str(e)}")
