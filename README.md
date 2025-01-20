@@ -95,55 +95,57 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
      - Example: "What if the candidate’s gender were different?"
      - Measure changes in prediction probability and decision outcomes.
 
-### Phase 2: Refactoring into Scripts
+### **Phase 2: Backend Development**
 
-6. **Modularize Code**
-   - Refactor notebook into reusable scripts:
-     - `data_processing.py`: Preprocessing and feature engineering.
-     - `model_training.py`: Training biased models.
-     - `bias_metrics.py`: Calculating fairness metrics.
-     - `counterfactuals.py`: Simulating feature changes.
-     - `visualizations.py`: Generating plots and charts.
+8. **Build Core API Endpoints (Priority Task)**  
+   - Use **Flask** or **FastAPI** to implement the following endpoints:  
+     - **GET /candidates**: Retrieve a list of 3 static candidates with their attributes and predictions.  
+     - **POST /modify**: Accept changes to a candidate’s attributes (e.g., gender, age, race) and return updated predictions and counterfactual results.  
+     - **GET /fairness** (Optional): Provide fairness and bias insights if needed later.
 
-7. **Add Configurations**
-   - Use a configuration file (`config.yaml`) for flexible parameters like data paths and sensitive attributes.
+9. **Static Data Integration**  
+   - Pre-load the data for 3 candidates into a static CSV or JSON file for simplicity.  
+   - Use a utility script (`static_data_loader.py`) to serve this data via the API.
 
-8. **Command-Line Interface**
-   - Create CLI tools to run scripts:
-     ```bash
-     python model_training.py --train
-     python bias_metrics.py --analyze
-     python counterfactuals.py --evaluate
-     ```
+10. **Use Pre-Trained Model**  
+   - Integrate the pre-trained **XGBoost** model to serve predictions via the API.  
+   - Implement logic for simulating counterfactuals in the backend using **`counterfactuals.py`**.
 
-### Phase 3: Backend Development
+11. **Add Configurations**  
+   - Use a configuration file (`config.yaml`) to manage:
+     - Data paths (e.g., CSV/JSON for candidates).
+     - Sensitive attributes (e.g., gender, race, age).
+     - Thresholds for predictions.
 
-9. **Build a Basic API**
-   - Use Flask or FastAPI to:
-     - Accept CV uploads.
-     - Simulate predictions, analyze bias, and provide counterfactual analysis.
-     - Provide fairness insights.
+### **Phase 3: Frontend Development**
 
-10. **Integrate Data Storage**
-    - Use SQLite or PostgreSQL for storing datasets and predictions.
+12. **Build a Simple Interactive Frontend**  
+   - Use **Streamlit** for rapid frontend prototyping:
+     - Display the list of 3 candidates with their current attributes and predictions.  
+     - Allow users to modify attributes interactively (e.g., change gender, age, race).  
+     - Fetch and display updated predictions dynamically via the backend API.  
 
-### Phase 4: Frontend Development
+### **Phase 4: Add Additional Backend Routes**
 
-11. **Create a Simple Frontend**
-    - Use Streamlit for an interactive MVP:
-      - Upload CVs and view predictions.
-      - Visualize bias metrics, counterfactual results, and fairness insights.
+13. **Extend API Functionality**  
+   - Add the following routes to enhance interactivity:
+     - **POST /select_candidate**:  
+       - Accept a candidate's ID as input and mark the candidate as selected.
+       - Return a confirmation response with the selected candidate's details.  
+     - **GET /selected_candidate**:  
+       - Retrieve the details of the currently selected candidate, including attributes and predictions.
 
-12. **Build Advanced Frontend (Optional)**
-    - Use React.js for a customized dashboard.
+14. **Update Static Data Handling**  
+   - Ensure the `static_data_loader.py` script supports tracking the selection state for candidates.  
+   - Add logic to update and serve the selected candidate dynamically.
 
-### Phase 5: Deployment
+### **Phase 5: Deployment**
 
-13. **Containerize Application**
-    - Use Docker to containerize the backend, frontend, and database.
+15. **Containerize the Application**  
+   - Use **Docker** to containerize the backend and frontend for consistency.  
 
-14. **Deploy MVP**
-    - Deploy on platforms like Heroku, Render, or AWS.
+16. **Deploy the MVP**  
+   - Host the MVP on **Heroku**, **Render**, or **AWS** for user testing and feedback.  
 
 ---
 
@@ -168,14 +170,6 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 - Train two models:
   - Without sensitive attributes (`GenderID`, `RaceDesc`) for baseline predictions.
   - With sensitive attributes to evaluate bias using fairness metrics.
-
-### Evaluate Performance
-- Metrics:
-  - **Accuracy**: How well the model predicts "fit."
-  - **Precision/Recall**: Ensure balanced performance.
-  - **Fairness Metrics**:
-    - Disparate Impact: Are groups treated equally?
-    - Equalized Odds: Are false positive/negative rates balanced across groups?
 
 ---
 
