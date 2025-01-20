@@ -1,5 +1,6 @@
 import pickle
 import pandas as pd
+import shap
 
 MODEL_PATH = "app/models/xgb_model.pkl"
 
@@ -47,14 +48,38 @@ def predict_candidate(candidate_row: pd.Series, model: object) -> dict:
     """
     prepared_data = prepare_candidate_for_prediction(candidate_row)
     prepared_data = prepared_data.apply(pd.to_numeric, errors='coerce')
-
-    non_int_columns = prepared_data.select_dtypes(exclude=['int64', 'int32'])
-    print(non_int_columns)
-
-    prediction_proba = float(model.predict_proba(prepared_data)[:, 1][0])  # Convert to Python float
+    
+    # Prediction
+    prediction_proba = float(model.predict_proba(prepared_data)[:, 1][0])
     is_good_fit = prediction_proba >= 0.5
 
     return {
         "prediction_probability": prediction_proba,
         "is_good_fit": is_good_fit
+    }
+
+
+def predict_candidate_with_shap(candidate_row: pd.Series, model: object) -> dict:
+    """
+    Predict if a candidate is a good fit and return SHAP values.
+    """
+    prepared_data = prepare_candidate_for_prediction(candidate_row)
+    prepared_data = prepared_data.apply(pd.to_numeric, errors='coerce')
+
+    # Prediction
+    prediction_proba = float(model.predict_proba(prepared_data)[:, 1][0])
+    is_good_fit = prediction_proba >= 0.5
+
+    # Compute SHAP values
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer(prepared_data)
+    feature_importance = pd.DataFrame({
+        'Feature': prepared_data.columns,
+        'SHAP Value': shap_values.values[0]
+    }).sort_values(by='SHAP Value', ascending=False).head(10)
+
+    return {
+        "prediction_probability": prediction_proba,
+        "is_good_fit": is_good_fit,
+        "top_features": feature_importance.to_dict(orient="records")
     }
