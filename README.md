@@ -97,17 +97,17 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ### **Phase 2: Backend Development**
 
-8. **Build Core API Endpoints (Priority Task)**  
+✅ 8. **Build Core API Endpoints (Priority Task)**  
    - Use **Flask** or **FastAPI** to implement the following endpoints:  
      - **GET /candidates**: Retrieve a list of 3 static candidates with their attributes and predictions.  
      - **POST /modify**: Accept changes to a candidate’s attributes (e.g., gender, age, race) and return updated predictions and counterfactual results.  
      - **GET /fairness** (Optional): Provide fairness and bias insights if needed later.
 
-9. **Static Data Integration**  
+✅ 9. **Static Data Integration**  
    - Pre-load the data for 3 candidates into a static CSV or JSON file for simplicity.  
    - Use a utility script (`static_data_loader.py`) to serve this data via the API.
 
-10. **Use Pre-Trained Model**  
+✅ 10. **Use Pre-Trained Model**  
    - Integrate the pre-trained **XGBoost** model to serve predictions via the API.  
    - Implement logic for simulating counterfactuals in the backend using **`counterfactuals.py`**.
 
@@ -236,3 +236,12 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 - Integrate more advanced fairness-aware algorithms.
 - Add real-world CV parsers for user uploads.
 - Implement a recommendation system for role suggestions.
+
+
+## To Discuss
+- Changed "Age" in the MVP to "YearsExperience" as selection parameter
+- How many applicants should be contained in the data?
+- How many applicants are suggested in the frontend for the user?
+- XAI: Is the candidate stored with original or changed attributes?
+Tech:
+- How to store user decision?
