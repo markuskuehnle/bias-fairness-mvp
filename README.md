@@ -145,7 +145,7 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 16. **Deploy the MVP**  
    - Host the MVP on **Heroku**, **Render**, or **AWS** for user testing and feedback.  
 
-![Applicant Selection Screenshot](imgs/screenshot_applicant_selection.png)
+![Applicant Selection Screenshot](imgs/applicant_selection.png)
 
 ---
 
