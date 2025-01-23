@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicant Profiles</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #555;
+        }
+
+        .header h2 {
+            margin: 5px 0 0 0;
+            font-size: 1.2em;
+            font-weight: normal;
+            color: #777;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: visible; /* Ensure nothing is clipped inside the container */
+        }
+
+        .profile-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: visible; /* Prevent clipping of tooltip within the card */
+            width: 340px;
+            display: flex;
+            flex-direction: column;
+            position: relative; /* Ensure tooltip respects this card's positioning */
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 0;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-card.invited {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .profile-header {
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .badge-container {
+            height: 30px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 10px;
+        }
+
+        .badge-yellow {
+            background-color: #FFFACD;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .badge-green {
+            background-color: #DFF2BF;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .profile-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+
+        .profile-section div {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .profile-section div span:first-child {
+            font-weight: bold;
+        }
+
+        .skills, .prediction-section, .invite-section {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+
+        .invite-section {
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .accordion-header {
+            cursor: pointer;
+            color: #007BFF;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .accordion-content {
+            display: none;
+            flex-direction: column;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .accordion-content.active {
+            display: flex;
+        }
+
+        .accordion-content div {
+            margin-bottom: 5px;
+        }
+
+        .info-icon {
+            margin-left: 5px;
+            font-size: 0.9em;
+            color: #888;
+            cursor: pointer;
+            position: relative; /* Ensure tooltip is positioned relative to the icon */
+            z-index: 2; /* Tooltip is above other cards */
+        }
+
+        .info-icon:hover::after {
+            content: "These values represent the impact of features on the AI's decision-making process. Higher values indicate stronger influence.";
+            position: absolute;
+            top: -60px;
+            left: 50%; /* Center the tooltip horizontally */
+            transform: translateX(-50%); /* Adjust for tooltip width */
+            background-color: #fff;
+            color: #333;
+            font-size: 0.8em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+            width: 220px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000; /* Ensure tooltip is above other cards */
+            white-space: normal;
+            pointer-events: none;
+        }
+
+        .info-icon:hover {
+            z-index: 1000; /* Bring the icon and tooltip above all cards */
+        }
+
+        .stars {
+            color: #000;
+        }
+
+        .invite-btn {
+            padding: 10px 20px;
+            border: none;
+            background-color: #FFFACD;
+            color: #333;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .invite-btn.highlight-btn {
+            background-color: #FFECB3;
+        }
+
+        .invite-btn.highlight-btn:hover {
+            background-color: #FFE082;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Applicant Profiles</h1>
+        <h2>Role - Production Technician</h2>
+    </div>
+
+    <div class="container" id="profiles">
+        <!-- Profiles will be injected here -->
+    </div>
+
+    <script>
+        async function fetchCandidates() {
+            try {
+                const response = await fetch('/candidates/data');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch candidates');
+                }
+                const data = await response.json();
+
+                const profilesContainer = document.getElementById('profiles');
+                profilesContainer.innerHTML = '';
+
+                data.forEach(candidate => {
+                    const card = document.createElement('div');
+                    card.className = 'profile-card';
+
+                    const badge = candidate.GoodFit
+                        ? `<div class="badge-yellow">AI Recommendation</div>`
+                        : "";
+
+                    const inviteButton = candidate.GoodFit
+                        ? `<button class="invite-btn highlight-btn" onclick="inviteCandidate(this)">>>Invite Applicant<<</button>`
+                        : `<button class="invite-btn" onclick="inviteCandidate(this)">Invite Applicant</button>`;
+
+                    const accordionContent = candidate.GoodFit ? `
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            XAI: Top 3 Features
+                            <span class="info-icon">ℹ</span>
+                        </div>
+                        <div class="accordion-content">
+                            ${candidate.TopFeatures.map(feature => `
+                                <div><strong>${feature.Feature}:</strong> ${feature["SHAP Value"].toFixed(2)}</div>
+                            `).join('')}
+                        </div>
+                    ` : '';
+
+                    card.innerHTML = `
+                        <div class="profile-header">
+                            <span>${candidate.Prename} ${candidate.Name}</span>
+                        </div>
+                        <div class="badge-container">${badge}</div>
+
+                        <div class="profile-section">
+                            <div>
+                                <span>Name:</span>
+                                <span>${candidate.Name}</span>
+                            </div>
+                            <div>
+                                <span>Prename:</span>
+                                <span>${candidate.Prename}</span>
+                            </div>
+                            <div>
+                                <span>Gender:</span>
+                                <span>${candidate.Gender}</span>
+                            </div>
+                            <div>
+                                <span>Years of Experience:</span>
+                                <span>${candidate.YearsExperience || 'N/A'}</span>
+                            </div>
+                            <div>
+                                <span>Nationality:</span>
+                                <span>${candidate.Nationality || 'N/A'}</span>
+                            </div>
+                            <div>
+                                <span>Birthplace:</span>
+                                <span>${candidate.Birthplace || 'N/A'}</span>
+                            </div>
+                        </div>
+
+                        <div class="skills">
+                            <h4>Skills:</h4>
+                            ${Object.entries(candidate.Skills).map(([skill, stars]) => `
+                                <div>
+                                    <span>${skill}</span>
+                                    <span class="stars">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="invite-section">
+                            ${inviteButton}
+                        </div>
+
+                        <div class="prediction-section">
+                            <div>
+                                <strong>Good Fit?:</strong> ${candidate.GoodFit ? "Yes" : "No"}
+                            </div>
+                            <div>
+                                <strong>Probability:</strong> ${candidate.Probability || 'N/A'}
+                            </div>
+                        </div>
+
+                        ${accordionContent}
+                    `;
+
+                    profilesContainer.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error fetching candidates:', error);
+            }
+        }
+
+        function inviteCandidate(button) {
+            const card = button.closest('.profile-card');
+            card.classList.add('invited');
+            button.outerHTML = `<div class="badge-green">Invited</div>`;
+        }
+
+        function toggleAccordion(element) {
+            const content = element.nextElementSibling;
+            content.classList.toggle('active');
+        }
+
+        fetchCandidates();
+    </script>
+</body>
+</html>
