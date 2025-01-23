@@ -20,6 +20,26 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .header-row h2 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #555;
+        }
+        
         .header h1 {
             margin: 0;
             font-size: 1.8em;
@@ -232,8 +252,13 @@
 </head>
 <body>
     <div class="header">
-        <h1>Applicant Profiles</h1>
-        <h2>Role - Production Technician</h2>
+        <div class="header-content">
+            <h1>Applicant Profiles</h1>
+            <div class="header-row">
+                <h2>Role - Production Technician</h2>
+                <h2 id="invite-counter">Applicants invited: 0/2</h2>
+            </div>
+        </div>
     </div>
 
     <div class="container" id="profiles">
@@ -241,6 +266,9 @@
     </div>
 
     <script>
+        let invitedCount = 0;
+        const maxInvites = 2;
+
         async function fetchCandidates() {
             try {
                 const response = await fetch('/candidates/data');
@@ -343,9 +371,20 @@
         }
 
         function inviteCandidate(button) {
-            const card = button.closest('.profile-card');
-            card.classList.add('invited');
-            button.outerHTML = `<div class="badge-green">Invited</div>`;
+            if (invitedCount < maxInvites) {
+                const card = button.closest('.profile-card');
+                card.classList.add('invited');
+                button.outerHTML = `<div class="badge-green">Invited</div>`;
+                invitedCount++;
+                updateInviteCounter();
+            } else {
+                alert('Maximum number of applicants invited!');
+            }
+        }
+
+        function updateInviteCounter() {
+            const counterElement = document.getElementById('invite-counter');
+            counterElement.textContent = `Applicants invited: ${invitedCount}/${maxInvites}`;
         }
 
         function toggleAccordion(element) {
@@ -356,4 +395,5 @@
         fetchCandidates();
     </script>
 </body>
+
 </html>

@@ -119,11 +119,9 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ### **Phase 3: Frontend Development**
 
-12. **Build a Simple Interactive Frontend**  
-   - Use **Streamlit** for rapid frontend prototyping:
+✅ 12. **Build a Simple Interactive Frontend**  
+   - Use **HTML/CSS** for rapid frontend prototyping:
      - Display the list of 3 candidates with their current attributes and predictions.  
-     - Allow users to modify attributes interactively (e.g., change gender, age, race).  
-     - Fetch and display updated predictions dynamically via the backend API.  
 
 ### **Phase 4: Add Additional Backend Routes**
 
@@ -147,29 +145,7 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 16. **Deploy the MVP**  
    - Host the MVP on **Heroku**, **Render**, or **AWS** for user testing and feedback.  
 
----
-
-## Model Design
-
-### Input Features
-- Use the features outlined above, representing the CV attributes a hiring system might consider.
-
-### Target Variable
-- Binary classification (`Good Fit = 1`, `Not a Good Fit = 0`).
-
-### Train/Test Split
-- Split data into training and testing sets (80/20 split).
-
-### Baseline Model
-- Start with interpretable models like logistic regression or decision trees.
-
-### Advanced Models
-- Experiment with ensemble methods (e.g., random forests, XGBoost) for better predictive performance.
-
-### Bias Analysis
-- Train two models:
-  - Without sensitive attributes (`GenderID`, `RaceDesc`) for baseline predictions.
-  - With sensitive attributes to evaluate bias using fairness metrics.
+![Applicant Selection Screenshot](imgs/screenshot_applicant_selection.png)
 
 ---
 
@@ -240,8 +216,10 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ## To Discuss
 - Changed "Age" in the MVP to "YearsExperience" as selection parameter
+- Should it be possible to continue with the next selection round, without selecting the specified number of candidates?
 - How many applicants should be contained in the data?
 - How many applicants are suggested in the frontend for the user?
 - XAI: Is the candidate stored with original or changed attributes?
+
 Tech:
 - How to store user decision?
