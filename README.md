@@ -210,16 +210,38 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ## Future Improvements
 - Integrate more advanced fairness-aware algorithms.
-- Add real-world CV parsers for user uploads.
-- Implement a recommendation system for role suggestions.
 
+---
 
-## To Discuss
-- Changed "Age" in the MVP to "YearsExperience" as selection parameter
-- Should it be possible to continue with the next selection round, without selecting the specified number of candidates?
-- How many applicants should be contained in the data?
-- How many applicants are suggested in the frontend for the user?
-- XAI: Is the candidate stored with original or changed attributes?
+### Topics for Discussion
 
-Tech:
-- How to store user decision?
+1. **Frontend Display:**
+   - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend?  
+   - Should the `XAI: Top 3 Features` be shown only for recommended candidates?
+
+2. **Feature Visibility:**
+   - Should features like `Sex`, `YearsExperience`, or `RaceDesc_*` be included in the `Top 3 Features` displayed to the user?
+
+3. **Candidate Pool Management:**
+   - Should only the invited applicants be dropped from the system after each round, or should all applicants (both invited and not invited) be dropped?
+   - How many applicants should be included in the dataset?  
+   - How many candidates should be suggested in the frontend for the user to review?
+   - What is the maximum number of candidates that can be invited?
+   - How many selection rounds should a user complete?
+
+---
+
+### Additional Notes and Considerations
+
+**Done:**
+
+- Replaced "Age" with "YearsExperience" in the MVP as a selection parameter since "Age" data is not available.  
+- The information about `Birthplace` was simulated using `RaceDesc_*` and `Nationality` in the Notebook 12
+
+**Todo:**
+
+- Applicants shown to the user should belong to the same role (e.g., Production Technician) to ensure consistent star ratings for skills across candidates.  
+- Users should have the flexibility to select fewer than the maximum number of suggested candidates and proceed to the next round. Any decision to move to the next round should be logged in the system.  
+- A role description should be included to provide context.  
+- If technical skills appear among the most important features of the AI recommendations, a short explanation of these skills should also be displayed.  
+- For XAI functionality: If users modify candidate attributes in the frontend, the original values should be stored separately to maintain data integrity.  

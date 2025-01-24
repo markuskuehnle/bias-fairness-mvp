@@ -340,7 +340,7 @@
                         <div class="skills">
                             <h4>Skills:</h4>
                             ${Object.entries(candidate.Skills).map(([skill, stars]) => `
-                                <div>
+                                <div style="display: flex; justify-content: space-between;">
                                     <span>${skill}</span>
                                     <span class="stars">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</span>
                                 </div>
