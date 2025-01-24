@@ -147,6 +147,8 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ![Applicant Selection Screenshot](imgs/applicant_selection.png)
 
+![Applicant Selection Screenshot 2](imgs/applicant_selection2.png)
+
 ---
 
 ## Demonstrator Workflow
