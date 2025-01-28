@@ -20,8 +20,8 @@ def get_candidates_data():
         # Load the candidate data
         candidates = load_candidates()
 
-        # Select up to 6 candidates, or fewer if the dataframe has less rows
-        selected_candidates = candidates.head(min(6, len(candidates)))
+        # Select 6 random candidates (or fewer if the dataframe has less than 6 rows)
+        selected_candidates = candidates.sample(n=min(6, len(candidates)))
 
         # Format each candidate as a fact sheet
         fact_sheets = []
@@ -38,7 +38,8 @@ def get_candidates_data():
 
             # Perform the prediction
             prediction_result = predict_candidate(row, xgb_model)
-
+            print(prediction_result["is_good_fit"].value_counts())
+            
             fact_sheets.append({
                 "Candidate_ID": row["Candidate_ID"],
                 "Name": row["Employee_Name"].split(", ")[0],
