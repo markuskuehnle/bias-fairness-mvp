@@ -201,10 +201,10 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ---
 
-## Simple Tech Stack Suggestion
+## Simple Tech Stack
 - **Data Processing & Modeling**: Python, Pandas, Scikit-learn.
-- **Backend**: Flask/FastAPI, SQLite/PostgreSQL.
-- **Frontend**: Streamlit (initial MVP), React.js (optional advanced).
+- **Backend**: Flask/FastAPI.
+- **Frontend**: HTML/CSS, React.js (optional advanced).
 - **Visualization**: Matplotlib, Plotly, SHAP.
 - **Deployment**: Docker, Heroku/Render.
 
