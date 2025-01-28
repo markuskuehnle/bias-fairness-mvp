@@ -38,7 +38,6 @@ def get_candidates_data():
 
             # Perform the prediction
             prediction_result = predict_candidate(row, xgb_model)
-            print(prediction_result["is_good_fit"].value_counts())
             
             fact_sheets.append({
                 "Candidate_ID": row["Candidate_ID"],
