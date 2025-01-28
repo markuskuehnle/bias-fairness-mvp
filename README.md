@@ -122,20 +122,30 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 ✅ 12. **Build a Simple Interactive Frontend**  
    - Use **HTML/CSS** for rapid frontend prototyping:
      - Display the list of 3 candidates with their current attributes and predictions.  
+     - Show Predictions and SHAP values 
 
 ### **Phase 4: Add Additional Backend Routes**
 
 13. **Extend API Functionality**  
-   - Add the following routes to enhance interactivity:
+   - Add the following routes to enhance interactivity:  
      - **POST /select_candidate**:  
-       - Accept a candidate's ID as input and mark the candidate as selected.
+       - Accept a candidate's ID as input and mark the candidate as selected.  
        - Return a confirmation response with the selected candidate's details.  
      - **GET /selected_candidate**:  
-       - Retrieve the details of the currently selected candidate, including attributes and predictions.
+       - Retrieve the details of the currently selected candidate, including attributes and predictions.  
+   - **Next Steps: Build the XAI Selection Tool**:  
+     - Allow users to temporarily modify one attribute at a time (e.g., age, sex, gender) and review the new prediction in the frontend.  
+     - Ensure invited candidates are dropped from the selection pool after being selected.  
+     - Present a new set of candidates for the next round of invitations, up to **6 rounds** in total.  
+     - Add a **"Next Round" button** in the frontend, prompting confirmation before proceeding.  
+     - Remove all candidates from the previous round permanently when moving to the next round.  
 
 14. **Update Static Data Handling**  
    - Ensure the `static_data_loader.py` script supports tracking the selection state for candidates.  
    - Add logic to update and serve the selected candidate dynamically.
+
+15. **Save Candidate Selection and Flags**
+   - Ensure the data about invited candidates is saved. (Consider saving the alternative candidates per round - round and user-id required)
 
 ### **Phase 5: Deployment**
 
