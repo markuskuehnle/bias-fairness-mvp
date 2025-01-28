@@ -39,6 +39,26 @@ def get_candidates_data():
             # Perform the prediction
             prediction_result = predict_candidate(row, xgb_model)
             
+            # Define a mapping of race descriptions to column names
+            race_column_mapping = {
+                "White": "RaceDesc_White",
+                "Black or African American": "RaceDesc_Black or African American",
+                "Asian": "RaceDesc_Asian",
+                "American Indian or Alaska Native": "RaceDesc_American Indian or Alaska Native",
+                "Hispanic": "RaceDesc_Hispanic",
+            }
+
+            # Function to get race from the available columns
+            def get_race(row, race_column_mapping):
+                for race, column in race_column_mapping.items():
+                    if row[column] == 1:
+                        if race == "Black or African American":
+                            return "Black"  # Normalize to match radio value
+                        if race == "American Indian or Alaska Native":
+                            return "American Indian"
+                        return race
+                return "Unknown"  # Default fallback
+            
             fact_sheets.append({
                 "Candidate_ID": row["Candidate_ID"],
                 "Name": row["Employee_Name"].split(", ")[0],
@@ -52,11 +72,17 @@ def get_candidates_data():
                     "Certifications": int(row["Certifications_Score"]),
                     "Social Skills": 3,
                 },
+                "Race": get_race(row, race_column_mapping),  # Dynamically determine race
                 "Age": row["Age"],
                 "GoodFit": prediction_result["is_good_fit"], # Target Value
                 "Probability": round(prediction_result["prediction_probability"], 2), # Probabilistic Forecast
                 "TopFeatures": prediction_result["top_features"] # SHAP values
             })
+        
+        # Assuming fact_sheets is a list and populated as shown
+        for fact_sheet in fact_sheets:
+            print(f"Candidate ID: {fact_sheet['Candidate_ID']}, Race: {fact_sheet['Race']}")
+            
         return fact_sheets
 
     except Exception as e:

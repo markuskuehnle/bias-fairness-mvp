@@ -289,6 +289,58 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
+
+        .recommendation-manipulation {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eee;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+
+        .manipulation-columns {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .manipulation-column {
+            width: 30%; /* Ensure 3 columns fit in one row */
+        }
+
+        .manipulation-column h5 {
+            margin-bottom: 10px;
+            font-size: 1em;
+            color: #555;
+        }
+
+        .manipulation-column label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .manipulation-column input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #333;
+            cursor: pointer;
+        }
+
+        button.highlighted {
+            background-color: #f0f8ff; /* Light blue background */
+            color: #333; /* Text color */
+            border: 2px solid #007bff; /* Blue border */
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Glow effect */
+            transition: all 0.3s ease; /* Smooth transition for the highlight */
+        }
+
     </style>
     
 </head>
@@ -414,6 +466,93 @@
                         </div>
 
                         ${accordionContent}
+
+                        ${candidate.GoodFit ? `
+                            <div class="recommendation-manipulation">
+                                <h4>Take a look at how the recommendation changes when you manipulate protected data:</h4>
+                                <div class="manipulation-columns">
+                                    <!-- Gender Manipulation -->
+                                    <div class="manipulation-column">
+                                        <h5>Gender</h5>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="gender-${candidate.Candidate_ID}" value="Male" 
+                                                    ${candidate.Gender === "Male" ? "checked" : ""}>
+                                                Man
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="gender-${candidate.Candidate_ID}" value="Female" 
+                                                    ${candidate.Gender === "Female" ? "checked" : ""}>
+                                                Woman
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Age Manipulation -->
+                                    <div class="manipulation-column">
+                                        <h5>Age</h5>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="age-${candidate.Candidate_ID}" value="20-30" 
+                                                    ${candidate.Age >= 20 && candidate.Age <= 30 ? "checked" : ""}>
+                                                20-30 years
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="age-${candidate.Candidate_ID}" value="30-40" 
+                                                    ${candidate.Age >= 30 && candidate.Age <= 40 ? "checked" : ""}>
+                                                30-40 years
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="age-${candidate.Candidate_ID}" value="40-50" 
+                                                    ${candidate.Age >= 40 && candidate.Age <= 50 ? "checked" : ""}>
+                                                40-50 years
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="age-${candidate.Candidate_ID}" value=">60" 
+                                                    ${candidate.Age > 60 ? "checked" : ""}>
+                                                >60 years
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Race Manipulation -->
+                                    <div class="manipulation-column">
+                                        <h5>Race</h5>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="race-${candidate.Candidate_ID}" value="Black" 
+                                                    ${candidate.Race === "Black" ? "checked" : ""}>
+                                                Black
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="race-${candidate.Candidate_ID}" value="White" 
+                                                    ${candidate.Race === "White" ? "checked" : ""}>
+                                                White
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="race-${candidate.Candidate_ID}" value="Asian" 
+                                                    ${candidate.Race === "Asian" ? "checked" : ""}>
+                                                Asian
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        ` : ""}
+
                     `;
 
                     // Append the card to the profiles container
@@ -422,6 +561,18 @@
             } catch (error) {
                 console.error('Error fetching candidates:', error);
             }
+        }
+
+        function handleRadioChange(groupName, originalValue) {
+            const radios = document.querySelectorAll(`input[name='${groupName}']`);
+            radios.forEach(radio => {
+                // Disable all except the default/original value
+                if (radio.value !== originalValue) {
+                    radio.disabled = true;
+                } else {
+                    radio.disabled = false;
+                }
+            });
         }
 
         // Helper function to fetch feature descriptions
@@ -486,7 +637,54 @@
             content.classList.toggle('active');
         }
 
-        fetchCandidates();
+        function setupInteractivity(candidates) {
+            candidates.forEach(candidate => {
+                const candidateId = candidate.Candidate_ID;
+
+                // Set up the default values and add listeners for each attribute group
+                attachRadioListeners(candidateId, candidate);
+            });
+        }
+
+        function attachRadioListeners(candidateId, candidate) {
+            const groups = [`gender-${candidateId}`, `age-${candidateId}`, `race-${candidateId}`];
+
+            groups.forEach(group => {
+                const defaultValue = getDefaultValue(group, candidate); // Retrieve the original default value
+                highlightDefaultAttribute(group, defaultValue); // Highlight the default value initially
+
+                const radios = document.querySelectorAll(`input[name="${group}"]`);
+                radios.forEach(radio => {
+                    radio.addEventListener("change", () => {
+                        // Always re-highlight the default value when a change happens
+                        highlightDefaultAttribute(group, defaultValue);
+                    });
+                });
+            });
+        }
+
+        function getDefaultValue(group, candidate) {
+            if (group.includes("gender")) {
+                return candidate.Gender; // Use Gender directly
+            } else if (group.includes("age")) {
+                return getAgeBin(candidate.Age); // Calculate age bin
+            } else if (group.includes("race")) {
+                return candidate.Race; // Use Race directly from the fact sheet
+            }
+            return ""; // Default fallback
+        }
+
+        function getAgeBin(age) {
+            if (age >= 20 && age <= 30) return "20-30";
+            if (age >= 30 && age <= 40) return "30-40";
+            if (age >= 40 && age <= 50) return "40-50";
+            if (age > 60) return ">60";
+            return ""; // Default fallback
+        }
+
+        // Fetch candidates and set up interactivity after the profiles are rendered
+        fetchCandidates().then(candidates => setupInteractivity(candidates));
+
     </script>
 </body>
 
