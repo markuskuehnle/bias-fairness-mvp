@@ -237,14 +237,13 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 **Done:**
 
-- Replaced "Age" with "YearsExperience" in the MVP as a selection parameter since "Age" data is not available.  
+- Included `Age` in the Frontend and Data
 - The information about `Birthplace` was simulated using `RaceDesc_*` and `Nationality` in the Notebook 12
 - If technical skills appear among the most important features of the AI recommendations, a short explanation of these skills should also be displayed.  
 - A role description should be included to provide context.
+- Applicants shown to the user should belong to the same role (e.g., Production Technician) to ensure consistent star ratings for skills across candidates. (Pre-selected)
 
 **Todo:**
 
-- Include Date of Birth / Age in the Model / Frontend
-- Applicants shown to the user should belong to the same role (e.g., Production Technician) to ensure consistent star ratings for skills across candidates.  
 - Users should have the flexibility to select fewer than the maximum number of suggested candidates and proceed to the next round. Any decision to move to the next round should be logged in the system.  
 - For XAI functionality: If users modify candidate attributes in the frontend, the original values should be stored separately to maintain data integrity.  

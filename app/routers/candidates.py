@@ -52,7 +52,7 @@ def get_candidates_data():
                     "Certifications": int(row["Certifications_Score"]),
                     "Social Skills": 3,
                 },
-                "YearsExperience": row["YearsExperience"],
+                "Age": row["Age"],
                 "GoodFit": prediction_result["is_good_fit"], # Target Value
                 "Probability": round(prediction_result["prediction_probability"], 2), # Probabilistic Forecast
                 "TopFeatures": prediction_result["top_features"] # SHAP values
