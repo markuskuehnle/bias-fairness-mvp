@@ -21,6 +21,7 @@ app.include_router(prediction.router)
 
 # Serve the frontend folder
 app.mount("/frontend", StaticFiles(directory="app/frontend"), name="frontend")
+app.mount("/data", StaticFiles(directory="app/data"), name="data")
 
 @app.get("/candidates", response_class=HTMLResponse)
 def show_candidates_frontend():

@@ -53,6 +53,22 @@
             color: #777;
         }
 
+        .role-description {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px 20px; 
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .role-description strong {
+            font-size: 1.1em;
+            color: #555;
+        }
+
         .container {
             display: flex;
             flex-wrap: wrap;
@@ -248,6 +264,31 @@
         .invite-btn.highlight-btn:hover {
             background-color: #FFE082;
         }
+
+        .hoverable-feature {
+            position: relative;
+            cursor: pointer;
+            color: #007BFF;
+            text-decoration: underline dotted;
+        }
+
+        .hoverable-feature:hover::after {
+            content: attr(title); /* Tooltip content from title attribute */
+            position: absolute;
+            top: -35px; /* Position the tooltip above the text */
+            left: 5px; /* Slightly shift the tooltip to the right */
+            background-color: #fff;
+            color: #333;
+            font-size: 0.8em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px 10px;
+            width: 250px; 
+            white-space: normal; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
     </style>
 </head>
 <body>
@@ -261,6 +302,12 @@
         </div>
     </div>
 
+    <div class="role-description">
+        <p>
+            <strong>Role Description:</strong> A Production Technician is responsible for operating and monitoring production equipment, ensuring efficient and safe manufacturing processes. Key responsibilities include maintaining quality standards, troubleshooting issues, and adhering to safety protocols.
+        </p>
+    </div>
+
     <div class="container" id="profiles">
         <!-- Profiles will be injected here -->
     </div>
@@ -271,39 +318,44 @@
 
         async function fetchCandidates() {
             try {
-                const response = await fetch('/candidates/data');
-                if (!response.ok) {
+                // Fetch candidates and feature descriptions in parallel
+                const [candidatesResponse, featureDescriptions] = await Promise.all([
+                    fetch('/candidates/data'), // Fetch candidates
+                    fetchFeatureDescriptions(), // Fetch feature descriptions
+                ]);
+
+                // Handle errors if candidates response fails
+                if (!candidatesResponse.ok) {
                     throw new Error('Failed to fetch candidates');
                 }
-                const data = await response.json();
 
+                const data = await candidatesResponse.json();
+
+                // Select the container where profiles will be displayed
                 const profilesContainer = document.getElementById('profiles');
-                profilesContainer.innerHTML = '';
+                profilesContainer.innerHTML = ''; // Clear previous content
 
+                // Iterate through each candidate
                 data.forEach(candidate => {
                     const card = document.createElement('div');
                     card.className = 'profile-card';
 
+                    // Add AI Recommendation badge if applicable
                     const badge = candidate.GoodFit
                         ? `<div class="badge-yellow">AI Recommendation</div>`
                         : "";
 
+                    // Set the invite button style based on AI recommendation
                     const inviteButton = candidate.GoodFit
                         ? `<button class="invite-btn highlight-btn" onclick="inviteCandidate(this)">>>Invite Applicant<<</button>`
                         : `<button class="invite-btn" onclick="inviteCandidate(this)">Invite Applicant</button>`;
 
-                    const accordionContent = candidate.GoodFit ? `
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            XAI: Top 3 Features
-                            <span class="info-icon">ℹ</span>
-                        </div>
-                        <div class="accordion-content">
-                            ${candidate.TopFeatures.map(feature => `
-                                <div><strong>${feature.Feature}:</strong> ${feature["SHAP Value"].toFixed(2)}</div>
-                            `).join('')}
-                        </div>
-                    ` : '';
+                    // Generate accordion content for XAI features
+                    const accordionContent = candidate.GoodFit
+                        ? generateAccordionContent(candidate, featureDescriptions)
+                        : '';
 
+                    // Build the card HTML
                     card.innerHTML = `
                         <div class="profile-header">
                             <span>${candidate.Prename} ${candidate.Name}</span>
@@ -363,11 +415,52 @@
                         ${accordionContent}
                     `;
 
+                    // Append the card to the profiles container
                     profilesContainer.appendChild(card);
                 });
             } catch (error) {
                 console.error('Error fetching candidates:', error);
             }
+        }
+
+        // Helper function to fetch feature descriptions
+        async function fetchFeatureDescriptions() {
+            try {
+                const response = await fetch('/data/feature_description.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load feature descriptions');
+                }
+                return await response.json(); // Parse and return JSON
+            } catch (error) {
+                console.error('Error fetching feature descriptions:', error);
+                return {};
+            }
+        }
+
+        function generateAccordionContent(candidate, featureDescriptions) {
+            if (!candidate.GoodFit) return '';
+
+            return `
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    XAI: Top 3 Features
+                    <span class="info-icon" title="These values represent the top factors influencing the AI's decision-making.">ℹ</span>
+                </div>
+                <div class="accordion-content">
+                    ${candidate.TopFeatures.map(feature => {
+                        const description = featureDescriptions[feature.Feature] || 'No description available.';
+                        return `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span 
+                                    class="hoverable-feature" 
+                                    title="${description}">
+                                    ${feature.Feature}:
+                                </span>
+                                <span>${feature["SHAP Value"].toFixed(2)}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
         }
 
         function inviteCandidate(button) {
