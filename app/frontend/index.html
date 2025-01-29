@@ -192,7 +192,7 @@
         }
     
         .accordion-content {
-            display: none;
+            display: flex;
             flex-direction: column;
             padding: 10px;
             background-color: #fff;
@@ -347,6 +347,16 @@
             cursor: not-allowed; /* Show a "not-allowed" cursor */
         }
 
+        .good-fit-no {
+            color: red;
+            font-weight: bold;
+        }
+
+        .probability-low {
+            color: red;
+            font-weight: bold;
+        }
+
     </style>
     
 </head>
@@ -432,15 +442,25 @@
                 const goodFitElement = candidateCard.querySelector(".prediction-section strong:nth-of-type(1)");
                 if (goodFitElement) {
                     goodFitElement.nextSibling.nodeValue = ` ${result.is_good_fit ? "Yes" : "No"}`;
+                    if (!result.is_good_fit) {
+                        goodFitElement.classList.add("good-fit-no"); // Apply red color for "No"
+                    } else {
+                        goodFitElement.classList.remove("good-fit-no"); // Remove red color for "Yes"
+                    }
                 }
 
                 // Update the Probability correctly
                 const probabilityElement = candidateCard.querySelector(".prediction-section div:nth-of-type(2) strong");
                 if (probabilityElement) {
                     probabilityElement.nextSibling.nodeValue = ` ${result.prediction_probability.toFixed(2)}`;
+                    if (result.prediction_probability < 0.5) {
+                        probabilityElement.classList.add("probability-low"); // Apply red color for low probability
+                    } else {
+                        probabilityElement.classList.remove("probability-low"); // Remove red color if above threshold
+                    }
                 }   
 
-                // 🔹 Update the AI Recommendation Badge (Add/Remove)
+                // Update the AI Recommendation Badge (Add/Remove)
                 const badgeContainer = candidateCard.querySelector(".badge-container");
                 if (result.is_good_fit) {
                     // Add AI Recommendation badge if it doesn't exist
@@ -559,6 +579,12 @@
 
                 handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues);
             }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".accordion-content").forEach(content => {
+                content.classList.add("active"); // Ensures all accordions start open
+            });
         });
 
         async function fetchCandidates() {
@@ -775,7 +801,14 @@
 
         function toggleAccordion(element) {
             const content = element.nextElementSibling;
-            content.classList.toggle('active');
+
+            if (content.classList.contains("active")) {
+                content.classList.remove("active");
+                content.style.display = "none"; // Hide the content
+            } else {
+                content.classList.add("active");
+                content.style.display = "flex"; // Show the content
+            }
         }
 
         function getDefaultValue(group, candidate) {
