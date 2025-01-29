@@ -30,7 +30,7 @@ def update_prediction(request: PredictionRequest):
     try:
         # Load the candidate data
         candidates = load_candidates()
-        print(candidates)
+
         # Find the candidate in the dataset
         candidate_row = candidates[candidates["Candidate_ID"] == request.candidate_id]
         if candidate_row.empty:

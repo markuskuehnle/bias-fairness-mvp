@@ -393,7 +393,7 @@
                 "Hispanic": "RaceDesc_Hispanic"
             };
             Object.values(raceColumnMap).forEach(raceKey => updatePayload.updated_features[raceKey] = 0);
-            
+
             // Set the selected race to 1
             if (raceColumnMap[race]) {
                 updatePayload.updated_features[raceColumnMap[race]] = 1;
@@ -421,11 +421,42 @@
                 const result = await response.json();
                 console.log("✅ Backend response:", result);
 
+                // 🔹 Find the correct candidate profile card
+                const candidateCard = document.querySelector(`.profile-card[data-candidate-id="${candidateId}"]`);
+                if (!candidateCard) {
+                    console.error("❌ Candidate card not found for ID:", candidateId);
+                    return;
+                }
+
+                // 🔹 Update the Good Fit section correctly
+                const goodFitElement = candidateCard.querySelector(".prediction-section strong:nth-of-type(1)");
+                if (goodFitElement) {
+                    goodFitElement.nextSibling.nodeValue = ` ${result.is_good_fit ? "Yes" : "No"}`;
+                }
+
+                // 🔹 Update the Probability correctly
+                const probabilityElement = candidateCard.querySelector(".prediction-section div:nth-of-type(2) strong");
+                if (probabilityElement) {
+                    probabilityElement.nextSibling.nodeValue = ` ${result.prediction_probability.toFixed(2)}`;
+                }   
+
+                // 🔹 Update the XAI explanation
+                const xaiSection = candidateCard.querySelector(".accordion-content");
+                if (xaiSection) {
+                    xaiSection.innerHTML = result.top_features.map(feature => `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="hoverable-feature" title="${feature.Feature}">
+                                ${feature.Feature}:
+                            </span>
+                            <span>${feature["SHAP Value"].toFixed(2)}</span>
+                        </div>
+                    `).join('');
+                }
+
             } catch (error) {
                 console.error("🚨 Fetch error:", error);
             }
         }
-
 
         function getRandomAge(ageRange) {
             const ranges = {
@@ -537,6 +568,7 @@
                 // Iterate through each candidate
                 data.forEach(candidate => {
                     const card = document.createElement('div');
+                    card.setAttribute('data-candidate-id', candidate.Candidate_ID);
                     card.className = 'profile-card';
 
                     // Store the original values in data attributes
