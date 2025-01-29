@@ -357,6 +357,43 @@
             font-weight: bold;
         }
 
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal h2 {
+            margin: 0 0 10px;
+        }
+
+        .modal button {
+            padding: 10px 20px;
+            border: none;
+            background: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .modal button:hover {
+            background: #0056b3;
+        }
+
     </style>
     
 </head>
@@ -366,8 +403,8 @@
             <h1>Applicant Profiles</h1>
             <div class="header-row">
                 <h2>Role - Production Technician</h2>
-                <h2 id="invite-counter">Applicants invited: 0/2</h2>
-            </div>
+                <h2 id="invite-counter">Applicants invited: 0/2 · Round: 1/6</h2>
+            </div>            
         </div>
     </div>
 
@@ -384,6 +421,8 @@
     <script>
         let invitedCount = 0;
         const maxInvites = 2;
+        const maxRounds = 6;
+        let currentRound = parseInt(localStorage.getItem("currentRound")) || 1;
         let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
 
         async function updatePrediction(candidateId, gender, age, race) {
@@ -592,10 +631,19 @@
 
         async function fetchCandidates() {
             try {
+                if (currentRound > maxRounds) { // 🔄 Check if max rounds exceeded
+                    console.log("🏁 Max rounds reached. Resetting to Round 1.");
+                    currentRound = 1; // 🔄 Reset to 1 if all rounds are completed
+                    localStorage.setItem("currentRound", currentRound);
+                    disableAllInvites();
+                    showCompletionDialog();
+                    return; // Stop fetching candidates
+                }
+
                 // Reset invite counter and invitedCandidates when fetching new candidates
                 invitedCount = 0;
                 invitedCandidates = [];
-                localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates));
+                localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates));                
                 updateInviteCounter(); // Ensure UI reflects the reset count
 
                 // Fetch candidates and feature descriptions in parallel
@@ -750,6 +798,12 @@
                     // Append the card to the profiles container
                     profilesContainer.appendChild(card);
                 });
+
+                if (currentRound > maxRounds) {
+                    disableAllInvites();
+                    showCompletionDialog();
+                }
+
             } catch (error) {
                 console.error('Error fetching candidates:', error);
             }
@@ -794,8 +848,14 @@
                 </div>
             `;
         }
-
+        
         function inviteCandidate(candidateId, button) {
+            if (currentRound > maxRounds) {
+                disableAllInvites();
+                showCompletionDialog();
+                return;
+            }
+
             const card = button.closest('.profile-card');
             if (!card) {
                 console.error("⚠️ No profile card found for this button.");
@@ -808,21 +868,27 @@
             }
 
             if (invitedCount < maxInvites) {
-                // Mark candidate as invited
                 card.classList.add('invited');
                 button.outerHTML = `<div class="badge-green">Invited</div>`;
 
                 invitedCount++;
-                invitedCandidates.push(candidateId); // Add to list
-                localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates)); // Persist
+                invitedCandidates.push(candidateId);
+                localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates));
 
                 updateInviteCounter();
 
                 console.log(`✅ Candidate ${candidateId} invited.`);
 
-                // Fetch new candidates when the limit is reached
                 if (invitedCount >= maxInvites) {
-                    console.log("🔄 Max invites reached, fetching new candidates...");
+                    if (currentRound < maxRounds) { 
+                        currentRound++; 
+                        localStorage.setItem("currentRound", currentRound);
+                    } else {
+                        currentRound = maxRounds + 1;
+                        localStorage.setItem("currentRound", currentRound);
+                    }
+
+                    updateInviteCounter();
                     setTimeout(fetchCandidates, 1000);
                 }
             } else {
@@ -830,10 +896,47 @@
             }
         }
 
-        function updateInviteCounter() {
-            document.getElementById('invite-counter').textContent = `Applicants invited: ${invitedCount}/${maxInvites}`;
+        function disableAllInvites() {
+            document.querySelectorAll(".invite-btn").forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
+                btn.style.cursor = "not-allowed";
+            });
         }
 
+        function showCompletionDialog() {
+            // Check if the modal already exists to prevent duplicate modals
+            if (document.querySelector(".modal-overlay")) return;
+
+            const profilesContainer = document.getElementById('profiles');
+            profilesContainer.innerHTML = `
+                <div class="completion-message">
+                    <h2>All Candidates Selected</h2>
+                    <p>Thank you for your participation.</p>
+                    <button onclick="closeCompletionDialog()">OK</button>
+                </div>
+            `;
+        }
+
+        function closeCompletionDialog() {
+            const profilesContainer = document.getElementById('profiles');
+            profilesContainer.innerHTML = ""; // Clear the content when OK is pressed
+        }
+
+        function updateInviteCounter() {
+            // Ensure the counter does not exceed max limits
+            const displayedInvitedCount = Math.min(invitedCount, maxInvites);
+            const displayedRound = Math.min(currentRound, maxRounds);
+
+            document.getElementById('invite-counter').textContent = 
+                `Applicants invited: ${displayedInvitedCount}/${maxInvites} · Round: ${displayedRound}/${maxRounds}`;
+
+            if (currentRound > maxRounds) {
+                disableAllInvites();
+                showCompletionDialog();
+            }
+        }
+        
         function toggleAccordion(element) {
             const content = element.nextElementSibling;
 
@@ -872,6 +975,14 @@
         // Fetch candidates and set up interactivity after the profiles are rendered
         fetchCandidates();
 
+        window.onload = function () {
+            if (!localStorage.getItem("currentRound")) { 
+                localStorage.setItem("currentRound", 1);
+            }
+            currentRound = parseInt(localStorage.getItem("currentRound"));
+            updateInviteCounter();
+            fetchCandidates();
+        };
     </script>
 </body>
 
