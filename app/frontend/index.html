@@ -668,7 +668,7 @@
 
                                     <div class="manipulation-column">
                                         <h5>Age</h5>
-                                        ${["20-30", "30-40", "40-50", ">60"].map(value => `
+                                        ${["20-30", "30-40", "40-50", "50-60", ">60"].map(value => `
                                             <label>
                                                 <input type="radio" name="age-${candidate.Candidate_ID}" value="${value}"
                                                     ${getAgeBin(candidate.Age) === value ? "checked" : ""}>
@@ -775,11 +775,15 @@
         }
 
         function getAgeBin(age) {
+            
             if (age >= 20 && age <= 30) return "20-30";
             if (age >= 30 && age <= 40) return "30-40";
             if (age >= 40 && age <= 50) return "40-50";
+            if (age >= 50 && age <= 60) return "50-60";
             if (age > 60) return ">60";
-            return ""; // Default fallback
+
+            console.warn(`⚠️ Age ${age} does not match any category.`);
+            return ""; // Return empty string if no match
         }
 
         // Fetch candidates and set up interactivity after the profiles are rendered
