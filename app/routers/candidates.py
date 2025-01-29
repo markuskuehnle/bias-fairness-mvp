@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from app.services.data_loader import load_candidates
 from app.services.prediction_service import load_model, predict_candidate
@@ -8,38 +8,47 @@ router = APIRouter()
 # Load the pre-trained XGBoost model
 xgb_model = load_model()
 
+# Store invited candidates in memory (TODO: Maybe Use Redis/DB for persistence)
+invited_candidates = set()
+
+
 @router.get("/candidates/data", tags=["Candidates"])
-def get_candidates_data():
+def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
     """
-    Get the list of two candidates formatted as fact sheets.
+    Get the list of candidates formatted as fact sheets, excluding already invited candidates.
+
+    Parameters:
+    exclude_ids (list[int]): List of candidate IDs to exclude.
 
     Returns:
     list: List of candidate fact sheets.
     """
     try:
-        # Load the candidate data
+        global invited_candidates
+
+        # Load candidate data
         candidates = load_candidates()
 
-        # Select 6 random candidates (or fewer if the dataframe has less than 6 rows)
-        selected_candidates = candidates.sample(n=min(6, len(candidates)))
+        # Convert exclude_ids from query string into a set
+        invited_candidates.update(exclude_ids)
 
-        # Format each candidate as a fact sheet
+        # Remove already invited candidates from the available pool
+        available_candidates = candidates[~candidates["Candidate_ID"].isin(invited_candidates)]
+
+        # Select up to 6 new random candidates
+        selected_candidates = available_candidates.sample(n=min(6, len(available_candidates)))
+
         fact_sheets = []
         for _, row in selected_candidates.iterrows():
-            # Determine Nationality
-            if row["CitizenDesc_US Citizen"] == 1:
-                nationality = "US Citizen"
-            elif row["CitizenDesc_Eligible NonCitizen"] == 1:
-                nationality = "Eligible Non-Citizen"
-            elif row["CitizenDesc_Non-Citizen"] == 1:
-                nationality = "Non-Citizen"
-            else:
-                nationality = "Unknown"
+            nationality = (
+                "US Citizen" if row["CitizenDesc_US Citizen"] == 1 else
+                "Eligible Non-Citizen" if row["CitizenDesc_Eligible NonCitizen"] == 1 else
+                "Non-Citizen" if row["CitizenDesc_Non-Citizen"] == 1 else
+                "Unknown"
+            )
 
-            # Perform the prediction
             prediction_result = predict_candidate(row, xgb_model)
-            
-            # Define a mapping of race descriptions to column names
+
             race_column_mapping = {
                 "White": "RaceDesc_White",
                 "Black or African American": "RaceDesc_Black or African American",
@@ -48,17 +57,14 @@ def get_candidates_data():
                 "Hispanic": "RaceDesc_Hispanic",
             }
 
-            # Function to get race from the available columns
-            def get_race(row, race_column_mapping):
-                for race, column in race_column_mapping.items():
+            def get_race(row, mapping):
+                for race, column in mapping.items():
                     if row[column] == 1:
-                        if race == "Black or African American":
-                            return "Black"  # Normalize to match radio value
-                        if race == "American Indian or Alaska Native":
-                            return "American Indian"
-                        return race
-                return "Unknown"  # Default fallback
-            
+                        return "Black" if race == "Black or African American" else (
+                            "American Indian" if race == "American Indian or Alaska Native" else race
+                        )
+                return "Unknown"
+
             fact_sheets.append({
                 "Candidate_ID": row["Candidate_ID"],
                 "Name": row["Employee_Name"].split(", ")[0],
@@ -72,13 +78,13 @@ def get_candidates_data():
                     "Certifications": int(row["Certifications_Score"]),
                     "Social Skills": 3,
                 },
-                "Race": get_race(row, race_column_mapping),  # Dynamically determine race
+                "Race": get_race(row, race_column_mapping),
                 "Age": row["Age"],
-                "GoodFit": prediction_result["is_good_fit"], # Target Value
-                "Probability": round(prediction_result["prediction_probability"], 2), # Probabilistic Forecast
-                "TopFeatures": prediction_result["top_features"] # SHAP values
+                "GoodFit": prediction_result["is_good_fit"],
+                "Probability": round(prediction_result["prediction_probability"], 2),
+                "TopFeatures": prediction_result["top_features"]
             })
-        
+
         return fact_sheets
 
     except Exception as e:

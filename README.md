@@ -127,14 +127,14 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 ### **Phase 4: Add Additional Backend Routes**
 
 13. **Extend API Functionality**  
-   - Add the following routes to enhance interactivity:  
+   ✅ - Add the following routes to enhance interactivity:  
      - **POST /select_candidate**:  
        - Accept a candidate's ID as input and mark the candidate as selected.  
        - Return a confirmation response with the selected candidate's details.  
      - **GET /selected_candidate**:  
        - Retrieve the details of the currently selected candidate, including attributes and predictions.  
    - **Next Steps: Build the XAI Selection Tool**:  
-     - Allow users to temporarily modify one attribute at a time (e.g., age, sex, gender) and review the new prediction in the frontend.  
+     ✅ - Allow users to temporarily modify one attribute at a time (e.g., age, sex, gender) and review the new prediction in the frontend.  
      - Ensure invited candidates are dropped from the selection pool after being selected.  
      - Present a new set of candidates for the next round of invitations, up to **6 rounds** in total.  
      - Add a **"Next Round" button** in the frontend, prompting confirmation before proceeding.  
@@ -257,4 +257,5 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 **Todo:**
 
 - Users should have the flexibility to select fewer than the maximum number of suggested candidates and proceed to the next round. Any decision to move to the next round should be logged in the system.  
-- For XAI functionality: If users modify candidate attributes in the frontend, the original values should be stored separately to maintain data integrity.  
+- For XAI functionality: If users modify candidate attributes in the frontend, the original values should be stored separately to maintain data integrity. 
+- `Race` could be missing, since we dont map Latino/Hispanic/etc.

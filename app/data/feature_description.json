@@ -1,5 +1,6 @@
 {
-    "Age": "Age of the Candidate.",
+    "Age": "Represents the candidate's age in years.",
+    "AgeGroup": "Represents the age group of the candidate, providing additional demographic context.",
     "Position_IT Support": "Refers to the previous position held by the candidate in IT support roles, involving troubleshooting and maintaining IT systems (included in the position details of the candidate).",
     "Position_Production Technician I": "Indicates the candidate's prior experience as a Production Technician I, responsible for operating machinery and maintaining production efficiency (included in the position details of the candidate).",
     "Position_Area Sales Manager": "Represents prior experience as an Area Sales Manager, overseeing regional sales operations and driving revenue growth (included in the position details of the candidate).",
@@ -50,7 +51,6 @@
     "Department_Admin Offices": "Refers to the candidate's experience in administrative office roles (included in the department details of the candidate).",
     "Department_Executive Office": "Represents the candidate's experience in executive-level roles (included in the department details of the candidate).",
     "YearsExperience": "Indicates the total number of years of experience the candidate has (included in the candidate's professional background).",
-    "AgeGroup": "Represents the age group of the candidate, providing additional demographic context.",
     "ExperienceCategory": "Classifies the candidate's experience into predefined categories based on their years of experience.",
     "Education": "Indicates the level of education attained by the candidate, such as Bachelor's or Master's degree (included in the candidate's academic background).",
     "Basic Machinery Maintenance": "Ensures the upkeep of machinery for smooth operations, critical for production efficiency (included in the technical skills rating of the candidate).",

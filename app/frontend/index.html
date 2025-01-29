@@ -384,6 +384,7 @@
     <script>
         let invitedCount = 0;
         const maxInvites = 2;
+        let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
 
         async function updatePrediction(candidateId, gender, age, race) {
             const updatePayload = {
@@ -587,8 +588,16 @@
             });
         });
 
+        document.addEventListener("DOMContentLoaded", fetchCandidates);
+
         async function fetchCandidates() {
             try {
+                // Reset invite counter and invitedCandidates when fetching new candidates
+                invitedCount = 0;
+                invitedCandidates = [];
+                localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates));
+                updateInviteCounter(); // Ensure UI reflects the reset count
+
                 // Fetch candidates and feature descriptions in parallel
                 const [candidatesResponse, featureDescriptions] = await Promise.all([
                     fetch('/candidates/data'), // Fetch candidates
@@ -621,11 +630,6 @@
                     const badge = candidate.GoodFit
                         ? `<div class="badge-yellow">AI Recommendation</div>`
                         : "";
-
-                    // Set the invite button style based on AI recommendation
-                    const inviteButton = candidate.GoodFit
-                        ? `<button class="invite-btn highlight-btn" onclick="inviteCandidate(this)">>>Invite Applicant<<</button>`
-                        : `<button class="invite-btn" onclick="inviteCandidate(this)">Invite Applicant</button>`;
 
                     // Generate accordion content for XAI features
                     const accordionContent = candidate.GoodFit
@@ -676,9 +680,7 @@
                             `).join('')}
                         </div>
 
-                        <div class="invite-section">
-                            ${inviteButton}
-                        </div>
+                        <div class="invite-section"></div> <!-- Invite button will be appended here -->
 
                         <div class="prediction-section">
                             <div>
@@ -734,6 +736,17 @@
 
                     `;
 
+                    // **Create Invite Button**
+                    const inviteButton = document.createElement("button");
+                        inviteButton.className = candidate.GoodFit ? "invite-btn highlight-btn" : "invite-btn";
+                        inviteButton.textContent = candidate.GoodFit ? ">>Invite Applicant<<" : "Invite Applicant";
+                        inviteButton.addEventListener("click", function () {
+                            inviteCandidate(candidate.Candidate_ID, inviteButton);
+                        });
+
+                    // Append the invite button to the card
+                    card.querySelector(".invite-section").appendChild(inviteButton);
+
                     // Append the card to the profiles container
                     profilesContainer.appendChild(card);
                 });
@@ -782,21 +795,43 @@
             `;
         }
 
-        function inviteCandidate(button) {
+        function inviteCandidate(candidateId, button) {
+            const card = button.closest('.profile-card');
+            if (!card) {
+                console.error("⚠️ No profile card found for this button.");
+                return;
+            }
+
+            if (!candidateId) {
+                console.error("⚠️ Candidate ID missing on the profile card.");
+                return;
+            }
+
             if (invitedCount < maxInvites) {
-                const card = button.closest('.profile-card');
+                // Mark candidate as invited
                 card.classList.add('invited');
                 button.outerHTML = `<div class="badge-green">Invited</div>`;
+
                 invitedCount++;
+                invitedCandidates.push(candidateId); // Add to list
+                localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates)); // Persist
+
                 updateInviteCounter();
+
+                console.log(`✅ Candidate ${candidateId} invited.`);
+
+                // Fetch new candidates when the limit is reached
+                if (invitedCount >= maxInvites) {
+                    console.log("🔄 Max invites reached, fetching new candidates...");
+                    setTimeout(fetchCandidates, 1000);
+                }
             } else {
                 alert('Maximum number of applicants invited!');
             }
         }
 
         function updateInviteCounter() {
-            const counterElement = document.getElementById('invite-counter');
-            counterElement.textContent = `Applicants invited: ${invitedCount}/${maxInvites}`;
+            document.getElementById('invite-counter').textContent = `Applicants invited: ${invitedCount}/${maxInvites}`;
         }
 
         function toggleAccordion(element) {
