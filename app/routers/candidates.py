@@ -79,10 +79,6 @@ def get_candidates_data():
                 "TopFeatures": prediction_result["top_features"] # SHAP values
             })
         
-        # Assuming fact_sheets is a list and populated as shown
-        for fact_sheet in fact_sheets:
-            print(f"Candidate ID: {fact_sheet['Candidate_ID']}, Race: {fact_sheet['Race']}")
-            
         return fact_sheets
 
     except Exception as e:
