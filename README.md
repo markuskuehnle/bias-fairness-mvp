@@ -240,7 +240,8 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
    - How many candidates should be suggested in the frontend for the user to review?
    - What is the maximum number of candidates that can be invited?
    - How many selection rounds should a user complete?
-
+   - Should the candidate rounds be reproducible? (random selection)
+   
 ---
 
 ### Additional Notes and Considerations

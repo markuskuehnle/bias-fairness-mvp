@@ -375,6 +375,126 @@
         let invitedCount = 0;
         const maxInvites = 2;
 
+        async function updatePrediction(candidateId, gender, age, race) {
+            const updatePayload = {
+                candidate_id: candidateId,
+                updated_features: {
+                    Sex: gender === "Female" ? 0 : 1,
+                    Age: getRandomAge(age),
+                }
+            };
+
+            // Reset all race values to 0
+            const raceColumnMap = {
+                "Black": "RaceDesc_Black or African American",
+                "White": "RaceDesc_White",
+                "Asian": "RaceDesc_Asian",
+                "American Indian": "RaceDesc_American Indian or Alaska Native",
+                "Hispanic": "RaceDesc_Hispanic"
+            };
+            Object.values(raceColumnMap).forEach(raceKey => updatePayload.updated_features[raceKey] = 0);
+            
+            // Set the selected race to 1
+            if (raceColumnMap[race]) {
+                updatePayload.updated_features[raceColumnMap[race]] = 1;
+            }
+
+            console.log("📤 Sending request to backend:", JSON.stringify(updatePayload));
+
+            try {
+                const response = await fetch("/predict/update", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(updatePayload)
+                });
+
+                console.log("🔄 Waiting for backend response...");
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("❌ Backend returned an error:", errorText);
+                    throw new Error("Failed to update prediction.");
+                }
+
+                const result = await response.json();
+                console.log("✅ Backend response:", result);
+
+            } catch (error) {
+                console.error("🚨 Fetch error:", error);
+            }
+        }
+
+
+        function getRandomAge(ageRange) {
+            const ranges = {
+                "20-30": [20, 30],
+                "30-40": [30, 40],
+                "40-50": [40, 50],
+                ">60": [61, 75]
+            };
+
+            if (ranges[ageRange]) {
+                const [min, max] = ranges[ageRange];
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            return 35; // Default fallback
+        }
+
+        async function handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues) {
+            console.log("🔹 handleManipulationChange triggered", candidateId, selectedGroup, selectedValue);
+
+            const allInputs = document.querySelectorAll(`input[name^="gender-${candidateId}"], 
+                                                        input[name^="age-${candidateId}"], 
+                                                        input[name^="race-${candidateId}"]`);
+
+            // Get the original values
+            const originalGender = originalValues.gender;
+            const originalAge = originalValues.age;
+            const originalRace = originalValues.race;
+
+            // Check if a radio button is selected before accessing `.value`
+            const genderInput = document.querySelector(`input[name="gender-${candidateId}"]:checked`);
+            const ageInput = document.querySelector(`input[name="age-${candidateId}"]:checked`);
+            const raceInput = document.querySelector(`input[name="race-${candidateId}"]:checked`);
+
+            console.log(`🟢 Found selections - Gender: ${genderInput ? genderInput.value : "❌ MISSING"}, Age: ${ageInput ? ageInput.value : "❌ MISSING"}, Race: ${raceInput ? raceInput.value : "❌ MISSING"}`);
+
+            // If any input is missing, log an error and return
+            if (!genderInput || !ageInput || !raceInput) {
+                console.error(`⚠️ Missing input selection for candidate ${candidateId}`);
+                return;
+            }
+
+            const currentGender = genderInput.value;
+            const currentAge = ageInput.value;
+            const currentRace = raceInput.value;
+
+            console.log("Current selections:", currentGender, currentAge, currentRace);
+
+            const isReverted = currentGender === originalGender && currentAge === originalAge && currentRace === originalRace;
+
+            if (!isReverted) {
+                console.log("Modifications detected, updating prediction...");
+                allInputs.forEach(input => {
+                    if (input.name.includes(selectedGroup) || input.value === originalValues[selectedGroup]) return;
+                    input.disabled = true;
+                    input.parentElement.classList.add("disabled");
+                });
+
+                await updatePrediction(candidateId, currentGender, currentAge, currentRace);
+            } else {
+                console.log("Values reverted, enabling inputs...");
+                allInputs.forEach(input => {
+                    input.disabled = false;
+                    input.parentElement.classList.remove("disabled");
+                });
+
+                await updatePrediction(candidateId, originalGender, originalAge, originalRace);
+            }
+        }
+
         document.addEventListener("change", function (event) {
             if (event.target.type === "radio") {
                 const candidateId = event.target.name.split('-')[1]; // Extract Candidate_ID
@@ -394,43 +514,6 @@
                 handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues);
             }
         });
-
-        function handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues) {
-            const allInputs = document.querySelectorAll(`input[name^="gender-${candidateId}"], 
-                                                        input[name^="age-${candidateId}"], 
-                                                        input[name^="race-${candidateId}"]`);
-
-            // Get the original values
-            const originalGender = originalValues.gender;
-            const originalAge = originalValues.age;
-            const originalRace = originalValues.race;
-
-            // Get the currently selected values
-            const currentGender = document.querySelector(`input[name="gender-${candidateId}"]:checked`).value;
-            const currentAge = document.querySelector(`input[name="age-${candidateId}"]:checked`).value;
-            const currentRace = document.querySelector(`input[name="race-${candidateId}"]:checked`).value;
-
-            // Check if the current selections match the original values
-            const isReverted = currentGender === originalGender && currentAge === originalAge && currentRace === originalRace;
-
-            if (!isReverted) {
-                // If something is changed, disable all other options except the original
-                allInputs.forEach(input => {
-                    if (input.name.includes(selectedGroup) || input.value === originalValues[selectedGroup]) return; // Keep same group & original
-                    input.disabled = true;
-                    input.parentElement.classList.add("disabled"); // Grey out the label
-                });
-            } else {
-                // If all values match the original, re-enable everything
-                document.querySelectorAll(`input[name^="gender-${candidateId}"], 
-                                        input[name^="age-${candidateId}"], 
-                                        input[name^="race-${candidateId}"]`)
-                    .forEach(input => {
-                        input.disabled = false;
-                        input.parentElement.classList.remove("disabled"); // Restore label color
-                    });
-            }
-        }
 
         async function fetchCandidates() {
             try {

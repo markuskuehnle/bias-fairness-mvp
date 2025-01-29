@@ -2,9 +2,21 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+import logging
+
 from app.routers import candidates, prediction
 
 app = FastAPI()
+
+# Enable detailed logging
+logging.basicConfig(level=logging.DEBUG)
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    logging.info(f"📥 Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    logging.info(f"📤 Response status: {response.status_code}")
+    return response
 
 # Enable CORS
 app.add_middleware(
