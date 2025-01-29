@@ -421,26 +421,41 @@
                 const result = await response.json();
                 console.log("✅ Backend response:", result);
 
-                // 🔹 Find the correct candidate profile card
+                // Find the correct candidate profile card
                 const candidateCard = document.querySelector(`.profile-card[data-candidate-id="${candidateId}"]`);
                 if (!candidateCard) {
                     console.error("❌ Candidate card not found for ID:", candidateId);
                     return;
                 }
 
-                // 🔹 Update the Good Fit section correctly
+                // Update the Good Fit section correctly
                 const goodFitElement = candidateCard.querySelector(".prediction-section strong:nth-of-type(1)");
                 if (goodFitElement) {
                     goodFitElement.nextSibling.nodeValue = ` ${result.is_good_fit ? "Yes" : "No"}`;
                 }
 
-                // 🔹 Update the Probability correctly
+                // Update the Probability correctly
                 const probabilityElement = candidateCard.querySelector(".prediction-section div:nth-of-type(2) strong");
                 if (probabilityElement) {
                     probabilityElement.nextSibling.nodeValue = ` ${result.prediction_probability.toFixed(2)}`;
                 }   
 
-                // 🔹 Update the XAI explanation
+                // 🔹 Update the AI Recommendation Badge (Add/Remove)
+                const badgeContainer = candidateCard.querySelector(".badge-container");
+                if (result.is_good_fit) {
+                    // Add AI Recommendation badge if it doesn't exist
+                    if (!badgeContainer.querySelector(".badge-yellow")) {
+                        badgeContainer.innerHTML = `<div class="badge-yellow">AI Recommendation</div>`;
+                    }
+                } else {
+                    // Remove AI Recommendation badge if Good Fit is No
+                    const aiBadge = badgeContainer.querySelector(".badge-yellow");
+                    if (aiBadge) {
+                        aiBadge.remove();
+                    }
+                }
+
+                // Update the XAI explanation
                 const xaiSection = candidateCard.querySelector(".accordion-content");
                 if (xaiSection) {
                     xaiSection.innerHTML = result.top_features.map(feature => `

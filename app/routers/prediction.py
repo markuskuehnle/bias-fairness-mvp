@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+import pandas as pd
+import random
+
 from app.services.data_loader import load_candidates
 from app.services.prediction_service import load_model, predict_candidate
-from pydantic import BaseModel
-import random
 
 
 router = APIRouter()
@@ -15,18 +17,18 @@ class PredictionRequest(BaseModel):
     updated_features: dict  # This will contain user-modified features
 
 
+def get_age_group(age: int) -> str:
+    """Return the age group based on predefined bins."""
+    if age < 30:
+        return "<30"
+    elif 30 <= age <= 50:
+        return "30-50"
+    else:
+        return ">50"
+
+
 @router.post("/predict/update", tags=["Prediction"])
 def update_prediction(request: PredictionRequest):
-    """
-    Update AI prediction when a protected feature (e.g., gender, age, race) is modified.
-    
-    Parameters:
-    - candidate_id (int): The ID of the candidate.
-    - updated_features (dict): Key-value pairs of updated features.
-
-    Returns:
-    JSON: Updated prediction results.
-    """
     try:
         # Load the candidate data
         candidates = load_candidates()
@@ -42,19 +44,24 @@ def update_prediction(request: PredictionRequest):
         for feature, value in request.updated_features.items():
             candidate_row[feature] = value
 
-        # If Age was modified, randomly pick an age within the given range
+        # Validate Age if modified
         if "Age" in request.updated_features:
-            age_range = request.updated_features["Age"]
+            age_value = request.updated_features["Age"]
             
-            if isinstance(age_range, str) and "-" in age_range:
-                # If the value is a string with a range, split and pick a random age
-                min_age, max_age = map(int, age_range.split("-"))
+            if isinstance(age_value, str) and "-" in age_value:
+                # If the value is a string range, randomly select an age
+                min_age, max_age = map(int, age_value.split("-"))
                 candidate_row["Age"] = random.randint(min_age, max_age)
-            elif isinstance(age_range, int):
-                # If the frontend already sent an integer, use it directly
-                candidate_row["Age"] = age_range
+            elif isinstance(age_value, int):
+                candidate_row["Age"] = age_value
             else:
-                raise HTTPException(status_code=400, detail=f"Invalid Age format: {age_range}")
+                raise HTTPException(status_code=400, detail=f"Invalid Age format: {age_value}")
+
+            # Ensure Age is valid before assigning AgeGroup
+            if "Age" in candidate_row and not pd.isnull(candidate_row["Age"]):
+                candidate_row["AgeGroup"] = get_age_group(candidate_row["Age"])
+            else:
+                raise HTTPException(status_code=400, detail="Missing or invalid Age value.")
 
         # Recalculate prediction
         prediction_result = predict_candidate(candidate_row, xgb_model)
@@ -68,7 +75,7 @@ def update_prediction(request: PredictionRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e.__traceback__.tb_lineno}, {str(type(e).__name__)}: {str(e)}")
-    
+
 
 @router.get("/predict/{candidate_id}", tags=["Prediction"])
 def predict_candidate_api(candidate_id: int):
