@@ -306,28 +306,23 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ---
 
-## Future Improvements
-- Integrate more advanced fairness-aware algorithms.
-
----
-
 ### Topics for Discussion
 
 1. **Frontend Display:**
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend?  
-   - Should the `XAI: Top 3 Features` be shown only for recommended candidates?
+   - Should the `XAI: Top 3 Features` be shown **only** for recommended candidates?
 
 2. **Feature Visibility:**
-   - Should features like `Sex`, `YearsExperience`, or `RaceDesc_*` be included in the `Top 3 Features` displayed to the user?
+   - Should features like `Sex`, `Age`, or `RaceDesc_*` be included in the `Top 3 Features` displayed to the user?
 
 3. **Candidate Pool Management:**
-   - Should only the invited applicants be dropped from the system after each round, or should all applicants (both invited and not invited) be dropped?
-   - How many applicants should be included in the dataset?  
    - How many candidates should be suggested in the frontend for the user to review?
    - What is the maximum number of candidates that can be invited?
    - How many selection rounds should a user complete?
+   - Should only the invited applicants be dropped from the system after each round, or should all seen applicants (both invited and not invited) be dropped?
+   - How many applicants should be included in the dataset?  
    - Should the candidate rounds be reproducible? (random selection)
-   - Preselection of candidates to ensure imbalance in recommendations
+   - Preselection of candidates to ensure imbalance in recommendations?
 
 ---
 
