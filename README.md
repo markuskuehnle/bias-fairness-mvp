@@ -1,3 +1,5 @@
+![IBA Cover](imgs/institut_fuer_business_analytics_der_universitaet_ulm_cover.jpeg)
+
 # Bias and Fairness Demonstrator: Predicting Role Fit
 
 This project demonstrates bias and fairness in machine learning decision-making systems, focusing on predicting whether a candidate is a good fit for a specific role based on their CV attributes. The project integrates bias detection and fairness interventions, allowing users to interactively upload CVs or select predefined ones to analyze decision outcomes.
@@ -10,6 +12,9 @@ The primary goal is to:
 - Analyze and visualize how biased data influences decisions.
 - Implement counterfactual analysis to evaluate how changes in individual features impact model decisions.
 - Demonstrate fairness interventions with user-friendly visualizations.
+
+
+![Mockup](imgs/mockup.png)
 
 ---
 
