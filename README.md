@@ -159,6 +159,10 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ![Applicant Selection Screenshot 2](imgs/applicant_selection2.png)
 
+![Applicant Selection Screenshot 3](imgs/applicant_selection3.png)
+
+![Applicant Selection Screenshot 4](imgs/applicant_selection4.png)
+
 ---
 
 ## Demonstrator Workflow
@@ -253,6 +257,7 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 - If technical skills appear among the most important features of the AI recommendations, a short explanation of these skills should also be displayed.  
 - A role description should be included to provide context.
 - Applicants shown to the user should belong to the same role (e.g., Production Technician) to ensure consistent star ratings for skills across candidates. (Pre-selected)
+- Preselection of candidates to ensure imbalance in recommendations
 
 **Todo:**
 
