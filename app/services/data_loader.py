@@ -15,7 +15,6 @@ def load_candidates(file_path: str = "app/data/static_data.parquet") -> pd.DataF
         raise FileNotFoundError(f"File not found at {file_path}")
     
     try:
-        # print(pd.read_parquet(file_path))
         return pd.read_parquet(file_path)
     except Exception as e:
         raise RuntimeError(f"Error loading candidates from {file_path}: {e}")

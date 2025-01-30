@@ -438,7 +438,7 @@
     <script>
         let invitedCount = 0;
         const maxInvites = 2;
-        const maxRounds = 6;
+        const maxRounds = 4;
         let currentRound = parseInt(localStorage.getItem("currentRound")) || 1;
         let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
         let isFetching = false;  // Global lock to prevent duplicate calls
@@ -1053,7 +1053,7 @@
         window.onload = async function () {
             console.log("🔄 Performing FULL RESET...");
 
-            // 🔄 Clear frontend tracking data
+            // Clear frontend tracking data
             localStorage.clear();
             invitedCount = 0;
             invitedCandidates = [];
@@ -1061,7 +1061,7 @@
             isFetching = false;
 
             // Update UI to show reset
-            updateInviteCounter();
+            document.getElementById("profiles").innerHTML = "";
 
             try {
                 // Wait for backend reset BEFORE fetching candidates
@@ -1069,6 +1069,12 @@
                 const response = await fetch("/candidates/reset", { method: "POST" });
                 const data = await response.json();
                 console.log("✅ Backend Reset:", data);
+
+                // Ensure localStorage is fully cleared again
+                localStorage.setItem("seenCandidates", JSON.stringify([]));
+                localStorage.setItem("invitedCandidates", JSON.stringify([]));
+                localStorage.setItem("currentRound", "1");
+                localStorage.setItem("invitedCount", "0");
 
                 // Fetch fresh candidates only after reset is complete
                 await fetchCandidates();
@@ -1149,6 +1155,29 @@
             } else {
                 alert('Maximum number of applicants invited!');
             }
+        }
+
+        function nextRound() {
+            if (currentRound >= maxRounds) {
+                console.log("🏁 Maximum rounds reached. No more rounds available.");
+                disableAllInvites();
+                showCompletionDialog();
+                return;
+            }
+
+            console.log(`🔄 Moving to next round. Current round: ${currentRound}`);
+
+            currentRound++; // Increment round
+            localStorage.setItem("currentRound", currentRound);
+
+            // Reset the invited count for the new round
+            invitedCount = 0;
+            localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
+
+            // Clear UI and fetch new candidates
+            document.getElementById("profiles").innerHTML = "";
+            fetchCandidates();
+            updateInviteCounter();
         }
 
     </script>
