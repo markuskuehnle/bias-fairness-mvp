@@ -165,29 +165,6 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ---
 
-## Demonstrator Workflow
-
-### User Interaction
-- **Upload CV**: Allow users to upload a CV or select a predefined one.
-  - Parse CV into feature schema used for modeling.
-- **Role Selection**: User selects a role (e.g., `PositionID` or `Department`).
-
-### Model Prediction
-- Model predicts whether the person is a good fit for the selected role.
-- Outputs:
-  - Probability score (e.g., 85% fit).
-  - Explanation of key contributing factors (e.g., SHAP values).
-
-### Bias and Fairness Insights
-- Visualize:
-  - How sensitive attributes influence predictions.
-  - Comparisons of fit probability across demographic groups.
-
-### Comparison of Models
-- Show predictions with and without fairness interventions.
-
----
-
 ## Focus on Bias, Fairness, and Counterfactuals
 
 ### Bias Simulation
