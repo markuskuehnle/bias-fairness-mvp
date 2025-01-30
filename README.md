@@ -373,6 +373,8 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 
 ---
 
+![key_decisions](imgs/key_decisions_banner.png)
+
 ### Topics for Discussion
 
 1. **Frontend Display:**
