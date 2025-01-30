@@ -401,15 +401,6 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 
 ### Additional Notes and Considerations
 
-**Done:**
-
-- Included `Age` in the Frontend and Data
-- The information about `Birthplace` was simulated using `RaceDesc_*` and `Nationality` in the Notebook 12
-- If technical skills appear among the most important features of the AI recommendations, a short explanation of these skills should also be displayed.  
-- A role description should be included to provide context.
-- Applicants shown to the user should belong to the same role (e.g., Production Technician) to ensure consistent star ratings for skills across candidates. (Pre-selected)
-- Preselection of candidates to ensure imbalance in recommendations
-
 **Todo:**
 
 - `Race` could be missing, since we dont map Latino/Hispanic/etc.
