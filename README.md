@@ -331,11 +331,11 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
      - Add a **"Next Round" button** in the frontend, prompting confirmation before proceeding.  
      - Remove all candidates from the previous round permanently when moving to the next round.  
 
-13. **Update Static Data Handling**  
+🟡 13. **Update Static Data Handling**  
    - Ensure the `static_data_loader.py` script supports tracking the selection state for candidates.  
    - Add logic to update and serve the selected candidate dynamically.
 
-14. **Save Candidate Selection and Flags**
+🟡 14. **Save Candidate Selection and Flags**
    - Ensure the data about invited candidates is saved. (Consider saving the alternative candidates per round - round and user-id required)
 
 15. **Add Configurations**  
