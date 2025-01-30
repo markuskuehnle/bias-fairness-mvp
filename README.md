@@ -1,20 +1,127 @@
 ![IBA Cover](imgs/institut_fuer_business_analytics_der_universitaet_ulm_cover.jpeg)
 
-# Bias and Fairness Demonstrator: Predicting Role Fit
+# Bias and Fairness Demonstrator: Predicting Role Fit  
 
-This project demonstrates bias and fairness in machine learning decision-making systems, focusing on predicting whether a candidate is a good fit for a specific role based on their CV attributes. The project integrates bias detection and fairness interventions, allowing users to interactively upload CVs or select predefined ones to analyze decision outcomes.
+This project explores bias and fairness in machine learning decision-making systems, focusing on predicting whether a candidate is a good fit for a specific role based on historical employee data. The goal is to analyze how AI recommendations influence human decision-making in candidate selection.  
 
-This is based on my initial idea and project setup sketch. I will iterate on this design and make adjustments as needed.
+---
 
-## Objective
-The primary goal is to:
-- Train an ML model on **biased data** to simulate real-world biases.
-- Analyze and visualize how biased data influences decisions.
+## Objective  
+
+- Train a classifier on **historically biased employee data** to reflect real-world biases. 
 - Implement counterfactual analysis to evaluate how changes in individual features impact model decisions.
+- Develop an interactive system to study user decision-making when selecting candidates based on AI recommendations.  
+- Implement and compare different variations of AI-assisted selection to evaluate their impact:  
+  1. **AI Recommendation Only:** Candidate cards display an AI-generated **good fit** badge based on the (biased) classifier.  
+  2. **AI Recommendation + XAI:** Candidate cards include the **good fit** badge and an **explainability (XAI) section**, showing the most important features influencing the decision (SHAP values).  
+  3. **AI Recommendation + XAI + Feature Manipulation:** Users can **manipulate candidate attributes**, triggering a **new AI prediction** to observe how changes affect the decision.  
 - Demonstrate fairness interventions with user-friendly visualizations.
+- Analyze and visualize how biased data influences decisions.
 
+The candidate pool is preselected from the dataset to maintain consistency in evaluation.  
+
+---
+
+## Contributors  
+
+This project is developed as part of a research collaboration between:  
+
+- **Chiara Schwenke** – Research lead, concept & study design  
+- **Markus Kühnle** – System development & implementation & study design 
+- **Institute of Business Analytics, University of Ulm** – Research support & academic supervision  
+
+This tool serves as a research artifact to study decision-making behavior in candidate selection.  
+
+## Interactive Candidate Selection Interface Mockup
 
 ![Mockup](imgs/mockup.png)
+
+---
+
+## **Project Setup**  
+
+To set up the project, follow these steps:  
+
+### **1. Clone the Repository**
+Navigate to your desired local directory and clone the repository:  
+
+```sh
+cd /path/to/your/projects  
+git clone https://github.com/markuskuehnle/bias-fairness-mvp.git  
+cd bias-fairness-mvp  
+```
+
+### **2. Install `uv` (Optional, Recommended for Dependency Management)**  
+[`uv`](https://github.com/astral-sh/uv) is a fast package manager that simplifies dependency handling. If you don’t have `uv` installed, you can install it with:
+
+```sh
+pip install uv
+```
+
+Then verify the installation:
+
+```sh
+uv --version
+```
+
+### **3. Create a Virtual Environment**  
+It's recommended to use a virtual environment to isolate dependencies.  
+
+Run the following command to create a `.venv` folder in the project directory:
+
+```sh
+python -m venv .venv  
+```
+
+Activate the virtual environment:  
+
+- **macOS/Linux:**  
+  ```sh
+  source .venv/bin/activate  
+  ```
+- **Windows (PowerShell):**  
+  ```sh
+  .venv\Scripts\Activate  
+  ```
+
+### **4. Install Dependencies**  
+
+#### **Using `uv` (Recommended)**
+If you have `uv` installed, install dependencies from `uv.lock`:
+
+```sh
+uv venv .venv  
+uv pip sync  
+```
+
+Alternatively, if you need to install from `requirements.txt`:
+
+```sh
+uv add -r requirements.txt  
+```
+
+#### **Using `pip` (Alternative)**
+If you prefer `pip`, install dependencies from `requirements.txt`:
+
+```sh
+pip install -r requirements.txt  
+```
+
+### **5. Verify Installation**  
+
+Check if the virtual environment is active and dependencies are installed correctly:
+
+```sh
+python -m pip list  
+```
+
+If using `uv`, you can also verify dependencies with:
+
+```sh
+uv pip list  
+```
+
+You're now ready to run the notebooks and start the project. 🖥️
 
 ---
 
@@ -60,6 +167,26 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ### Handle Missing Data
 - Impute missing values (e.g., `PayRate`, `DOB`) with domain-appropriate methods.
+
+---
+
+## Notebooks  
+
+- **01_data_exploration**: Performs an initial analysis of the dataset, identifying key patterns, distributions, and potential data quality issues.  
+- **02_data_cleaning**: Prepares the raw HR dataset by handling missing values, correcting inconsistencies, and engineering new features. This step ensures a clean, standardized dataset suitable for fairness and bias analysis.
+- **03_simulate_additional_information**: Enhances the dataset by simulating skills, certifications, and education levels based on role-specific requirements. This improves realism and helps evaluate biases in AI-based CV screening.
+- **04_encode_data**: Transforms categorical features into a machine-readable format using encoding techniques like one-hot encoding and label encoding. It also normalizes numerical features and prepares the dataset for modeling.
+- **05_train_test_split**: Splits the processed dataset into training and testing sets while ensuring stratification of the target variable. This ensures balanced class distributions for model evaluation.
+- **06_train_baseline_model**: Trains a simple baseline model as a reference for performance comparison.  
+- **07_train_xgb_model**: Trains an XGBoost model, tuning hyperparameters for improved predictive accuracy.  
+- **08_show_metrics**: Extracts and displays model evaluation metrics from the experiment tracker. It retrieves parameters from a specific experiment and provides insights into performance comparisons.
+- **09_train_nn**: Trains a neural network for the prediction task, leveraging deep learning techniques.  
+- **10_bias_demonstration**: Analyzes potential bias in model predictions using statistical tests, confusion matrices, calibration checks, and SHAP explainability. It examines demographic disparities and evaluates fairness across different subgroups.
+- **11_counterfactual_calculation**: Computes counterfactual predictions by modifying specific attributes (e.g., race, gender, years of experience) to assess their impact on model outcomes. The notebook highlights potential biases and evaluates the model’s sensitivity to individual features.
+- **12_create_static_data_for_mvp**: Generates a static dataset for the app MVP by selecting relevant candidate data from processed datasets. It includes feature enrichment, birthplace estimation, technical skills, and certification scoring before saving the final dataset as a Parquet file.
+- **13_create_feature_description_json**: Creates a JSON file that documents feature descriptions, aligning them with role-specific skills and certifications. The notebook ensures consistency between feature names and role attributes while validating completeness.
+- **14_review_predictions**: Applies a pre-trained XGBoost model to predict candidate suitability and visualizes the prediction distribution. It also explores SHAP-based feature importance, balances the dataset via downsampling, and prepares the data for further analysis.
+- **15_run_pipeline**: Executes the full data pipeline, integrating all preprocessing, model training, and evaluation steps.  
 
 ---
 
@@ -160,6 +287,10 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 17. **Deploy the MVP**  
    - Host the MVP on **Heroku**, **Render**, or **AWS** for user testing and feedback.  
 
+---
+
+## Tool Screenshots: Candidate Selection & Bias Analysis Overview
+
 ![Applicant Selection Screenshot 3](imgs/applicant_selection3.png)
 
 ![Applicant Selection Screenshot 4](imgs/applicant_selection4.png)
@@ -213,5 +344,4 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 **Todo:**
 
-- Users should have the flexibility to select fewer than the maximum number of suggested candidates and proceed to the next round. Any decision to move to the next round should be logged in the system.  
 - `Race` could be missing, since we dont map Latino/Hispanic/etc.
