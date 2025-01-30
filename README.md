@@ -253,6 +253,8 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 
 ---
 
+![mvp_banner](imgs/mvp_banner.png)
+
 ## Step-by-Step Plan to Build the MVP
 
 ### Phase 1: Initial Development in Notebooks
