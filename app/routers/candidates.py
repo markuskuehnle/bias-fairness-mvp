@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+
 from app.services.data_loader import load_candidates
 from app.services.prediction_service import load_model, predict_candidate
 
@@ -11,6 +13,10 @@ xgb_model = load_model()
 # Store seen and invited candidates in memory (TODO: Maybe Use Redis/DB for persistence)
 seen_candidates = set()
 invited_candidates = set()
+
+
+class InviteRequest(BaseModel):
+    candidate_id: int
 
 
 @router.get("/candidates/data", tags=["Candidates"])
@@ -107,16 +113,34 @@ def show_candidates_frontend():
     
 
 @router.post("/candidates/invite", tags=["Candidates"])
-def invite_candidate(candidate_id: int):
+def invite_candidate(invite_data: InviteRequest):
     """
-    Store an invited candidate in the memory set so they are never shown again.
+    Store an invited candidate in memory so they are never shown again.
 
     Parameters:
-    candidate_id (int): The ID of the invited candidate.
+    invite_data (InviteRequest): The candidate ID wrapped in a Pydantic model.
     """
     try:
         global invited_candidates
+        candidate_id = invite_data.candidate_id  # Extract from request body
         invited_candidates.add(candidate_id)
         return {"message": f"Candidate {candidate_id} invited successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/candidates/reset", tags=["Candidates"])
+def reset_tool():
+    """
+    Fully reset the tool: clear seen/invited candidates and reload the full candidate pool.
+    """
+    try:
+        global seen_candidates, invited_candidates
+
+        # Fully clear seen and invited lists
+        seen_candidates.clear()
+        invited_candidates.clear()
+
+        return {"message": "Tool has been fully reset, and the full candidate pool is available again."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

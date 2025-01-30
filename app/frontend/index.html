@@ -671,6 +671,8 @@
                 // Retrieve the seenCandidates list
                 let seenCandidates = JSON.parse(localStorage.getItem("seenCandidates")) || [];
                 let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
+                console.log("📌 LocalStorage seenCandidates:", JSON.parse(localStorage.getItem("seenCandidates")) || []);
+                console.log("📌 LocalStorage invitedCandidates:", JSON.parse(localStorage.getItem("invitedCandidates")) || []);
 
                 // Combine seen and invited candidates for exclusion
                 let excludeList = [...new Set(seenCandidates.concat(invitedCandidates))];
@@ -694,6 +696,13 @@
                 }
 
                 const data = candidatesResponse; // Assign the JSON response
+
+                // Extract new candidate IDs
+                let newSeenCandidates = data.map(c => c.Candidate_ID);
+                
+                // Ensure `seenCandidates` updates correctly
+                seenCandidates = [...new Set([...seenCandidates, ...newSeenCandidates])]; 
+                localStorage.setItem("seenCandidates", JSON.stringify(seenCandidates));
 
                 // Update UI
                 updateInviteCounter();
@@ -1041,36 +1050,30 @@
 
         let hasFetchedCandidates = false;  // Prevent double fetch
 
-        window.onload = function () {
-            console.log("🔄 Page loaded, checking stored round...");
+        window.onload = async function () {
+            console.log("🔄 Performing FULL RESET...");
 
-            let storedRound = parseInt(localStorage.getItem("currentRound"));
-            storedRound = 1 // reset Round
-            // Force a reset if stuck or invalid
-            if (!storedRound || storedRound < 1 || storedRound > maxRounds) { 
-                console.log("⏪ Resetting currentRound to 1 (Fix for stuck round)");
-                storedRound = 1;
-                localStorage.setItem("currentRound", storedRound);
-            }
-
-            // Ensure global variable is correctly set
-            currentRound = storedRound;
-            console.log("Current round after fix:", currentRound);
-
-            // 🛠️ Debugging: Verify localStorage value
-            console.log("LocalStorage round after reset:", localStorage.getItem("currentRound"));
-
-            // Reset invite count to prevent incorrect UI states
+            // 🔄 Clear frontend tracking data
+            localStorage.clear();
             invitedCount = 0;
             invitedCandidates = [];
-            localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates));
+            currentRound = 1;
+            isFetching = false;
 
-            updateInviteCounter(); // Ensure UI updates correctly
+            // Update UI to show reset
+            updateInviteCounter();
 
-            console.log("🔄 Fetching candidates for round:", currentRound);
-            if (!isFetching) {
-                isFetching = true;
-                fetchCandidates();
+            try {
+                // Wait for backend reset BEFORE fetching candidates
+                console.log("🔄 Requesting backend reset...");
+                const response = await fetch("/candidates/reset", { method: "POST" });
+                const data = await response.json();
+                console.log("✅ Backend Reset:", data);
+
+                // Fetch fresh candidates only after reset is complete
+                await fetchCandidates();
+            } catch (error) {
+                console.error("🚨 Backend Reset Error:", error);
             }
         };
 
