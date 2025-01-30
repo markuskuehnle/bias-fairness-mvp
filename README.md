@@ -350,7 +350,7 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
    - Use **Docker** to containerize the backend and frontend for consistency.  
 
 17. **Deploy the MVP**  
-   - Host the MVP on **Heroku**, **Render**, or **AWS** for user testing and feedback.  
+   - Host the MVP on **Vercel**, **Render**, and **Supabase** for user testing and feedback.  
 
 ---
 
@@ -373,6 +373,174 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 
 ---
 
+
+## Result Structure
+
+Result json structure for storage:
+
+```json
+{
+  "user_id": "123456",
+  "user_group": "features",
+  "rounds": [
+    {
+      "round_number": 1,
+      "candidate_count": 5,
+      "invited_count": 2,
+      "next_round_clicked": true,
+      "candidates": [
+        {
+          "candidate_id": "C001",
+          "name": "John Doe",
+          "attributes": {
+            "age": 35,
+            "sex": "Male",
+            "race": "White",
+            "years_experience": 10,
+            "technical_skills_score": 4.2,
+            "certifications_score": 3.5
+          },
+          "good_fit": true,
+          "recommended": true,
+          "invited": false,
+          "manipulated": false
+        },
+        {
+          "candidate_id": "C002",
+          "name": "Jane Smith",
+          "attributes": {
+            "age": 29,
+            "sex": "Female",
+            "race": "Asian",
+            "years_experience": 8,
+            "technical_skills_score": 3.8,
+            "certifications_score": 4.1
+          },
+          "good_fit": false,
+          "recommended": false,
+          "invited": true,
+          "manipulated": false
+        },
+        {
+          "candidate_id": "C003",
+          "name": "Michael Johnson",
+          "attributes": {
+            "age": 41,
+            "sex": "Male",
+            "race": "Black",
+            "years_experience": 15,
+            "technical_skills_score": 4.5,
+            "certifications_score": 4.0
+          },
+          "good_fit": true,
+          "recommended": true,
+          "invited": true,
+          "manipulated": true
+        }
+      ]
+    },
+    {
+      "round_number": 2,
+      "candidate_count": 4,
+      "invited_count": 1,
+      "next_round_clicked": false,
+      "candidates": [
+        {
+          "candidate_id": "C004",
+          "name": "Emma Davis",
+          "attributes": {
+            "age": 32,
+            "sex": "Female",
+            "race": "Hispanic",
+            "years_experience": 12,
+            "technical_skills_score": 4.0,
+            "certifications_score": 3.7
+          },
+          "good_fit": true,
+          "recommended": true,
+          "invited": false,
+          "manipulated": false
+        }
+      ]
+    }
+  ]
+}
+
+```
+
+With the current **result structure**, we can analyze several **key aspects** of **user behavior, AI influence, and bias effects** in the decision-making process. Below is a breakdown of what we can analyze and potential additions to **improve the data collection for deeper analysis**.
+
+
+### **What We Can Analyze with This Structure**
+#### **1. AI Influence on User Decisions**
+   - Compare **invited_count** across groups to see if users in the **badge** or **features** group invite more AI-recommended candidates than the **manipulation** group.
+   - Track **good_fit vs. invited** candidates to check if users trust AI recommendations.
+   - Analyze how often **recommended candidates** are **manipulated** before being invited (indicating skepticism toward AI).
+
+#### **2. Manipulation Patterns (Only for `manipulation` Group)**
+   - Identify which attributes users change most frequently (e.g., **sex, race, years_experience**).
+   - Track if manipulations **increase or decrease** the AI **GoodFit** probability.
+   - Compare **original GoodFit** vs. **post-manipulation GoodFit** to measure how much users "game" the system.
+   - Identify manipulation behaviors: Are users consistently changing attributes like **age** or **gender** to fit a perceived AI pattern?
+
+#### **3. Selection Trends & Decision Fatigue**
+   - Track **invited_count** over rounds to check if users invite fewer candidates as they progress (suggesting fatigue).
+   - Identify if users **become more reliant** on AI recommendations over time.
+   - Check whether users who manipulate candidates in earlier rounds **stop manipulating** later (indicating adaptation to AI).
+
+#### **4. User Behavior in Different Selection Groups**
+   - Compare users across **badge, features, and manipulation** groups to see:
+     - Does seeing **SHAP-based explanations** reduce bias?
+     - Do users **trust** the AI more if they see **top features**?
+     - Does the **manipulation** group create better or worse candidates?
+
+#### **5. Bias in Decision-Making**
+   - Analyze demographic distributions of invited candidates:
+     - Do users **prefer** or **avoid** certain groups (e.g., inviting more men, older candidates, or specific racial groups)?
+     - Does **seeing SHAP values** in the **features group** reduce bias?
+   - Compare if certain attributes **affect** user decisions **more than AI predictions do**.
+   - Track whether **highly qualified** but **historically underrepresented** candidates (e.g., female engineers, older candidates) are still invited.
+
+
+### **What Should Be Considered to Add?**
+To **strengthen** our analysis, consider adding:
+
+#### **1. User Interaction Time per Round**
+   - `"time_spent_seconds"`: Tracks how long users take to **make a decision per round**.
+   - Helps analyze:
+     - Does seeing **explainability (XAI)** increase or decrease decision speed?
+     - Do users spend **more time** manipulating attributes?
+     - Are users making **snap decisions** or **carefully considering** AI predictions?
+
+#### **2. Which Features Were Manipulated?**
+   - `"manipulated_attributes": ["age", "race", "years_experience"]`
+   - Helps track:
+     - **Which features are manipulated the most?**
+     - **Are users strategically modifying certain attributes to optimize AI predictions?**
+     - **Does manipulation affect invitation likelihood?**
+
+#### **3. AI Confidence Scores (Pre/Post Manipulation)**
+   - Add `"ai_score_before"` and `"ai_score_after"` for **manipulated candidates**.
+   - Helps measure:
+     - **How much does user input shift the AI’s decision?**
+     - **Are users actively trying to game AI predictions?**
+
+#### **4. Candidate Order on Screen**
+   - `"candidate_display_order": ["C003", "C001", "C002"]`
+   - Helps track:
+     - **Are users more likely to pick top-listed candidates?**
+     - **Does AI recommendation placement influence selection?**
+     - **Do users scroll or stop at first options?**
+
+#### **5. User Actions per Candidate**
+   - `"actions": [{"candidate_id": "C003", "clicked_more_info": true, "hovered_xai": false, "expanded_skills": true}]`
+   - Helps track:
+     - **Are users engaging with explanations?**
+     - **Do users click to expand SHAP explanations?**
+     - **Do users explore candidate profiles before deciding?**
+
+---
+
 ![key_decisions](imgs/key_decisions_banner.png)
 
 ### Topics for Discussion
@@ -381,11 +549,14 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend?  
    - Should the `XAI: Top 3 Features` be shown **only** for recommended candidates?
    - Should a start / introduction page be shown to the user?
+   - Randomized assignment to User Group?
 
 2. **Feature Visibility:**
    - Should features like `Sex`, `Age`, or `RaceDesc_*` be included in the `Top 3 Features` displayed to the user?
 
 3. **Candidate Pool Management:**
+   - Extend candidate pool with training data?
+   - Pre-predict instead of prediction in runtime? 
    - How many candidates should be suggested in the frontend for the user to review?
    - What is the maximum number of candidates that can be invited?
    - How many selection rounds should a user complete?
