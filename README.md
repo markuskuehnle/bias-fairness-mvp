@@ -239,7 +239,5 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 **Todo:**
 
-- Display feature description after prediction manipulation
 - Users should have the flexibility to select fewer than the maximum number of suggested candidates and proceed to the next round. Any decision to move to the next round should be logged in the system.  
-- For XAI functionality: If users modify candidate attributes in the frontend, the original values should be stored separately to maintain data integrity. 
 - `Race` could be missing, since we dont map Latino/Hispanic/etc.

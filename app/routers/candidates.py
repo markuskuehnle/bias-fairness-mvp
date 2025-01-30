@@ -8,7 +8,8 @@ router = APIRouter()
 # Load the pre-trained XGBoost model
 xgb_model = load_model()
 
-# Store invited candidates in memory (TODO: Maybe Use Redis/DB for persistence)
+# Store seen and invited candidates in memory (TODO: Maybe Use Redis/DB for persistence)
+seen_candidates = set()
 invited_candidates = set()
 
 
@@ -24,16 +25,17 @@ def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
     list: List of candidate fact sheets.
     """
     try:
-        global invited_candidates
+        global invited_candidates, seen_candidates
 
         # Load candidate data
         candidates = load_candidates()
 
-        # Convert exclude_ids from query string into a set
-        invited_candidates.update(exclude_ids)
+        # Add new seen candidates to the global tracking set
+        seen_candidates.update(exclude_ids)
+        excluded_candidates = seen_candidates.union(invited_candidates)
 
-        # Remove already invited candidates from the available pool
-        available_candidates = candidates[~candidates["Candidate_ID"].isin(invited_candidates)]
+        # Remove already seen/invited candidates from the available pool
+        available_candidates = candidates[~candidates["Candidate_ID"].isin(excluded_candidates)]
 
         # Select up to 6 new random candidates
         selected_candidates = available_candidates.sample(n=min(6, len(available_candidates)))
@@ -102,3 +104,19 @@ def show_candidates_frontend():
         return HTMLResponse(content=html_content)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Frontend file not found.")
+    
+
+@router.post("/candidates/invite", tags=["Candidates"])
+def invite_candidate(candidate_id: int):
+    """
+    Store an invited candidate in the memory set so they are never shown again.
+
+    Parameters:
+    candidate_id (int): The ID of the invited candidate.
+    """
+    try:
+        global invited_candidates
+        invited_candidates.add(candidate_id)
+        return {"message": f"Candidate {candidate_id} invited successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

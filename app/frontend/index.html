@@ -394,6 +394,22 @@
             background: #0056b3;
         }
 
+        .next-round-btn {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .next-round-btn:hover {
+            background-color: #0056b3;
+        }
+
+
     </style>
     
 </head>
@@ -402,11 +418,12 @@
         <div class="header-content">
             <h1>Applicant Profiles</h1>
             <div class="header-row">
+                <button class="next-round-btn" onclick="nextRound()">Next Round</button>
                 <h2>Role - Production Technician</h2>
                 <h2 id="invite-counter">Applicants invited: 0/2 · Round: 1/6</h2>
             </div>            
         </div>
-    </div>
+    </div>    
 
     <div class="role-description">
         <p>
@@ -518,7 +535,7 @@
                         aiBadge.remove();
                     }
                 }
-                
+
                 // Update the XAI explanation
                 const xaiSection = candidateCard.querySelector(".accordion-content");
                 if (xaiSection) {
@@ -651,28 +668,43 @@
                     return; // Stop fetching candidates
                 }
 
-                // Reset invite counter and invitedCandidates when fetching new candidates
-                invitedCount = 0;
-                invitedCandidates = [];
-                localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates));                
-                updateInviteCounter(); // Ensure UI reflects the reset count
+                // Retrieve the seenCandidates list
+                let seenCandidates = JSON.parse(localStorage.getItem("seenCandidates")) || [];
+                let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
+
+                // Combine seen and invited candidates for exclusion
+                let excludeList = [...new Set(seenCandidates.concat(invitedCandidates))];
+
+                console.log("📤 Fetching candidates. Excluding:", excludeList);
+
+                // ✅ Ensure we send exclude correctly formatted
+                const queryString = excludeList.length > 0 
+                    ? `?exclude=${excludeList.join("&exclude=")}` 
+                    : "";
 
                 // Fetch candidates and feature descriptions in parallel
                 const [candidatesResponse, featureDescriptions] = await Promise.all([
-                    fetch('/candidates/data'), // Fetch candidates
-                    fetchFeatureDescriptions(), // Fetch feature descriptions
+                    fetch(`/candidates/data${queryString}`).then(res => res.json()), // Fetch candidates
+                    fetchFeatureDescriptions() // Fetch feature descriptions
                 ]);
 
                 // Handle errors if candidates response fails
-                if (!candidatesResponse.ok) {
-                    throw new Error('Failed to fetch candidates');
+                if (!candidatesResponse) {
+                    throw new Error("Failed to fetch candidates.");
                 }
 
-                const data = await candidatesResponse.json();
+                const data = candidatesResponse; // Assign the JSON response
+
+                // Update UI
+                updateInviteCounter();
 
                 // Select the container where profiles will be displayed
                 const profilesContainer = document.getElementById('profiles');
                 profilesContainer.innerHTML = ''; // Clear previous content
+                        
+                // Store the newly fetched candidates as "seen"
+                let currentRoundCandidates = data.map(c => c.Candidate_ID);
+                // localStorage.setItem("seenCandidates", JSON.stringify([...new Set(seenCandidates.concat(currentRoundCandidates))]));
 
                 // Iterate through each candidate
                 data.forEach(candidate => {
@@ -862,7 +894,7 @@
             `;
         }
         
-        function inviteCandidate(candidateId, button) {
+        async function inviteCandidate(candidateId, button) {
             if (currentRound > maxRounds) {
                 disableAllInvites();
                 showCompletionDialog();
@@ -886,7 +918,26 @@
 
                 invitedCount++;
                 invitedCandidates.push(candidateId);
-                localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates));
+                localStorage.setItem("invitedCandidates", JSON.stringify([...new Set(invitedCandidates)]));
+
+                // Send to backend for persistence
+                try {
+                    const response = await fetch("/candidates/invite", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ candidate_id: candidateId })
+                    });
+
+                    if (!response.ok) {
+                        console.error("❌ Error inviting candidate:", await response.text());
+                    } else {
+                        console.log(`✅ Candidate ${candidateId} invited successfully.`);
+                    }
+                } catch (error) {
+                    console.error("🚨 Fetch error:", error);
+                }
 
                 updateInviteCounter();
 
@@ -1022,6 +1073,80 @@
                 fetchCandidates();
             }
         };
+
+        async function inviteCandidate(candidateId, button) {
+            if (currentRound > maxRounds) {
+                disableAllInvites();
+                showCompletionDialog();
+                return;
+            }
+
+            const card = button.closest('.profile-card');
+            if (!card) {
+                console.error("⚠️ No profile card found for this button.");
+                return;
+            }
+
+            if (!candidateId) {
+                console.error("⚠️ Candidate ID missing on the profile card.");
+                return;
+            }
+
+            if (invitedCount < maxInvites) {
+                card.classList.add('invited');
+                button.outerHTML = `<div class="badge-green">Invited</div>`;
+
+                invitedCount++;
+                invitedCandidates.push(candidateId);
+                localStorage.setItem("invitedCandidates", JSON.stringify([...new Set(invitedCandidates)]));
+
+                // Send to backend for persistence
+                try {
+                    const response = await fetch("/candidates/invite", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ candidate_id: candidateId })
+                    });
+
+                    if (!response.ok) {
+                        console.error("❌ Error inviting candidate:", await response.text());
+                    } else {
+                        console.log(`✅ Candidate ${candidateId} invited successfully.`);
+                    }
+                } catch (error) {
+                    console.error("🚨 Fetch error:", error);
+                }
+
+                updateInviteCounter();
+
+                console.log(`✅ Candidate ${candidateId} invited.`);
+
+                if (invitedCount >= maxInvites) {
+                    if (currentRound < maxRounds) { 
+                        currentRound++; 
+                        localStorage.setItem("currentRound", currentRound);
+                    } else {
+                        currentRound = maxRounds + 1;
+                        localStorage.setItem("currentRound", currentRound);
+                    }
+
+                    // **Reset the invite counter for the new round**
+                    invitedCount = 0;
+                    localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
+
+                    updateInviteCounter();
+                    
+                    setTimeout(() => {
+                        document.getElementById("profiles").innerHTML = ""; // **Clear the old candidates**
+                        fetchCandidates(); // **Fetch new candidates immediately**
+                    }, 500);
+                }
+            } else {
+                alert('Maximum number of applicants invited!');
+            }
+        }
 
     </script>
 </body>
