@@ -297,12 +297,14 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ---
 
-## Simple Tech Stack
+## Tech Stack
 - **Data Processing & Modeling**: Python, Pandas, Scikit-learn.
-- **Backend**: Flask/FastAPI.
-- **Frontend**: HTML/CSS, React.js (optional advanced).
+- **Backend**: FastAPI (Python) hosted on Render.
+- **Frontend**: Static HTML, CSS, JavaScript deployed on Vercel.
 - **Visualization**: Matplotlib, Plotly, SHAP.
-- **Deployment**: Docker, Heroku/Render.
+- **Database**: PostgreSQL managed by Supabase.
+- **User Session Tracking**: Supabase (Auth + DB).
+- **Deployment**: Docker, Render, Supabase, Vercel.
 
 ---
 
@@ -311,6 +313,7 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 1. **Frontend Display:**
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend?  
    - Should the `XAI: Top 3 Features` be shown **only** for recommended candidates?
+   - Should a start / introduction page be shown to the user?
 
 2. **Feature Visibility:**
    - Should features like `Sex`, `Age`, or `RaceDesc_*` be included in the `Top 3 Features` displayed to the user?
@@ -323,6 +326,9 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
    - How many applicants should be included in the dataset?  
    - Should the candidate rounds be reproducible? (random selection)
    - Preselection of candidates to ensure imbalance in recommendations?
+
+4. **Result Storage**
+   - Which information do we want to store?
 
 ---
 
