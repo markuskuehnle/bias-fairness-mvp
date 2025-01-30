@@ -741,7 +741,7 @@
                                 <strong>Good Fit?:</strong> ${candidate.GoodFit ? "Yes" : "No"}
                             </div>
                             <div>
-                                <strong>Probability:</strong> ${candidate.Probability || 'N/A'}
+                                <strong>Probability:</strong> ${candidate.Probability ? candidate.Probability.toFixed(2) : "0.00"}
                             </div>
                         </div>
 

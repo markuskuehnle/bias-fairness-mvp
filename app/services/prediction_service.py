@@ -2,6 +2,7 @@ import pickle
 import pandas as pd
 import shap
 import json
+import numpy as np
 
 MODEL_PATH = "models/xgb_model.pkl"
 FEATURE_LIST_PATH = "app/models/features.json"
@@ -92,6 +93,10 @@ def predict_candidate(candidate_row: pd.Series, model: object) -> dict:
             'Feature': prepared_data.columns,
             'SHAP Value': shap_values.values[0]
         }).sort_values(by='SHAP Value', ascending=False).head(3)
+
+        if prediction_proba == np.nan:
+            prediction_proba = 0.0
+            is_good_fit = False
 
         return {
             "prediction_probability": prediction_proba,
