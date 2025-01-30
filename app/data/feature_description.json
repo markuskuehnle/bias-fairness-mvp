@@ -1,4 +1,5 @@
 {
+    "Sex": "Indicates the gender of the candidate.",
     "Age": "Represents the candidate's age in years.",
     "AgeGroup": "Represents the age group of the candidate, providing additional demographic context.",
     "Position_IT Support": "Refers to the previous position held by the candidate in IT support roles, involving troubleshooting and maintaining IT systems (included in the position details of the candidate).",
@@ -33,7 +34,6 @@
     "Position_Software Engineering Manager": "Highlights the candidate's role as a Software Engineering Manager, leading development teams and projects (included in the position details of the candidate).",
     "Position_President & CEO": "Indicates experience as a President or CEO, responsible for organizational leadership and strategy (included in the position details of the candidate).",
     "State": "Refers to the state in which the candidate is located, providing geographical context for the profile.",
-    "Sex": "Indicates the gender of the candidate.",
     "CitizenDesc_US Citizen": "Indicates that the candidate is a United States citizen (included in the citizenship details of the candidate).",
     "CitizenDesc_Eligible NonCitizen": "Represents the candidate's status as an eligible non-citizen (included in the citizenship details of the candidate).",
     "CitizenDesc_Non-Citizen": "Indicates that the candidate is not a U.S. citizen (included in the citizenship details of the candidate).",

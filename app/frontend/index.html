@@ -979,23 +979,45 @@
             console.warn(`⚠️ Age ${age} does not match any category.`);
             return ""; // Return empty string if no match
         }
-
+        
         // Fetch candidates and set up interactivity after the profiles are rendered
         fetchCandidates();
 
         let hasFetchedCandidates = false;  // Prevent double fetch
 
         window.onload = function () {
-            if (!localStorage.getItem("currentRound")) { 
-                localStorage.setItem("currentRound", 1);
-            }
-            currentRound = parseInt(localStorage.getItem("currentRound"));
+            console.log("🔄 Page loaded, checking stored round...");
 
+            let storedRound = parseInt(localStorage.getItem("currentRound"));
+            storedRound = 1 // reset Round
+            // Force a reset if stuck or invalid
+            if (!storedRound || storedRound < 1 || storedRound > maxRounds) { 
+                console.log("⏪ Resetting currentRound to 1 (Fix for stuck round)");
+                storedRound = 1;
+                localStorage.setItem("currentRound", storedRound);
+            }
+
+            // Ensure global variable is correctly set
+            currentRound = storedRound;
+            console.log("Current round after fix:", currentRound);
+
+            // 🛠️ Debugging: Verify localStorage value
+            console.log("LocalStorage round after reset:", localStorage.getItem("currentRound"));
+
+            // Reset invite count to prevent incorrect UI states
+            invitedCount = 0;
+            invitedCandidates = [];
+            localStorage.setItem("invitedCandidates", JSON.stringify(invitedCandidates));
+
+            updateInviteCounter(); // Ensure UI updates correctly
+
+            console.log("🔄 Fetching candidates for round:", currentRound);
             if (!isFetching) {
-                isFetching = true; // Set early to prevent any further fetches
+                isFetching = true;
                 fetchCandidates();
             }
         };
+
     </script>
 </body>
 
