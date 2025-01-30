@@ -472,6 +472,9 @@
                 const result = await response.json();
                 console.log("✅ Backend response:", result);
 
+                // Fetch feature descriptions
+                const featureDescriptions = await fetchFeatureDescriptions();
+
                 // Find the correct candidate profile card
                 const candidateCard = document.querySelector(`.profile-card[data-candidate-id="${candidateId}"]`);
                 if (!candidateCard) {
@@ -515,13 +518,15 @@
                         aiBadge.remove();
                     }
                 }
-
+                
                 // Update the XAI explanation
                 const xaiSection = candidateCard.querySelector(".accordion-content");
                 if (xaiSection) {
+                    const description = featureDescriptions[feature.Feature] || "No description available.";
+
                     xaiSection.innerHTML = result.top_features.map(feature => `
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="hoverable-feature" title="${feature.Feature}">
+                            <span class="hoverable-feature" title="${description}">
                                 ${feature.Feature}:
                             </span>
                             <span>${feature["SHAP Value"].toFixed(2)}</span>
