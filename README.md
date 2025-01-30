@@ -123,7 +123,10 @@ uv pip list
 
 You're now ready to run the notebooks and start the project. 🖥️
 
+
 ---
+
+![data_description](imgs/data_description_banner.png)
 
 ## Dataset Information
 
@@ -134,43 +137,103 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
 
 ---
 
-## Dataset Preparation
+## Data Preparation Summary
 
-### Define the Target Variable
-- **"Fit for the Role"**:
-  - Use `PositionID` or `Department` as the target role identifier.
-  - Define "fit" based on:
-    - **Performance**: Use `PerformanceScore`, `Rating`, or `EngagementSurvey` as indicators of success in similar roles.
-    - **Experience**: Use tenure (`DateofHire` to `DateofTermination` or current date for active employees).
-    - **Job Alignment**: Match attributes like skills (`PayRate`, `Position`) to job requirements.
+This section outlines the key steps taken to prepare the data for classifier training and the MVP dataset.
 
-### Label Candidates
-- Create a binary label (e.g., `Good Fit` or `Not a Good Fit`) for a specific role based on:
-  - Performance in the same or similar roles.
-  - Tenure above a certain threshold (e.g., >1 year in the same position).
-  - Department or role alignment.
-  - Attributes like `PayRate` aligning with the average for that position.
+### Classifier Training Dataset Preparation
 
-### Feature Selection
-- Include:
-  - **Demographics**: (`GenderID`, `RaceDesc` for bias analysis).
-  - **Professional attributes**: (`DeptID`, `PositionID`, `PayRate`, `SpecialProjectsCount`).
-  - **Performance metrics**: (`PerformanceScore`, `EngagementSurvey`, `DaysLateLast30`).
-  - **Tenure and experience metrics**.
-- Exclude attributes that won’t impact role fit (e.g., `Zip`, unless geography matters).
+#### 1. Data Cleaning (Notebook: `02 - Data Cleaning`)
 
-### Encode Categorical Features
-- Encode features like `Position`, `Department`, `RecruitmentSource`, and `ManagerName`.
+- Loaded raw datasets (`tbl_action.csv`, `tbl_employee.csv`, `tbl_perf.csv`, `hr_data.csv`).
+- Standardized missing values and handled null values for critical columns like `TermReason`, `ManagerName`, and `DateofTermination`.
+- Transformed date columns to ensure proper format and consistency.
+- Removed duplicates based on unique identifiers.
+- Converted categorical and numeric data to appropriate types.
+- Created new features, such as `Churn`, `Tenure`, `Age`, and `Churn-Yes/No`.
+- Engineered features like `GoodFit` based on performance and tenure.
+- Removed high-null and unnecessary columns to streamline the dataset.
+- Filtered rows to remove invalid employment statuses.
+- Conducted class balance analysis to understand `GoodFit` distribution.
+- Dropped non-essential columns for model training.
+- Calculated `YearsExperience` and grouped ages into categorical bins (`AgeGroup`).
+- Saved the cleaned dataset as `hr_data.parquet`.
 
-### Normalize Continuous Features
-- Normalize attributes like `PayRate`, `EngagementSurvey`, and `Age` for consistent scaling.
+#### 2. Simulating Additional Information (Notebook: `03 - Simulate Additional Information`)
 
-### Handle Missing Data
-- Impute missing values (e.g., `PayRate`, `DOB`) with domain-appropriate methods.
+- Enriched dataset with **synthetic role-specific features:** `Skills`, `Certifications`, and `Education`.
+- Used predefined mappings to assign skills and certifications based on experience.
+- Simulated role-based education levels with probabilistic assignment.
+- Improved qualifications for high performers by enhancing skills, certifications, and education.
+- Calculated `GoodFit` based on a weighted scoring system of skills, education, and certifications.
+- Analyzed changes in `GoodFit` distribution post-simulation.
+- Conducted correlation analysis and fairness assessments across demographic groups.
+- Saved the enriched dataset as `hr_data_simulated.parquet`.
+
+#### 3. Encoding Data (Notebook: `04 - Encode Data`)
+
+- Applied one-hot encoding for categorical features (`Position`, `CitizenDesc`, `RaceDesc`, `Department`).
+- Used label encoding for `State`, `Sex`, `AgeGroup`, and `HispanicLatino`.
+- Mapped `ExperienceCategory` and `Education` to numerical values.
+- Applied multi-label binarization to `Skills` and `Certifications`.
+- Saved label encoders and multi-label binarizers for future use.
+- Saved processed dataset as `hr_data_encoded.parquet`.
+
+#### 4. Train-Test Split (Notebook: `05 - Train-Test-Split`)
+
+- Defined `GoodFit` as the target variable.
+- Split data into training (90%) and test (10%) sets using stratified sampling.
+- Saved `X_train`, `X_test`, `y_train`, and `y_test` as Parquet files.
+
+### MVP Dataset Preparation
+
+The MVP dataset preparation follows a similar structure but is tailored to meet the requirements of the **Bias & Fairness Demonstrator Application**.
+
+### 1. Counterfactual Calculation (Notebook: `11 - Counterfactual Calculation`)
+
+- Loaded the trained `XGBoost` model and the test dataset (`X_test.parquet`).
+- Predicted probability scores for each row.
+- Identified candidates with probabilities near the classification threshold (`0.40 - 0.60`).
+- Modified demographic attributes (`Race`, `Gender`, `YearsExperience`) to assess model sensitivity.
+- Calculated counterfactual probabilities to analyze the impact of single-attribute changes.
+- Identified individuals whose predictions significantly changed due to these modifications.
+- Extracted key candidates for further analysis in the Bias & Fairness Demonstrator.
+
+### 2. Creating Static Data for the App MVP (Notebook: `12 - Create Static Data for App MVP`)
+
+- Filtered the test dataset to include candidates for a specific role (`Production Technician I`).
+- Merged this filtered dataset with HR metadata to retain **employee names** and additional attributes.
+- Ensured all selected candidates had complete demographic and experience details.
+- Assigned **synthetic birthplace information** based on race and citizenship probability distributions.
+- Extracted **technical skills and certification scores** using predefined role-based mappings.
+- Standardized skill and certification scoring on a `0-5` scale for consistency.
+- Created a final dataset combining:
+  - Candidate demographics
+  - Role-related information
+  - Model predictions
+  - Counterfactual probabilities
+- Saved the **final dataset** as `static_data.parquet` for integration into the Bias & Fairness Demonstrator.
+
+### 3. Feature Description Generation (Notebook: `13 - Create Feature Descriptions`)
+
+- Defined a detailed mapping of feature names to descriptions.
+- Mapped skills, certifications, and job positions to meaningful business terms.
+- Validated feature names against the dataset to ensure completeness.
+- Identified and resolved missing feature descriptions.
+- Exported the final feature descriptions as `feature_description.json` for use in the MVP app.
+
+### 4. Reviewing Predictions & Dataset Balancing (Notebook: `14 - Review Predictions`)
+
+- Loaded the **static dataset** (`static_data.parquet`) and pre-trained `XGBoost` model.
+- Predicted `GoodFit` probabilities and classified candidates accordingly.
+- Visualized prediction distributions and **SHAP feature importance**.
+- Identified fairness concerns by examining demographic patterns in the model’s decisions.
+- Downsampled **"Good Fit"** predictions to **balance** the dataset for fair analysis.
+- Saved the **resampled dataset** as `static_data.parquet` for use in the Bias & Fairness Demonstrator.
 
 ---
 
-## Notebooks  
+## Notebook Summary  
 
 - **01_data_exploration**: Performs an initial analysis of the dataset, identifying key patterns, distributions, and potential data quality issues.  
 - **02_data_cleaning**: Prepares the raw HR dataset by handling missing values, correcting inconsistencies, and engineering new features. This step ensures a clean, standardized dataset suitable for fairness and bias analysis.
