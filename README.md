@@ -111,84 +111,53 @@ This project utilizes the **HR Data Set Based on Human Resources Data Set**:
    - Integrate the pre-trained **XGBoost** model to serve predictions via the API.  
    - Implement logic for simulating counterfactuals in the backend using **`counterfactuals.py`**.
 
-11. **Add Configurations**  
-   - Use a configuration file (`config.yaml`) to manage:
-     - Data paths (e.g., CSV/JSON for candidates).
-     - Sensitive attributes (e.g., gender, race, age).
-     - Thresholds for predictions.
-
 ### **Phase 3: Frontend Development**
 
-✅ 12. **Build a Simple Interactive Frontend**  
+✅ 11. **Build a Simple Interactive Frontend**  
    - Use **HTML/CSS** for rapid frontend prototyping:
      - Display the list of 3 candidates with their current attributes and predictions.  
      - Show Predictions and SHAP values 
 
 ### **Phase 4: Add Additional Backend Routes**
 
-13. **Extend API Functionality**  
-   ✅ - Add the following routes to enhance interactivity:  
+✅ 12. **Extend API Functionality**  
+   - Add the following routes to enhance interactivity:  
      - **POST /select_candidate**:  
        - Accept a candidate's ID as input and mark the candidate as selected.  
        - Return a confirmation response with the selected candidate's details.  
      - **GET /selected_candidate**:  
        - Retrieve the details of the currently selected candidate, including attributes and predictions.  
    - **Next Steps: Build the XAI Selection Tool**:  
-     ✅ - Allow users to temporarily modify one attribute at a time (e.g., age, sex, gender) and review the new prediction in the frontend.  
-     ✅ - Ensure invited candidates are dropped from the selection pool after being selected.  
-     ✅ - Present a new set of candidates for the next round of invitations, up to **6 rounds** in total.  
+     - Allow users to temporarily modify one attribute at a time (e.g., age, sex, gender) and review the new prediction in the frontend.  
+     - Ensure invited candidates are dropped from the selection pool after being selected.  
+     - Present a new set of candidates for the next round of invitations, up to **6 rounds** in total.  
      - Add a **"Next Round" button** in the frontend, prompting confirmation before proceeding.  
      - Remove all candidates from the previous round permanently when moving to the next round.  
 
-14. **Update Static Data Handling**  
+13. **Update Static Data Handling**  
    - Ensure the `static_data_loader.py` script supports tracking the selection state for candidates.  
    - Add logic to update and serve the selected candidate dynamically.
 
-15. **Save Candidate Selection and Flags**
+14. **Save Candidate Selection and Flags**
    - Ensure the data about invited candidates is saved. (Consider saving the alternative candidates per round - round and user-id required)
+
+15. **Add Configurations**  
+   - Use a configuration file (`config.yaml`) to manage:
+     - Data paths (e.g., CSV/JSON for candidates).
+     - Sensitive attributes (e.g., gender, race, age).
+     - Thresholds for predictions.
 
 ### **Phase 5: Deployment**
 
-15. **Containerize the Application**  
+16. **Containerize the Application**  
    - Use **Docker** to containerize the backend and frontend for consistency.  
 
-16. **Deploy the MVP**  
+17. **Deploy the MVP**  
    - Host the MVP on **Heroku**, **Render**, or **AWS** for user testing and feedback.  
-
-![Applicant Selection Screenshot](imgs/applicant_selection.png)
-
-![Applicant Selection Screenshot 2](imgs/applicant_selection2.png)
 
 ![Applicant Selection Screenshot 3](imgs/applicant_selection3.png)
 
 ![Applicant Selection Screenshot 4](imgs/applicant_selection4.png)
-
----
-
-## Focus on Bias, Fairness, and Counterfactuals
-
-### Bias Simulation
-- Train models on biased data to simulate real-world decisions.
-- Analyze which features drive biased decisions and how sensitive attributes like `GenderID` or `RaceDesc` contribute.
-
-### Counterfactual Analysis
-1. **Feature Simulations**:
-   - Allow users to modify attributes (e.g., gender, age, pay rate).
-   - Observe how these changes influence predictions.
-
-2. **Fairness Metrics**:
-   - Disparate Impact.
-   - Equal Opportunity.
-   - Demographic Parity.
-
-3. **Fairness Interventions**:
-   - **Pre-processing**: Mask sensitive attributes.
-   - **In-processing**: Use fairness-aware algorithms.
-   - **Post-processing**: Adjust predictions to mitigate bias.
-
-4. **Visualizations**:
-   - Display feature importance for biased and debiased models.
-   - Show counterfactual outcomes for individual candidates.
 
 ---
 
