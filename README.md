@@ -478,7 +478,7 @@ With the current **result structure**, we can analyze several **key aspects** of
    - Analyze how often **recommended candidates** are **manipulated** before being invited (indicating skepticism toward AI).
 
 #### **2. Manipulation Patterns (Only for `manipulation` Group)**
-   - Identify which attributes users change most frequently (e.g., **sex, race, years_experience**).
+   - Identify which attributes users change most frequently (e.g., **sex, race, gender**).
    - Track if manipulations **increase or decrease** the AI **GoodFit** probability.
    - Compare **original GoodFit** vs. **post-manipulation GoodFit** to measure how much users "game" the system.
    - Identify manipulation behaviors: Are users consistently changing attributes like **age** or **gender** to fit a perceived AI pattern?
@@ -513,7 +513,7 @@ To **strengthen** our analysis, consider adding:
      - Are users making **snap decisions** or **carefully considering** AI predictions?
 
 #### **2. Which Features Were Manipulated?**
-   - `"manipulated_attributes": ["age", "race", "years_experience"]`
+   - `"manipulated_attributes": ["age", "race", "gender"]`
    - Helps track:
      - **Which features are manipulated the most?**
      - **Are users strategically modifying certain attributes to optimize AI predictions?**
