@@ -44,7 +44,7 @@ def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
         available_candidates = candidates[~candidates["Candidate_ID"].isin(excluded_candidates)]
 
         # Select up to 6 new random candidates
-        selected_candidates = available_candidates.sample(n=min(6, len(available_candidates)))
+        selected_candidates = available_candidates.sample(n=min(2, len(available_candidates)))
 
         fact_sheets = []
         for _, row in selected_candidates.iterrows():
