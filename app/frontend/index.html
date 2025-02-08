@@ -52,22 +52,7 @@
             font-weight: normal;
             color: #777;
         }
-    
-        .role-description {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 10px 20px; 
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            color: #333;
-            line-height: 1.6;
-        }
-    
-        .role-description strong {
-            font-size: 1.1em;
-            color: #555;
-        }
+
     
         .container {
             display: flex;
@@ -423,13 +408,6 @@
             </div>            
         </div>
     </div>    
-
-    <div class="role-description">
-        <p>                
-            <h2>Role: Production Technician</h2>
-            <strong>Role Description:</strong> A Production Technician is responsible for operating and monitoring production equipment, ensuring efficient and safe manufacturing processes. Key responsibilities include maintaining quality standards, troubleshooting issues, and adhering to safety protocols.
-        </p>
-    </div>
 
     <div class="container" id="profiles">
         <!-- Profiles will be injected here -->
@@ -1017,17 +995,21 @@
         }
 
         function updateInviteCounter() {
-            // Ensure the counter does not exceed max limits
+            const inviteCounter = document.getElementById('invite-counter');
+
+            // Hide the counter initially to prevent incorrect display
+            inviteCounter.style.visibility = "hidden";
+
+            // Ensure values are fetched from localStorage or set default values
             const displayedInvitedCount = Math.min(invitedCount, maxInvites);
             const displayedRound = Math.min(currentRound, maxRounds);
 
-            document.getElementById('invite-counter').textContent = 
+            // Update counter text
+            inviteCounter.textContent = 
                 `Applicants invited: ${displayedInvitedCount}/${maxInvites} · Round: ${displayedRound}/${maxRounds}`;
 
-            if (currentRound > maxRounds) {
-                disableAllInvites();
-                showCompletionDialog();
-            }
+            // Show the counter only after correct values are set
+            inviteCounter.style.visibility = "visible";
         }
 
         function toggleAccordion(element) {
@@ -1070,8 +1052,12 @@
 
         let hasFetchedCandidates = false;  // Prevent double fetch
 
+        // Ensure the invite counter is updated only after fetching candidates
         window.onload = async function () {
             console.log("🔄 Performing FULL RESET...");
+
+            // Hide counter before fetching data
+            document.getElementById("invite-counter").style.visibility = "hidden";
 
             // Clear frontend tracking data
             localStorage.clear();
@@ -1098,6 +1084,10 @@
 
                 // Fetch fresh candidates only after reset is complete
                 await fetchCandidates();
+
+                // Show counter after candidates are loaded
+                updateInviteCounter();
+
             } catch (error) {
                 console.error("🚨 Backend Reset Error:", error);
             }

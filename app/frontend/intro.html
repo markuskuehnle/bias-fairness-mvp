@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to the Bias Fairness MVP</title>
+    <title>Welcome to the Candidate Selection Process</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f5f5f5;
-            text-align: center;
             padding: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
             background: white;
@@ -17,20 +20,22 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             max-width: 600px;
-            margin: auto;
+            text-align: left;
         }
         h1 {
             color: #333;
+            margin-bottom: 10px;
         }
         p {
             color: #666;
-            font-size: 1.2em;
+            font-size: 1.1em;
+            margin-bottom: 15px;
         }
         .start-button {
             background-color: #007BFF;
             color: white;
-            padding: 15px 30px;
-            font-size: 1.2em;
+            padding: 10px 20px;
+            font-size: 1.1em;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -39,13 +44,28 @@
         .start-button:hover {
             background-color: #0056b3;
         }
+        .role-description {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .role-description strong {
+            font-size: 1.1em;
+            color: #555;
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>Welcome to the Bias Fairness MVP</h1>
-        <p>Analyze candidate profiles and explore fairness in AI predictions.</p>
+        <h1>Welcome to the Candidate Selection Process</h1>
+        <p>You will go through multiple rounds, reviewing candidates applying for a <strong>Production Technician</strong> role. Each round, you can either <strong>select one candidate</strong> or <strong>skip</strong> if no one seems like the right fit.</p>
+        <div class="role-description">
+            <h2>About the Role</h2>
+            <p>The <strong>Production Technician</strong> is responsible for keeping manufacturing operations running smoothly. This includes operating and monitoring equipment, maintaining quality standards, troubleshooting issues, and ensuring safety compliance.</p>
+        </div>
+        <p>Click below to <strong>start selecting candidates</strong>.</p>
         <button class="start-button" onclick="startApplication()">Start</button>
     </div>
 
@@ -53,8 +73,11 @@
         function startApplication() {
             sessionStorage.setItem("visitedIntro", "true");
             window.location.href = "/candidates";
-            }
-    </script>
+        }
 
+        window.onload = function () {
+            sessionStorage.setItem("visitedIntro", "false");
+        };
+    </script>
 </body>
 </html>

@@ -556,6 +556,8 @@ To **strengthen** our analysis, consider adding:
 
 1. **Frontend Display:**
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend? [TBD]
+   - Add: Total candidates invited?
+   - Login in Start view?
 
 2. **Feature Visibility:**
    - Should features like `Sex`, `Age`, or `RaceDesc_*` be included in the `Top 3 Features` displayed to the user? not visible
@@ -568,17 +570,13 @@ To **strengthen** our analysis, consider adding:
 ### Additional Notes and Considerations
 
 **Todo:**
-- Display error on reload: 1/6 rounds, 1/2 applicants invited shown, then updated: page is reloaded and then updated
 - Extend candidate pool with training data
+- `Race` could be missing, since we dont map Latino/Hispanic/etc. - filter latino/hispanic
 - Filter training data, reselection of candidates to ensure imbalance in recommendations? yes
+- Candidate names often match sex?
+- Calculate demographic parity and other bias/fairness metrics for paper evaluation
 - Pre-predict instead of prediction in runtime
 - How many selection rounds should a user complete? 6; with visible bias
-- Create a start / intro page
-- `Race` could be missing, since we dont map Latino/Hispanic/etc.
-- Frontend: candidates:555 🚨 Fetch error: ReferenceError: feature is not defined at updatePrediction (candidates:542:61) at async handleManipulationChange (candidates:615:17)
-- Pre-Calculate Predictions instead of calculation in runtime
-- Calculate demographic parity and other bias/fairness metrics for paper evaluation
 - Attention checks for users?
-- Candidate match don't match gender?
 - Randomized assignment to User Group? yes; 3-4 groups? distribution?
 - result json storage
