@@ -990,6 +990,12 @@
                     <button onclick="closeCompletionDialog()">OK</button>
                 </div>
             `;
+
+            // Hide the next round button
+            const nextRoundButton = document.querySelector(".next-round-btn");
+            if (nextRoundButton) {
+                nextRoundButton.style.display = "none";
+            }
         }
 
         function closeCompletionDialog() {
