@@ -253,12 +253,12 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 - **07_train_xgb_model**: Trains an XGBoost model, tuning hyperparameters for improved predictive accuracy.  
 - **08_show_metrics**: Extracts and displays model evaluation metrics from the experiment tracker. It retrieves parameters from a specific experiment and provides insights into performance comparisons.
 - **09_train_nn**: Trains a neural network for the prediction task, leveraging deep learning techniques.  
-- **10_bias_demonstration**: Analyzes potential bias in model predictions using statistical tests, confusion matrices, calibration checks, and SHAP explainability. It examines demographic disparities and evaluates fairness across different subgroups.
-- **11_counterfactual_calculation**: Computes counterfactual predictions by modifying specific attributes (e.g., race, gender, years of experience) to assess their impact on model outcomes. The notebook highlights potential biases and evaluates the model’s sensitivity to individual features.
-- **12_create_static_data_for_mvp**: Generates a static dataset for the app MVP by selecting relevant candidate data from processed datasets. It includes feature enrichment, birthplace estimation, technical skills, and certification scoring before saving the final dataset as a Parquet file.
-- **13_create_feature_description_json**: Creates a JSON file that documents feature descriptions, aligning them with role-specific skills and certifications. The notebook ensures consistency between feature names and role attributes while validating completeness.
-- **14_review_predictions**: Applies a pre-trained XGBoost model to predict candidate suitability and visualizes the prediction distribution. It also explores SHAP-based feature importance, balances the dataset via downsampling, and prepares the data for further analysis.
-- **15_run_pipeline**: Executes the full data pipeline, integrating all preprocessing, model training, and evaluation steps.  
+- **10_counterfactual_calculation**: Computes counterfactual predictions by modifying specific attributes (e.g., race, gender, age) to assess their impact on model outcomes. The notebook highlights potential biases and evaluates the model’s sensitivity to individual features.
+- **11_create_static_data_for_mvp**: Generates a static dataset for the app MVP by selecting relevant candidate data from processed datasets. It includes feature enrichment, birthplace estimation, technical skills, and certification scoring before saving the final dataset as a Parquet file.
+- **12_create_feature_description_json**: Creates a JSON file that documents feature descriptions, aligning them with role-specific skills and certifications. The notebook ensures consistency between feature names and role attributes while validating completeness.
+- **13_review_predictions**: Applies a pre-trained XGBoost model to predict candidate suitability and visualizes the prediction distribution. It also explores SHAP-based feature importance, balances the dataset via downsampling, and prepares the data for further analysis.
+- **14_run_pipeline**: Executes the full data pipeline, integrating all preprocessing, model training, and evaluation steps.  
+- **15_bias_demonstration**: Analyzes potential bias in model predictions using statistical tests, confusion matrices, calibration checks, and SHAP explainability. It examines demographic disparities and evaluates fairness across different subgroups.
 
 ---
 
@@ -570,10 +570,8 @@ To **strengthen** our analysis, consider adding:
 ### Additional Notes and Considerations
 
 **Todo:**
-- Extend candidate pool with training data
 - `Race` could be missing, since we dont map Latino/Hispanic/etc. - filter latino/hispanic
 - Filter training data, reselection of candidates to ensure imbalance in recommendations? yes
-- Candidate names often match sex?
 - Calculate demographic parity and other bias/fairness metrics for paper evaluation
 - Pre-predict instead of prediction in runtime
 - How many selection rounds should a user complete? 6; with visible bias
