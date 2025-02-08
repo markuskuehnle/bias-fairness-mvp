@@ -91,7 +91,7 @@ def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
                 "GoodFit": prediction_result["is_good_fit"],
                 "Probability": round(prediction_result["prediction_probability"], 2),
                 "TopFeatures": prediction_result["top_features"]
-            })
+            }) # TODO: Add predictions
 
         return fact_sheets
 
@@ -100,7 +100,7 @@ def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
 
 
 @router.get("/candidates", response_class=HTMLResponse, tags=["Candidates"])
-def show_candidates_frontend():
+def show_candidates_frontend(): # TODO: modify frontend serving to show one recommended and one not-recommended candidate?
     """
     Serve the frontend HTML file for candidates.
     """

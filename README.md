@@ -556,38 +556,29 @@ To **strengthen** our analysis, consider adding:
 
 1. **Frontend Display:**
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend? [TBD]
-   - Should the `XAI: Top 3 Features` be shown **only** for recommended candidates? [TBD]
-   - Should a start / introduction page be shown to the user? yes
-   - Randomized assignment to User Group? yes; 3-4 groups? distribution?
 
 2. **Feature Visibility:**
    - Should features like `Sex`, `Age`, or `RaceDesc_*` be included in the `Top 3 Features` displayed to the user? not visible
 
 3. **Candidate Pool Management:**
-   - Extend candidate pool with training data? yes
-   - Pre-predict instead of prediction in runtime? yes 
-   - How many candidates should be suggested in the frontend for the user to review? - reduce to 3
-   - What is the maximum number of candidates that can be invited? 1
-   - How many selection rounds should a user complete? 6; with visible bias
-   - Should only the invited applicants be dropped from the system after each round, or should all seen applicants (both invited and not invited) be dropped?
    - How many applicants should be included in the dataset?  
-   - Should the candidate rounds be reproducible? (random selection) no
-   - Preselection of candidates to ensure imbalance in recommendations? yes
-
-4. **Result Storage**
-   - Which information do we want to store?
 
 ---
 
 ### Additional Notes and Considerations
 
 **Todo:**
-
+- Extend candidate pool with training data
+- Filter training data, reselection of candidates to ensure imbalance in recommendations? yes
+- Pre-predict instead of prediction in runtime
+- How many selection rounds should a user complete? 6; with visible bias
+- Create a start / intro page
 - `Race` could be missing, since we dont map Latino/Hispanic/etc.
 - Frontend: candidates:555 🚨 Fetch error: ReferenceError: feature is not defined at updatePrediction (candidates:542:61) at async handleManipulationChange (candidates:615:17)
-- Frontend: candidate lading issues
 - Frontend: finished survey - remove Next Round button; 
 - Pre-Calculate Predictions instead of calculation in runtime
 - Calculate demographic parity and other bias/fairness metrics for paper evaluation
 - Attention checks for users?
 - Candidate match don't match gender?
+- Randomized assignment to User Group? yes; 3-4 groups? distribution?
+- result json storage

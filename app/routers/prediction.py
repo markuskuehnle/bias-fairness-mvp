@@ -17,7 +17,7 @@ class PredictionRequest(BaseModel):
     updated_features: dict  # This will contain user-modified features
 
 
-def get_age_group(age: int) -> str:
+def _get_age_group(age: int) -> str:
     """Return the age group based on predefined bins."""
     if age < 30:
         return "<30"
@@ -59,7 +59,7 @@ def update_prediction(request: PredictionRequest):
 
             # Ensure Age is valid before assigning AgeGroup
             if "Age" in candidate_row and not pd.isnull(candidate_row["Age"]):
-                candidate_row["AgeGroup"] = get_age_group(candidate_row["Age"])
+                candidate_row["AgeGroup"] = _get_age_group(candidate_row["Age"])
             else:
                 raise HTTPException(status_code=400, detail="Missing or invalid Age value.")
 

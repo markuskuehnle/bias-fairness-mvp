@@ -437,7 +437,7 @@
 
     <script>
         let invitedCount = 0;
-        const maxInvites = 2;
+        const maxInvites = 1;
         const maxRounds = 4;
         let currentRound = parseInt(localStorage.getItem("currentRound")) || 1;
         let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
@@ -539,16 +539,17 @@
                 // Update the XAI explanation
                 const xaiSection = candidateCard.querySelector(".accordion-content");
                 if (xaiSection) {
-                    const description = featureDescriptions[feature.Feature] || "No description available.";
-
-                    xaiSection.innerHTML = result.top_features.map(feature => `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="hoverable-feature" title="${description}">
-                                ${feature.Feature}:
-                            </span>
-                            <span>${feature["SHAP Value"].toFixed(2)}</span>
-                        </div>
-                    `).join('');
+                    xaiSection.innerHTML = result.top_features.map(feature => {
+                        const description = featureDescriptions[feature.Feature] || "No description available.";
+                        return `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="hoverable-feature" title="${description}">
+                                    ${feature.Feature}:
+                                </span>
+                                <span>${feature["SHAP Value"].toFixed(2)}</span>
+                            </div>
+                        `;
+                    }).join('');
                 }
 
             } catch (error) {
