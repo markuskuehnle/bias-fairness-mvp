@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse
 import logging
 
@@ -27,20 +28,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Enable GZip compression for responses (minimum size threshold: 500 bytes)
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
 # Include routers
 app.include_router(candidates.router)
 app.include_router(prediction.router)
 
-# Serve the frontend folder
+# Serve static files
 app.mount("/frontend", StaticFiles(directory="app/frontend"), name="frontend")
 app.mount("/data", StaticFiles(directory="app/data"), name="data")
 
-@app.get("/candidates", response_class=HTMLResponse)
-def show_candidates_frontend():
-    with open("app/frontend/index.html", "r") as file:
+@app.get("/", response_class=HTMLResponse)
+def show_intro_page():
+    """Serves the intro page on root URL."""
+    with open("app/frontend/intro.html", "r") as file:
         html_content = file.read()
     return HTMLResponse(content=html_content)
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the Bias Fairness MVP API!"}
+
+@app.get("/candidates", response_class=HTMLResponse)
+def show_candidates_frontend():
+    """Serves the main candidate selection page when 'Start' is clicked."""
+    with open("app/frontend/index.html", "r") as file:
+        html_content = file.read()
+    return HTMLResponse(content=html_content)

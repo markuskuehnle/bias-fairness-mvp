@@ -568,6 +568,7 @@ To **strengthen** our analysis, consider adding:
 ### Additional Notes and Considerations
 
 **Todo:**
+- Display error on reload: 1/6 rounds, 1/2 applicants invited shown, then updated: page is reloaded and then updated
 - Extend candidate pool with training data
 - Filter training data, reselection of candidates to ensure imbalance in recommendations? yes
 - Pre-predict instead of prediction in runtime
@@ -575,7 +576,6 @@ To **strengthen** our analysis, consider adding:
 - Create a start / intro page
 - `Race` could be missing, since we dont map Latino/Hispanic/etc.
 - Frontend: candidates:555 🚨 Fetch error: ReferenceError: feature is not defined at updatePrediction (candidates:542:61) at async handleManipulationChange (candidates:615:17)
-- Frontend: finished survey - remove Next Round button; 
 - Pre-Calculate Predictions instead of calculation in runtime
 - Calculate demographic parity and other bias/fairness metrics for paper evaluation
 - Attention checks for users?

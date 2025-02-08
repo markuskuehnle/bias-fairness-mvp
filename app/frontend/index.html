@@ -651,6 +651,19 @@
             });
         });
 
+        document.addEventListener("DOMContentLoaded", function () {
+            // If the user didn't come from the intro page, redirect them back to the intro page
+            if (!sessionStorage.getItem("visitedIntro") || sessionStorage.getItem("visitedIntro") === "False") {
+                window.location.href = "/";
+            }
+
+            // Detect page reload and reset visitedIntro flag
+            window.addEventListener("beforeunload", function () {
+                sessionStorage.setItem("visitedIntro", "False");
+            });
+        });
+
+
         async function fetchCandidates() {
             try {
                 if (isFetching) {
