@@ -382,7 +382,6 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 
 ---
 
-
 ## Result Structure
 
 Result json structure for storage:
@@ -570,10 +569,10 @@ To **strengthen** our analysis, consider adding:
 ### Additional Notes and Considerations
 
 **Todo:**
-- `Race` could be missing, since we dont map Latino/Hispanic/etc. - filter latino/hispanic
-- Filter training data, reselection of candidates to ensure imbalance in recommendations? yes
-- Calculate demographic parity and other bias/fairness metrics for paper evaluation
 - Pre-predict instead of prediction in runtime
+- `Race` could be missing, since we dont map Latino/Hispanic/etc. - filter latino/hispanic
+- Calculate demographic parity and other bias/fairness metrics for paper evaluation
+- Filter training data, reselection of candidates to ensure imbalance in recommendations? yes
 - How many selection rounds should a user complete? 6; with visible bias
 - Attention checks for users?
 - Randomized assignment to User Group? yes; 3-4 groups? distribution?
