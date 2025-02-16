@@ -39,17 +39,10 @@ app.include_router(prediction.router)
 app.mount("/frontend", StaticFiles(directory="app/frontend"), name="frontend")
 app.mount("/data", StaticFiles(directory="app/data"), name="data")
 
+
 @app.get("/", response_class=HTMLResponse)
-def show_intro_page():
-    """Serves the intro page on root URL."""
-    with open("app/frontend/intro.html", "r") as file:
-        html_content = file.read()
-    return HTMLResponse(content=html_content)
-
-
-@app.get("/candidates", response_class=HTMLResponse)
-def show_candidates_frontend():
-    """Serves the main candidate selection page when 'Start' is clicked."""
-    with open("app/frontend/index.html", "r") as file:
+def show_frontend():
+    """Serves the integrated frontend (intro + candidate selection)."""
+    with open("app/frontend/index.html", "r") as file:  # index.html now contains both parts
         html_content = file.read()
     return HTMLResponse(content=html_content)

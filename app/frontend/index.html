@@ -394,23 +394,97 @@
             background-color: #0056b3;
         }
 
-
+        .hidden { 
+            display: none !important;
+        }
+        #intro {
+            padding: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #intro .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 600px;
+            text-align: left;
+        }
+        #intro h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        #intro p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        #intro .start-button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #intro .start-button:hover {
+            background-color: #0056b3;
+        }
+        #intro .role-description {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+            #intro .role-description strong {
+            font-size: 1.1em;
+            color: #555;
+        }
     </style>
     
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <h1>Applicant Profiles</h1>
-            <div class="header-row">
-                <h2 id="invite-counter">Applicants invited: 0/2 · Round: 1/6</h2>
-                <button class="next-round-btn" onclick="nextRound()">Next Round</button>
-            </div>            
+    <!-- Intro Section -->
+    <div id="intro">
+        <div class="container">
+        <h1>Welcome to the Candidate Selection Process</h1>
+        <p>
+            You will go through multiple rounds, reviewing candidates applying for a
+            <strong>Production Technician</strong> role. Each round, you can either
+            <strong>select one candidate</strong> or <strong>skip</strong> if no one seems like the right fit.
+        </p>
+        <div class="role-description">
+            <h2>About the Role</h2>
+            <p>
+            The <strong>Production Technician</strong> is responsible for keeping manufacturing operations running smoothly.
+            This includes operating and monitoring equipment, maintaining quality standards, troubleshooting issues, and ensuring safety compliance.
+            </p>
         </div>
-    </div>    
+        <p>Click below to <strong>start selecting candidates</strong>.</p>
+        <button class="start-button" onclick="startApplication()">Start</button>
+        </div>
+    </div>
+  
+      <!-- Candidate Section (initially hidden) -->
+    <div id="candidateSection" class="hidden">
+        <div class="header">
+            <div class="header-content">
+                <h1>Applicant Profiles</h1>
+                <div class="header-row">
+                    <h2 id="invite-counter">Applicants invited: 0/2 · Round: 1/6</h2>
+                    <button class="next-round-btn" onclick="nextRound()">Next Round</button>
+                </div>            
+            </div>
+        </div>    
 
-    <div class="container" id="profiles">
-        <!-- Profiles will be injected here -->
+        <div class="container" id="profiles">
+            <!-- Profiles will be injected here -->
+        </div>
     </div>
 
     <script>
@@ -629,18 +703,17 @@
             });
         });
 
-        document.addEventListener("DOMContentLoaded", function () {
-            // If the user didn't come from the intro page, redirect them back to the intro page
-            if (!sessionStorage.getItem("visitedIntro") || sessionStorage.getItem("visitedIntro") === "False") {
-                window.location.href = "/";
-            }
+            // document.addEventListener("DOMContentLoaded", function () {
+            //     // If the user didn't come from the intro page, redirect them back to the intro page
+            //     if (!sessionStorage.getItem("visitedIntro") || sessionStorage.getItem("visitedIntro") === "False") {
+            //         window.location.href = "/";
+            //     }
 
-            // Detect page reload and reset visitedIntro flag
-            window.addEventListener("beforeunload", function () {
-                sessionStorage.setItem("visitedIntro", "False");
-            });
-        });
-
+            //     // Detect page reload and reset visitedIntro flag
+            //     window.addEventListener("beforeunload", function () {
+            //         sessionStorage.setItem("visitedIntro", "False");
+            //     });
+            // });
 
         async function fetchCandidates() {
             try {
@@ -1188,6 +1261,12 @@
             document.getElementById("profiles").innerHTML = "";
             fetchCandidates();
             updateInviteCounter();
+        }
+
+        function startApplication() {
+            console.log("startApplication triggered");
+            document.getElementById("intro").classList.add("hidden");
+            document.getElementById("candidateSection").classList.remove("hidden");
         }
 
     </script>
