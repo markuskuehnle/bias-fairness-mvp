@@ -556,13 +556,6 @@ To **strengthen** our analysis, consider adding:
 1. **Frontend Display:**
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend? [TBD]
    - Add: Total candidates invited?
-   - Login in Start view?
-
-2. **Feature Visibility:**
-   - Should features like `Sex`, `Age`, or `RaceDesc_*` be included in the `Top 3 Features` displayed to the user? not visible
-
-3. **Candidate Pool Management:**
-   - How many applicants should be included in the dataset?  
 
 ---
 
