@@ -99,12 +99,15 @@ def update_prediction(request: PredictionRequest, static_predictions: pd.DataFra
         
         # If more than one modifiable attribute is changed, check for race-specific changes.
         if len(differences) > 1:
+            print("DEBUG: differences", differences)
             race_keys = [k for k in differences if k.startswith("RaceDesc_")]
             if race_keys:
                 new_race = None
                 for k in race_keys:
                     if str(differences[k]) == "1":
-                        new_race = k.replace("RaceDesc_", "")
+                        # Keep the full key so it matches New_Race_Column later.
+                        new_race = k  
+                        print("DEBUG new race:", new_race)
                         break
                 if new_race is None:
                     raise HTTPException(status_code=400, detail="Invalid race update.")
@@ -114,7 +117,7 @@ def update_prediction(request: PredictionRequest, static_predictions: pd.DataFra
         else:
             mod_attr = list(differences.keys())[0]
             if mod_attr.startswith("RaceDesc_"):
-                differences = {"Race": mod_attr.replace("RaceDesc_", "")}
+                differences = {"Race": mod_attr}  # Do not strip the prefix.
             elif mod_attr == "Sex":
                 differences["Sex"] = "Male" if str(differences["Sex"]) == "1" else "Female"
                 
@@ -122,12 +125,21 @@ def update_prediction(request: PredictionRequest, static_predictions: pd.DataFra
         new_value_str = str(differences[mod_attribute])
         if mod_attribute == "Age":
             baseline_age_group = get_age_group(float(baseline_candidate["Age"]))
-
-        query = (
-            (candidate_prediction_rows["Modified_Attribute"] == mod_attribute) &
-            (candidate_prediction_rows["New_Value"] == new_value_str)
-        )
+            # new_value_str is already an age group like "40-50"
+        
+        # Build the query: for race modifications, use New_Race_Column; for others, use New_Value.
+        if mod_attribute == "Race":
+            query = (
+                (candidate_prediction_rows["Modified_Attribute"] == "Race") &
+                (candidate_prediction_rows["New_Race_Column"] == new_value_str)
+            )
+        else:
+            query = (
+                (candidate_prediction_rows["Modified_Attribute"] == mod_attribute) &
+                (candidate_prediction_rows["New_Value"] == new_value_str)
+            )
         counterfactual_prediction = candidate_prediction_rows[query]
+        print("DEBUG: Found", len(counterfactual_prediction), "rows for query", query)
         if counterfactual_prediction.empty:
             raise HTTPException(status_code=404, detail="No precomputed counterfactual prediction found for the updated attribute.")
         counterfactual_prediction = counterfactual_prediction.iloc[0]
@@ -150,6 +162,7 @@ def update_prediction(request: PredictionRequest, static_predictions: pd.DataFra
         }
 
     except Exception as e:
+        print(f"{e.__traceback__.tb_lineno}, {str(type(e).__name__)}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"{e.__traceback__.tb_lineno}, {str(type(e).__name__)}: {str(e)}")
 
 

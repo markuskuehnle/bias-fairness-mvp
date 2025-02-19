@@ -562,7 +562,6 @@ To **strengthen** our analysis, consider adding:
 ### Additional Notes and Considerations
 
 **Todo:**
-- Pre-predict instead of prediction in runtime
 - How many selection rounds should a user complete? 6; with visible bias
 - Attention checks for users?
 - Randomized assignment to User Group? yes; 3-4 groups? distribution?
