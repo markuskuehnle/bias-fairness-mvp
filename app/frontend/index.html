@@ -588,6 +588,16 @@
                     }
                 }
 
+                // Update the invite button text and styling based on GoodFit
+                const inviteButton = candidateCard.querySelector(".invite-btn");
+                if (result.is_good_fit) {
+                    inviteButton.textContent = ">>Invite Applicant<<";
+                    inviteButton.classList.add("highlight-btn");
+                } else {
+                    inviteButton.textContent = "Invite Applicant";
+                    inviteButton.classList.remove("highlight-btn");
+                }
+
                 // Update the XAI explanation
                 const xaiSection = candidateCard.querySelector(".accordion-content");
                 if (xaiSection) {
