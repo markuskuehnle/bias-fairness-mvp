@@ -494,6 +494,15 @@
     </div>
 
     <script>
+        let sessionData = {
+            session_id: null,
+            user_group: "features", // TODO: Change dynamically
+            sessionTime: null,
+            rounds: []
+        };
+        let currentRoundCandidates = [];
+        let lastRoundCandidates = [];
+
         let invitedCount = 0;
         const maxInvites = 1;
         const maxRounds = 6;
@@ -734,6 +743,7 @@
                 }
 
                 isFetching = true; // Set the lock
+                currentRoundCandidates.length = 0;
 
                 // Retrieve the seenCandidates list
                 let seenCandidates = JSON.parse(localStorage.getItem("seenCandidates")) || [];
@@ -771,7 +781,6 @@
                 seenCandidates = [...new Set([...seenCandidates, ...newSeenCandidates])]; 
                 localStorage.setItem("seenCandidates", JSON.stringify(seenCandidates));
 
-                // Update UI
                 updateInviteCounter();
 
                 // Select the container where profiles will be displayed
@@ -779,11 +788,29 @@
                 profilesContainer.innerHTML = ''; // Clear previous content
                         
                 // Store the newly fetched candidates as "seen"
-                let currentRoundCandidates = data.map(c => c.Candidate_ID);
+                currentRoundCandidates = [];
                 // localStorage.setItem("seenCandidates", JSON.stringify([...new Set(seenCandidates.concat(currentRoundCandidates))]));
 
                 // Iterate through each candidate
                 data.forEach(candidate => {
+                    currentRoundCandidates.push({
+                        candidate_id: candidate.Candidate_ID,
+                        name: candidate.Prename + " " + candidate.Name,
+                        attributes: {
+                        age: candidate.Age || "N/A",
+                        sex: candidate.Gender,
+                        race: candidate.Race,
+                        years_experience: candidate.Skills.YearsExperience || 0,
+                        technical_skills_score: candidate.Skills.TechnicalSkills || 0,
+                        certifications_score: candidate.Skills.Certifications || 0
+                        },
+                        good_fit: candidate.GoodFit,
+                        recommended: candidate.GoodFit,
+                        invited: false,
+                        manipulated: false
+                    });
+                    lastRoundCandidates = JSON.parse(JSON.stringify(currentRoundCandidates));
+
                     const card = document.createElement('div');
                     card.setAttribute('data-candidate-id', candidate.Candidate_ID);
                     card.className = 'profile-card';
@@ -963,51 +990,6 @@
                 </div>
             `;
         }
-        
-        async function inviteCandidate(candidateId, button) {
-            const card = button.closest('.profile-card');
-            if (!card) {
-                console.error("⚠️ No profile card found for this button.");
-                return;
-            }
-
-            if (!candidateId) {
-                console.error("⚠️ Candidate ID missing on the profile card.");
-                return;
-            }
-
-            if (invitedCount < maxInvites) {
-                card.classList.add('invited');
-                button.outerHTML = `<div class="badge-green">Invited</div>`;
-                invitedCount++;
-                invitedCandidates.push(candidateId);
-                localStorage.setItem("invitedCandidates", JSON.stringify([...new Set(invitedCandidates)]));
-
-                // Send to backend for persistence
-                try {
-                    const response = await fetch("/candidates/invite", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ candidate_id: candidateId })
-                    });
-
-                    if (!response.ok) {
-                        console.error("❌ Error inviting candidate:", await response.text());
-                    } else {
-                        console.log(`✅ Candidate ${candidateId} invited successfully.`);
-                    }
-                } catch (error) {
-                    console.error("🚨 Fetch error:", error);
-                }
-                updateInviteCounter();
-                console.log(`✅ Candidate ${candidateId} invited.`);
-                setTimeout(fetchCandidates, 1000);
-            } else {
-                alert('Maximum number of applicants invited!');
-            }
-        }
 
         function disableAllInvites() {
             document.querySelectorAll(".invite-btn").forEach(btn => {
@@ -1022,7 +1004,6 @@
             let elapsedDisplay = "";
             if (sessionElapsedSeconds !== null) {
                 elapsedDisplay = `<p>Your session lasted ${sessionElapsedSeconds} seconds.</p>`;
-                console.log("Elapsed time:", sessionElapsedSeconds, "seconds");
             } else {
                 elapsedDisplay = `<p>Session time not available.</p>`;
             }
@@ -1112,6 +1093,7 @@
             console.log("🔄 Performing FULL RESET...");
             document.getElementById("invite-counter").style.visibility = "hidden";
             localStorage.clear();
+            sessionData = { session_id: null, user_group: "features", sessionTime: null, rounds: [] };
             invitedCount = 0;
             invitedCandidates = [];
             currentRound = 1;
@@ -1134,84 +1116,77 @@
         };
 
         async function inviteCandidate(candidateId, button) {
+            console.log("inviteCandidate called");
             if (currentRound > maxRounds) {
                 disableAllInvites();
                 showCompletionDialog();
                 return;
             }
-
             const card = button.closest('.profile-card');
             if (!card) {
                 console.error("⚠️ No profile card found for this button.");
                 return;
             }
-
             if (!candidateId) {
                 console.error("⚠️ Candidate ID missing on the profile card.");
                 return;
             }
-
             if (invitedCount < maxInvites) {
+                // Mark candidate as invited visually
                 card.classList.add('invited');
                 button.outerHTML = `<div class="badge-green">Invited</div>`;
-
+                
+                // Update invite counters and session data
                 invitedCount++;
                 invitedCandidates.push(candidateId);
                 localStorage.setItem("invitedCandidates", JSON.stringify([...new Set(invitedCandidates)]));
-
-                // Send to backend for persistence
+                currentRoundCandidates = currentRoundCandidates.map(cand =>
+                cand.candidate_id === candidateId ? { ...cand, invited: true } : cand
+                );
+                
+                // Send invitation to the backend
                 try {
-                    const response = await fetch("/candidates/invite", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ candidate_id: candidateId })
-                    });
-
-                    if (!response.ok) {
-                        console.error("❌ Error inviting candidate:", await response.text());
-                    } else {
-                        console.log(`✅ Candidate ${candidateId} invited successfully.`);
-                    }
-                } catch (error) {
-                    console.error("🚨 Fetch error:", error);
+                const response = await fetch("/candidates/invite", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ candidate_id: candidateId })
+                });
+                if (!response.ok) {
+                    console.error("❌ Error inviting candidate:", await response.text());
+                } else {
+                    console.log(`✅ Candidate ${candidateId} invited successfully.`);
                 }
-
+                } catch (error) {
+                console.error("🚨 Fetch error:", error);
+                }
                 updateInviteCounter();
-
                 console.log(`✅ Candidate ${candidateId} invited.`);
-
+                
+                // When maximum invites for the round are reached,
+                // push the current round's data into sessionData and move to the next round.
                 if (invitedCount >= maxInvites) {
-                    if (currentRound < maxRounds) { 
-                        currentRound++; 
-                        localStorage.setItem("currentRound", currentRound);
-                    } else {
-                        currentRound = maxRounds + 1;
-                        localStorage.setItem("currentRound", currentRound);
-                    }
-
-                    // **Reset the invite counter for the new round**
-                    invitedCount = 0;
-                    localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
-
-                    updateInviteCounter();
-                    
-                    setTimeout(() => {
-                        document.getElementById("profiles").innerHTML = ""; // **Clear the old candidates**
-                        fetchCandidates(); // **Fetch new candidates immediately**
-                    }, 500);
+                sessionData.rounds.push({
+                    round_number: currentRound,
+                    candidate_count: currentRoundCandidates.length,
+                    invited_count: invitedCandidates.length,
+                    next_round_clicked: false, // This flag can later be updated in the nextRound function
+                    candidates: JSON.parse(JSON.stringify(currentRoundCandidates)) // deep copy
+                });
+                currentRound++;
+                localStorage.setItem("currentRound", currentRound);
+                invitedCount = 0;
+                localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
+                updateInviteCounter();
+                setTimeout(() => {
+                    document.getElementById("profiles").innerHTML = "";
+                    fetchCandidates();
+                }, 500);
                 }
             } else {
                 alert('Maximum number of applicants invited!');
             }
-        }
+            }
 
-        function startApplication() {
-            console.log("startApplication triggered");
-            document.getElementById("intro").classList.add("hidden");
-            document.getElementById("candidateSection").classList.remove("hidden");
-        }
         // Global variables for session management.
         let sessionId = null;
         let sessionElapsedSeconds = null;
@@ -1227,6 +1202,7 @@
             });
             const data = await response.json();
             sessionId = data.session_id;
+            sessionData.session_id = sessionId;
             console.log("Session started:", data);
             } catch (error) {
             console.error("Error starting session:", error);
@@ -1253,12 +1229,12 @@
                 const data = await response.json();
                 console.log("✅ Session successfully ended. Duration:", data.elapsed_seconds, "seconds");
                 sessionElapsedSeconds = data.elapsed_seconds;
+                sessionData.sessionTime = sessionElapsedSeconds;
             } catch (error) {
                 console.error("🚨 Error ending session:", error);
                 sessionElapsedSeconds = "unknown"; // Ensure something is displayed instead of null
             }
         }
-
 
         // Modify startApplication to call startSession when the user clicks Start.
         function startApplication() {
@@ -1270,9 +1246,18 @@
 
         // Modify nextRound to call endSession when the final round is reached.
         async function nextRound() {
-            currentRound++; 
+            sessionData.rounds.push({
+                round_number: currentRound,
+                candidate_count: lastRoundCandidates.length,
+                invited_count: invitedCandidates.length,
+                next_round_clicked: currentRound < maxRounds,
+                candidates: lastRoundCandidates // Use the stored deep copy
+            });
+            console.log("DEBUG:", sessionData)
+            currentRound++;
             localStorage.setItem("currentRound", currentRound);
-            if (currentRound >= maxRounds) {
+            
+            if (currentRound > maxRounds) {
                 console.log("🏁 Final round reached. Ending session.");
                 await endSession();
                 disableAllInvites();
@@ -1298,6 +1283,7 @@
             }
             // Add a placeholder link to google.com after the elapsed time.
             const linkHTML = `<p><a href="https://www.google.com">Go to Google</a></p>`;
+            const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
 
             profilesContainer.innerHTML = `
                 <div class="completion-message">
@@ -1305,6 +1291,7 @@
                     <p>Thank you for your participation.</p>
                     ${elapsedDisplay}
                     ${linkHTML}
+                    ${sessionDataHTML}
                 </div>
             `;
             // Hide the next round button.
