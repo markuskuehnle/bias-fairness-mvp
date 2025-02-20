@@ -496,7 +496,7 @@
     <script>
         let invitedCount = 0;
         const maxInvites = 1;
-        const maxRounds = 4;
+        const maxRounds = 6;
         let currentRound = parseInt(localStorage.getItem("currentRound")) || 1;
         let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
         let isFetching = false;  // Global lock to prevent duplicate calls
@@ -1293,11 +1293,15 @@
             } else {
                 elapsedDisplay = `<p>Session time not available.</p>`;
             }
+            // Add a placeholder link to google.com after the elapsed time.
+            const linkHTML = `<p><a href="https://www.google.com" target="_blank">Go to Google</a></p>`;
+
             profilesContainer.innerHTML = `
                 <div class="completion-message">
                     <h2>All Candidates Selected</h2>
                     <p>Thank you for your participation.</p>
                     ${elapsedDisplay}
+                    ${linkHTML}
                 </div>
             `;
             // Hide the next round button.
