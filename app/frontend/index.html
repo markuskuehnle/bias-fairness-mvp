@@ -441,7 +441,7 @@
             margin-top: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-            #intro .role-description strong {
+        #intro .role-description strong {
             font-size: 1.1em;
             color: #555;
         }
@@ -452,24 +452,30 @@
     <!-- Intro Section -->
     <div id="intro">
         <div class="container">
-        <h1>Welcome to the Candidate Selection Process</h1>
-        <p>
-            You will go through multiple rounds, reviewing candidates applying for a
-            <strong>Production Technician</strong> role. Each round, you can either
-            <strong>select one candidate</strong> or <strong>skip</strong> if no one seems like the right fit.
-        </p>
-        <div class="role-description">
+          <h1>Welcome to the Candidate Selection Process</h1>
+          <p>
+            Please review profiles of candidates applying for the <strong>Production Technician</strong> role.
+            In each round, you will choose one candidate based on the profile details.
+          </p>
+          <ul>
+            <li><strong>Name & Identity:</strong> Candidate’s full name and profile information.</li>
+            <li>
+                <strong>Skills, Certificates, and Competencies:</strong>
+                Shown using star ratings (0–5), where 0 indicates low performance and 5 indicates excellent performance.
+              </li>
+        </ul>
+          <div class="role-description">
             <h2>About the Role</h2>
             <p>
-            The <strong>Production Technician</strong> is responsible for keeping manufacturing operations running smoothly.
-            This includes operating and monitoring equipment, maintaining quality standards, troubleshooting issues, and ensuring safety compliance.
+              Production Technicians ensure manufacturing operations run smoothly by operating equipment,
+              maintaining quality, troubleshooting issues, and ensuring safety.
             </p>
+          </div>
+          <p>Click the button to start selecting candidates.</p>
+      <button class="start-button" onclick="startApplication()">Start</button>
         </div>
-        <p>Click below to <strong>start selecting candidates</strong>.</p>
-        <button class="start-button" onclick="startApplication()">Start</button>
-        </div>
-    </div>
-  
+      </div>
+    
       <!-- Candidate Section (initially hidden) -->
     <div id="candidateSection" class="hidden">
         <div class="header">
@@ -713,18 +719,6 @@
             });
         });
 
-            // document.addEventListener("DOMContentLoaded", function () {
-            //     // If the user didn't come from the intro page, redirect them back to the intro page
-            //     if (!sessionStorage.getItem("visitedIntro") || sessionStorage.getItem("visitedIntro") === "False") {
-            //         window.location.href = "/";
-            //     }
-
-            //     // Detect page reload and reset visitedIntro flag
-            //     window.addEventListener("beforeunload", function () {
-            //         sessionStorage.setItem("visitedIntro", "False");
-            //     });
-            // });
-
         async function fetchCandidates() {
             try {
                 if (isFetching) {
@@ -733,15 +727,6 @@
                 }
 
                 isFetching = true; // Set the lock
-
-                if (currentRound > maxRounds) { // 🔄 Check if max rounds exceeded
-                    console.log("🏁 Max rounds reached. Resetting to Round 1.");
-                    currentRound = 1; // 🔄 Reset to 1 if all rounds are completed
-                    localStorage.setItem("currentRound", currentRound);
-                    disableAllInvites();
-                    showCompletionDialog();
-                    return; // Stop fetching candidates
-                }
 
                 // Retrieve the seenCandidates list
                 let seenCandidates = JSON.parse(localStorage.getItem("seenCandidates")) || [];
@@ -927,8 +912,10 @@
                 });
 
                 if (currentRound > maxRounds) {
+                    await endSession();
                     disableAllInvites();
                     showCompletionDialog();
+                    return;
                 }
 
             } catch (error) {
@@ -979,12 +966,6 @@
         }
         
         async function inviteCandidate(candidateId, button) {
-            if (currentRound > maxRounds) {
-                disableAllInvites();
-                showCompletionDialog();
-                return;
-            }
-
             const card = button.closest('.profile-card');
             if (!card) {
                 console.error("⚠️ No profile card found for this button.");
@@ -999,7 +980,6 @@
             if (invitedCount < maxInvites) {
                 card.classList.add('invited');
                 button.outerHTML = `<div class="badge-green">Invited</div>`;
-
                 invitedCount++;
                 invitedCandidates.push(candidateId);
                 localStorage.setItem("invitedCandidates", JSON.stringify([...new Set(invitedCandidates)]));
@@ -1022,23 +1002,9 @@
                 } catch (error) {
                     console.error("🚨 Fetch error:", error);
                 }
-
                 updateInviteCounter();
-
                 console.log(`✅ Candidate ${candidateId} invited.`);
-
-                if (invitedCount >= maxInvites) {
-                    if (currentRound < maxRounds) { 
-                        currentRound++; 
-                        localStorage.setItem("currentRound", currentRound);
-                    } else {
-                        currentRound = maxRounds + 1;
-                        localStorage.setItem("currentRound", currentRound);
-                    }
-
-                    updateInviteCounter();
-                    setTimeout(fetchCandidates, 1000);
-                }
+                setTimeout(fetchCandidates, 1000);
             } else {
                 alert('Maximum number of applicants invited!');
             }
@@ -1053,19 +1019,21 @@
         }
 
         function showCompletionDialog() {
-            // Check if the modal already exists to prevent duplicate modals
-            if (document.querySelector(".modal-overlay")) return;
-
-            const profilesContainer = document.getElementById('profiles');
+            const profilesContainer = document.getElementById("profiles");
+            let elapsedDisplay = "";
+            if (sessionElapsedSeconds !== null) {
+                elapsedDisplay = `<p>Your session lasted ${sessionElapsedSeconds} seconds.</p>`;
+                console.log("Elapsed time:", sessionElapsedSeconds, "seconds");
+            } else {
+                elapsedDisplay = `<p>Session time not available.</p>`;
+            }
             profilesContainer.innerHTML = `
                 <div class="completion-message">
                     <h2>All Candidates Selected</h2>
                     <p>Thank you for your participation.</p>
-                    <button onclick="closeCompletionDialog()">OK</button>
+                    ${elapsedDisplay}
                 </div>
             `;
-
-            // Hide the next round button
             const nextRoundButton = document.querySelector(".next-round-btn");
             if (nextRoundButton) {
                 nextRoundButton.style.display = "none";
@@ -1073,8 +1041,13 @@
         }
 
         function closeCompletionDialog() {
-            const profilesContainer = document.getElementById('profiles');
-            profilesContainer.innerHTML = ""; // Clear the content when OK is pressed
+            // Instead of clearing the dialog, disable the OK button to indicate that the session is finished.
+            const okButton = document.querySelector('.completion-message button');
+            if (okButton) {
+                okButton.disabled = true;
+                okButton.textContent = "Session Ended";
+            }
+            // The dialog content (including the elapsed time) remains on screen.
         }
 
         function updateInviteCounter() {
@@ -1138,39 +1111,24 @@
         // Ensure the invite counter is updated only after fetching candidates
         window.onload = async function () {
             console.log("🔄 Performing FULL RESET...");
-
-            // Hide counter before fetching data
             document.getElementById("invite-counter").style.visibility = "hidden";
-
-            // Clear frontend tracking data
             localStorage.clear();
             invitedCount = 0;
             invitedCandidates = [];
             currentRound = 1;
             isFetching = false;
-
-            // Update UI to show reset
             document.getElementById("profiles").innerHTML = "";
-
             try {
-                // Wait for backend reset BEFORE fetching candidates
                 console.log("🔄 Requesting backend reset...");
                 const response = await fetch("/candidates/reset", { method: "POST" });
                 const data = await response.json();
                 console.log("✅ Backend Reset:", data);
-
-                // Ensure localStorage is fully cleared again
                 localStorage.setItem("seenCandidates", JSON.stringify([]));
                 localStorage.setItem("invitedCandidates", JSON.stringify([]));
                 localStorage.setItem("currentRound", "1");
                 localStorage.setItem("invitedCount", "0");
-
-                // Fetch fresh candidates only after reset is complete
                 await fetchCandidates();
-
-                // Show counter after candidates are loaded
                 updateInviteCounter();
-
             } catch (error) {
                 console.error("🚨 Backend Reset Error:", error);
             }
@@ -1250,33 +1208,103 @@
             }
         }
 
-        function nextRound() {
+        function startApplication() {
+            console.log("startApplication triggered");
+            document.getElementById("intro").classList.add("hidden");
+            document.getElementById("candidateSection").classList.remove("hidden");
+        }
+        // Global variables for session management.
+        let sessionId = null;
+        let sessionElapsedSeconds = null;
+
+        // Function to start a new session by calling the backend.
+        async function startSession(userId = null) {
+            const payload = userId ? { user_id: userId } : {};
+            try {
+            const response = await fetch("/session/start", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            sessionId = data.session_id;
+            console.log("Session started:", data);
+            } catch (error) {
+            console.error("Error starting session:", error);
+            }
+        }
+
+        // Function to end the session by calling the backend.
+        async function endSession() {
+            if (!sessionId) {
+                console.error("🚨 No session ID found! Unable to end session.");
+                return;
+            }
+            try {
+                console.log("🔄 Ending session with sessionId:", sessionId);
+                const response = await fetch("/session/end", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+                const data = await response.json();
+                console.log("✅ Session successfully ended. Duration:", data.elapsed_seconds, "seconds");
+                sessionElapsedSeconds = data.elapsed_seconds;
+            } catch (error) {
+                console.error("🚨 Error ending session:", error);
+                sessionElapsedSeconds = "unknown"; // Ensure something is displayed instead of null
+            }
+        }
+
+
+        // Modify startApplication to call startSession when the user clicks Start.
+        function startApplication() {
+            console.log("startApplication triggered");
+            startSession(); // Start the session.
+            document.getElementById("intro").classList.add("hidden");
+            document.getElementById("candidateSection").classList.remove("hidden");
+        }
+
+        // Modify nextRound to call endSession when the final round is reached.
+        async function nextRound() {
+            currentRound++; 
+            localStorage.setItem("currentRound", currentRound);
             if (currentRound >= maxRounds) {
-                console.log("🏁 Maximum rounds reached. No more rounds available.");
+                console.log("🏁 Final round reached. Ending session.");
+                await endSession();
                 disableAllInvites();
                 showCompletionDialog();
                 return;
             }
-
-            console.log(`🔄 Moving to next round. Current round: ${currentRound}`);
-
-            currentRound++; // Increment round
-            localStorage.setItem("currentRound", currentRound);
-
-            // Reset the invited count for the new round
             invitedCount = 0;
             localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
-
-            // Clear UI and fetch new candidates
             document.getElementById("profiles").innerHTML = "";
             fetchCandidates();
             updateInviteCounter();
         }
 
-        function startApplication() {
-            console.log("startApplication triggered");
-            document.getElementById("intro").classList.add("hidden");
-            document.getElementById("candidateSection").classList.remove("hidden");
+        // Update the completion dialog to display the elapsed session time.
+        function showCompletionDialog() {
+            const profilesContainer = document.getElementById("profiles");
+            let elapsedDisplay = "";
+            if (sessionElapsedSeconds !== null) {
+                elapsedDisplay = `<p>Your session lasted ${sessionElapsedSeconds} seconds.</p>`;
+                console.log("Elapsed time:", sessionElapsedSeconds, "seconds");
+            } else {
+                elapsedDisplay = `<p>Session time not available.</p>`;
+            }
+            profilesContainer.innerHTML = `
+                <div class="completion-message">
+                    <h2>All Candidates Selected</h2>
+                    <p>Thank you for your participation.</p>
+                    ${elapsedDisplay}
+                </div>
+            `;
+            // Hide the next round button.
+            const nextRoundButton = document.querySelector(".next-round-btn");
+            if (nextRoundButton) {
+                nextRoundButton.style.display = "none";
+            }
         }
 
     </script>

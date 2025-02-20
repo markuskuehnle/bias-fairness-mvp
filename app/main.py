@@ -5,7 +5,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse
 import logging
 
-from app.routers import candidates, prediction
+from app.routers import candidates, prediction, session
 
 app = FastAPI()
 
@@ -34,6 +34,7 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 # Include routers
 app.include_router(candidates.router)
 app.include_router(prediction.router)
+app.include_router(session.router)
 
 # Serve static files
 app.mount("/frontend", StaticFiles(directory="app/frontend"), name="frontend")
