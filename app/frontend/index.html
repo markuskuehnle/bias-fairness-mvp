@@ -502,6 +502,7 @@
         };
         let currentRoundCandidates = [];
         let lastRoundCandidates = [];
+        let roundStartTime = Date.now();
 
         let invitedCount = 0;
         const maxInvites = 1;
@@ -1163,17 +1164,21 @@
                 console.log(`✅ Candidate ${candidateId} invited.`);
                 
                 // When maximum invites for the round are reached,
+                const roundEndTime = Date.now();
+                const roundDuration = (roundEndTime - roundStartTime) / 1000;
                 // push the current round's data into sessionData and move to the next round.
                 if (invitedCount >= maxInvites) {
                 sessionData.rounds.push({
                     round_number: currentRound,
                     candidate_count: currentRoundCandidates.length,
                     invited_count: invitedCandidates.length,
+                    round_duration: roundDuration,
                     next_round_clicked: false, // This flag can later be updated in the nextRound function
                     candidates: JSON.parse(JSON.stringify(currentRoundCandidates)) // deep copy
                 });
                 currentRound++;
                 localStorage.setItem("currentRound", currentRound);
+                roundStartTime = Date.now();
                 invitedCount = 0;
                 localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
                 updateInviteCounter();
@@ -1246,17 +1251,21 @@
 
         // Modify nextRound to call endSession when the final round is reached.
         async function nextRound() {
+            const roundEndTime = Date.now();
+            const roundDuration = (roundEndTime - roundStartTime) / 1000;
             sessionData.rounds.push({
                 round_number: currentRound,
                 candidate_count: lastRoundCandidates.length,
                 invited_count: invitedCandidates.length,
-                next_round_clicked: currentRound < maxRounds,
+                round_duration: roundDuration,
+                next_round_clicked: true, // since user clicked "Next Round"
                 candidates: lastRoundCandidates // Use the stored deep copy
             });
             console.log("DEBUG:", sessionData)
             currentRound++;
             localStorage.setItem("currentRound", currentRound);
-            
+            roundStartTime = Date.now();
+
             if (currentRound > maxRounds) {
                 console.log("🏁 Final round reached. Ending session.");
                 await endSession();
