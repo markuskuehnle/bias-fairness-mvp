@@ -75,13 +75,13 @@
             flex-direction: column;
             position: relative; /* Ensure tooltip respects this card's positioning */
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            z-index: 1; /* Ensure card has a default stacking context */
+            z-index: 1; 
         }
     
         .profile-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            z-index: 100; /* Increase z-index on hover so the tooltip appears above other cards */
+            z-index: 100;
         }
     
         .profile-card.invited {
@@ -503,7 +503,6 @@
         };
         let currentRoundCandidates = [];
         let lastRoundCandidates = [];
-        let roundStartTime = Date.now();
 
         let invitedCount = 0;
         const maxInvites = 1;
@@ -1238,19 +1237,18 @@
                 sessionData.sessionTime = sessionElapsedSeconds;
             } catch (error) {
                 console.error("🚨 Error ending session:", error);
-                sessionElapsedSeconds = "unknown"; // Ensure something is displayed instead of null
+                sessionElapsedSeconds = "unknown"; 
             }
         }
 
-        // Modify startApplication to call startSession when the user clicks Start.
         function startApplication() {
             console.log("startApplication triggered");
             startSession(); // Start the session.
+            roundStartTime = Date.now();
             document.getElementById("intro").classList.add("hidden");
             document.getElementById("candidateSection").classList.remove("hidden");
         }
 
-        // Modify nextRound to call endSession when the final round is reached.
         async function nextRound() {
             const roundEndTime = Date.now();
             const roundDuration = (roundEndTime - roundStartTime) / 1000;
@@ -1259,8 +1257,8 @@
                 candidate_count: lastRoundCandidates.length,
                 invited_count: invitedCandidates.length,
                 round_duration: roundDuration,
-                next_round_clicked: true, // since user clicked "Next Round"
-                candidates: lastRoundCandidates // Use the stored deep copy
+                next_round_clicked: true, 
+                candidates: lastRoundCandidates 
             });
             console.log("DEBUG:", sessionData)
             currentRound++;

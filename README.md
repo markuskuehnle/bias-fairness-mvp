@@ -555,14 +555,13 @@ To **strengthen** our analysis, consider adding:
 
 1. **Frontend Display:**
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend? [TBD]
-   - Add: Total candidates invited?
+   - Add: Total candidates invited display?
+   - Should we sample candidates to always show one with GoodFit true and other false?
 
 ---
 
 ### Additional Notes and Considerations
 
 **Todo:**
-- How many selection rounds should a user complete? 6; with visible bias
-- Attention checks for users?
 - Randomized assignment to User Group? yes; 3-4 groups? distribution?
 - result json storage
