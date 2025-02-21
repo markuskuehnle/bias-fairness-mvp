@@ -365,9 +365,11 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 
 ## Tool Screenshots: Candidate Selection & Bias Analysis Overview
 
-![Applicant Selection Screenshot 3](imgs/applicant_selection3.png)
+![intro](imgs/intro.png)
 
-![Applicant Selection Screenshot 4](imgs/applicant_selection4.png)
+![Applicant Selection Screenshot 5](imgs/applicant_selection5.png)
+
+![Applicant Selection Screenshot 6](imgs/applicant_selection6.png)
 
 ---
 
