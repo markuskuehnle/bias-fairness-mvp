@@ -259,7 +259,7 @@
         }
     
         .hoverable-feature:hover::after {
-            content: attr(title); /* Tooltip content from title attribute */
+            content: attr(data-tooltip);
             position: absolute;
             top: -65px; /* Moves the tooltip further upward */
             left: 60%;  /* Shifts the tooltip to the right */
@@ -1006,16 +1006,14 @@
             return `
                 <div class="accordion-header" onclick="toggleAccordion(this)">
                     XAI: Top 3 Features
-                    <span class="info-icon" title="These values represent the top factors influencing the AI's decision-making.">ℹ</span>
+                    <span class="info-icon" data-tooltip="These values represent the top factors influencing the AI's decision-making. Higher values indicate stronger influence.">ℹ</span>
                 </div>
                 <div class="accordion-content">
                     ${candidate.TopFeatures.map(feature => {
                         const description = featureDescriptions[feature.Feature] || 'No description available.';
                         return `
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span 
-                                    class="hoverable-feature" 
-                                    title="${description}">
+                                <span class="hoverable-feature" data-tooltip="${description}">
                                     ${feature.Feature}:
                                 </span>
                                 <span>${feature["SHAP Value"].toFixed(2)}</span>
