@@ -499,11 +499,11 @@
             session_id: null,
             user_group: "features", // TODO: Change dynamically
             sessionTime: null,
-            rounds: []
+            rounds: [],
+            candidate_hover_events: {} // Initialize hover events mapping
         };
         let currentRoundCandidates = [];
         let lastRoundCandidates = [];
-
         let invitedCount = 0;
         const maxInvites = 1;
         const maxRounds = 6;
@@ -728,6 +728,40 @@
                 content.classList.add("active"); // Ensures all accordions start open
             });
         });
+
+        document.getElementById("profiles").addEventListener("mouseover", function(e) {
+            if (e.target.classList.contains("hoverable-feature")) {
+                // Record the hover start time if not already set.
+                if (!e.target.dataset.hoverStart) {
+                    e.target.dataset.hoverStart = Date.now();
+                }
+            }
+        });
+
+        document.getElementById("profiles").addEventListener("mouseout", function(e) {
+            if (e.target.classList.contains("hoverable-feature")) {
+                if (e.target.dataset.hoverStart) {
+                    // Calculate the hover duration.
+                    let hoverTime = Date.now() - parseInt(e.target.dataset.hoverStart);
+                    // Get candidate id from the closest parent profile card.
+                    let candidateId = e.target.closest(".profile-card").getAttribute("data-candidate-id");
+                    // Get the feature name by stripping any trailing colon and whitespace.
+                    let featureName = e.target.textContent.replace(":", "").trim();
+                    // Initialize candidate's hover events array if not already set.
+                    if (!sessionData.candidate_hover_events[candidateId]) {
+                        sessionData.candidate_hover_events[candidateId] = [];
+                    }
+                    // Save the hover event.
+                    sessionData.candidate_hover_events[candidateId].push({
+                        feature: featureName,
+                        hover_duration: hoverTime
+                    });
+                    // Clean up.
+                    delete e.target.dataset.hoverStart;
+                }
+            }
+        });
+
 
         async function fetchCandidates() {
             if (currentRound > maxRounds) {
@@ -1083,7 +1117,18 @@
             console.warn(`⚠️ Age ${age} does not match any category.`);
             return ""; // Return empty string if no match
         }
-        
+
+        function attachHoverEventsToCandidates(candidatesArray) {
+            candidatesArray.forEach(candidate => {
+                // Use the candidate's id as a string
+                let cid = String(candidate.candidate_id);
+                // If no hover events exist for this candidate, set to an empty array.
+                candidate.hover_events = sessionData.candidate_hover_events && sessionData.candidate_hover_events[cid] 
+                    ? sessionData.candidate_hover_events[cid] 
+                    : [];
+            });
+        }
+
         // Fetch candidates and set up interactivity after the profiles are rendered
         fetchCandidates();
 
@@ -1094,7 +1139,13 @@
             console.log("🔄 Performing FULL RESET...");
             document.getElementById("invite-counter").style.visibility = "hidden";
             localStorage.clear();
-            sessionData = { session_id: null, user_group: "features", sessionTime: null, rounds: [] };
+            let sessionData = {
+                session_id: null,
+                user_group: "features", // TODO: Change dynamically
+                sessionTime: null,
+                rounds: [],
+                candidate_hover_events: {} // Initialize hover events mapping
+            };
             invitedCount = 0;
             invitedCandidates = [];
             currentRound = 1;
@@ -1162,34 +1213,39 @@
                 }
                 updateInviteCounter();
                 console.log(`✅ Candidate ${candidateId} invited.`);
-                
+                // Attach hover events to each candidate in currentRoundCandidates.
+                attachHoverEventsToCandidates(currentRoundCandidates);
                 // When maximum invites for the round are reached,
                 const roundEndTime = Date.now();
                 const roundDuration = (roundEndTime - roundStartTime) / 1000;
                 // push the current round's data into sessionData and move to the next round.
                 if (invitedCount >= maxInvites) {
-                sessionData.rounds.push({
-                    round_number: currentRound,
-                    candidate_count: currentRoundCandidates.length,
-                    invited_count: invitedCandidates.length,
-                    round_duration: roundDuration,
-                    next_round_clicked: false, // This flag can later be updated in the nextRound function
-                    candidates: JSON.parse(JSON.stringify(currentRoundCandidates)) // deep copy
-                });
-                currentRound++;
-                localStorage.setItem("currentRound", currentRound);
-                roundStartTime = Date.now();
-                invitedCount = 0;
-                localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
-                updateInviteCounter();
-                setTimeout(() => {
-                    document.getElementById("profiles").innerHTML = "";
-                    fetchCandidates();
-                }, 500);
-                }
-            } else {
+                    // Attach hover events to each candidate in currentRoundCandidates.
+                    attachHoverEventsToCandidates(currentRoundCandidates);
+                    sessionData.rounds.push({
+                        round_number: currentRound,
+                        candidate_count: currentRoundCandidates.length,
+                        invited_count: invitedCandidates.length,
+                        round_duration: roundDuration,
+                        next_round_clicked: false, // This flag can later be updated in the nextRound function
+                        candidates: JSON.parse(JSON.stringify(currentRoundCandidates)) // deep copy
+                    });
+                    currentRound++;
+                    localStorage.setItem("currentRound", currentRound);
+                    roundStartTime = Date.now();
+                    invitedCount = 0;
+                    localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
+                    updateInviteCounter();
+                    // Clear candidate hover events for the next round.
+                    sessionData.candidate_hover_events = {};
+                    setTimeout(() => {
+                        document.getElementById("profiles").innerHTML = "";
+                        fetchCandidates();
+                    }, 500);
+                    }
+                } else {
                 alert('Maximum number of applicants invited!');
-            }
+                }
             }
 
         // Global variables for session management.
@@ -1252,6 +1308,8 @@
         async function nextRound() {
             const roundEndTime = Date.now();
             const roundDuration = (roundEndTime - roundStartTime) / 1000;
+            // Attach hover events to each candidate in lastRoundCandidates.
+            attachHoverEventsToCandidates(lastRoundCandidates);
             sessionData.rounds.push({
                 round_number: currentRound,
                 candidate_count: lastRoundCandidates.length,
@@ -1260,6 +1318,8 @@
                 next_round_clicked: true, 
                 candidates: lastRoundCandidates 
             });
+            // Clear candidate hover events for the round.
+            sessionData.candidate_hover_events = {};
             console.log("DEBUG:", sessionData)
             currentRound++;
             localStorage.setItem("currentRound", currentRound);
