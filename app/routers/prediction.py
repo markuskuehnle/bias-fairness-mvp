@@ -99,7 +99,6 @@ def update_prediction(request: PredictionRequest, static_predictions: pd.DataFra
         
         # If more than one modifiable attribute is changed, check for race-specific changes.
         if len(differences) > 1:
-            print("DEBUG: differences", differences)
             race_keys = [k for k in differences if k.startswith("RaceDesc_")]
             if race_keys:
                 new_race = None

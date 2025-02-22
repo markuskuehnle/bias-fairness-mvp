@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import pandas as pd 
-import json
+import ast
 
 from app.services.data_loader import load_candidates
 from app.services.prediction_service import load_model, predict_candidate
@@ -79,11 +79,15 @@ def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
             # Ensure TopFeatures is a list (parse if needed)
             top_features = pred_row["Top_Features"]
             if not isinstance(top_features, list):
+                # If it's a numpy array, convert it to a list; otherwise, try literal_eval
                 try:
-                    top_features = json.loads(top_features)
+                    import numpy as np
+                    if isinstance(top_features, np.ndarray):
+                        top_features = top_features.tolist()
+                    else:
+                        top_features = ast.literal_eval(top_features)
                 except Exception:
                     top_features = []
-            
             prediction_result = {
                 "is_good_fit": bool(pred_row["GoodFit"]),
                 "prediction_probability": float(round(pred_row["Prediction_Probability"], 2)),
