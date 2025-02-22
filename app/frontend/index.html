@@ -500,7 +500,6 @@
             user_group: "features", // TODO: Change dynamically
             sessionTime: null,
             rounds: [],
-            candidate_hover_events: {} // Initialize hover events mapping
         };
         let currentRoundCandidates = [];
         let lastRoundCandidates = [];
@@ -747,21 +746,21 @@
                     let candidateId = e.target.closest(".profile-card").getAttribute("data-candidate-id");
                     // Get the feature name by stripping any trailing colon and whitespace.
                     let featureName = e.target.textContent.replace(":", "").trim();
-                    // Initialize candidate's hover events array if not already set.
-                    if (!sessionData.candidate_hover_events[candidateId]) {
-                        sessionData.candidate_hover_events[candidateId] = [];
+                    // Find the candidate in currentRoundCandidates or lastRoundCandidates.
+                    let candidate = currentRoundCandidates.find(c => String(c.candidate_id) === candidateId) ||
+                                    lastRoundCandidates.find(c => String(c.candidate_id) === candidateId);
+                    if (candidate) {
+                        candidate.hover_events = candidate.hover_events || [];
+                        candidate.hover_events.push({
+                            feature: featureName,
+                            hover_duration: hoverTime
+                        });
                     }
-                    // Save the hover event.
-                    sessionData.candidate_hover_events[candidateId].push({
-                        feature: featureName,
-                        hover_duration: hoverTime
-                    });
                     // Clean up.
                     delete e.target.dataset.hoverStart;
                 }
             }
         });
-
 
         async function fetchCandidates() {
             if (currentRound > maxRounds) {
@@ -1118,12 +1117,7 @@
 
         function attachHoverEventsToCandidates(candidatesArray) {
             candidatesArray.forEach(candidate => {
-                // Use the candidate's id as a string
-                let cid = String(candidate.candidate_id);
-                // If no hover events exist for this candidate, set to an empty array.
-                candidate.hover_events = sessionData.candidate_hover_events && sessionData.candidate_hover_events[cid] 
-                    ? sessionData.candidate_hover_events[cid] 
-                    : [];
+                candidate.hover_events = candidate.hover_events || [];
             });
         }
 
@@ -1142,7 +1136,6 @@
                 user_group: "features", // TODO: Change dynamically
                 sessionTime: null,
                 rounds: [],
-                candidate_hover_events: {} // Initialize hover events mapping
             };
             invitedCount = 0;
             invitedCandidates = [];
@@ -1349,7 +1342,7 @@
             }
             // Add a placeholder link to google.com after the elapsed time.
             const linkHTML = `<p><a href="https://www.google.com">Go to Google</a></p>`;
-            const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
+            const sessionDataHTML = `<pre>${JSON.stringify(sessionData, (key, value) => key === "candidate_hover_events" ? undefined : value, 2)}</pre>`;
 
             profilesContainer.innerHTML = `
                 <div class="completion-message">
