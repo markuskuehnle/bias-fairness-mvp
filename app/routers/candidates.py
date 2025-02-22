@@ -1,9 +1,12 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+import pandas as pd 
+import json
 
 from app.services.data_loader import load_candidates
 from app.services.prediction_service import load_model, predict_candidate
+from app.routers.prediction import load_static_predictions
 
 router = APIRouter()
 
@@ -21,20 +24,12 @@ class InviteRequest(BaseModel):
 
 @router.get("/candidates/data", tags=["Candidates"])
 def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
-    """
-    Get the list of candidates formatted as fact sheets, excluding already invited candidates.
-
-    Parameters:
-    exclude_ids (list[int]): List of candidate IDs to exclude.
-
-    Returns:
-    list: List of candidate fact sheets.
-    """
     try:
         global invited_candidates, seen_candidates
 
         # Load candidate data
         candidates = load_candidates()
+        static_predictions = load_static_predictions()
 
         # Add new seen candidates to the global tracking set
         seen_candidates.update(exclude_ids)
@@ -42,9 +37,27 @@ def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
 
         # Remove already seen/invited candidates from the available pool
         available_candidates = candidates[~candidates["Candidate_ID"].isin(excluded_candidates)]
+        candidates_with = available_candidates[
+            available_candidates["Candidate_ID"].isin(
+                static_predictions[
+                    static_predictions["Modified_Attribute"].isnull() & (static_predictions["GoodFit"] == True)
+                ]["Candidate_ID"]
+            )
+        ]
+        candidates_without = available_candidates[
+            available_candidates["Candidate_ID"].isin(
+                static_predictions[
+                    static_predictions["Modified_Attribute"].isnull() & (static_predictions["GoodFit"] == False)
+                ]["Candidate_ID"]
+            )
+        ]
 
-        # Select up to 6 new random candidates
-        selected_candidates = available_candidates.sample(n=min(2, len(available_candidates)))
+        if not candidates_with.empty and not candidates_without.empty:
+            selected_candidates = pd.concat([candidates_with.sample(n=1), candidates_without.sample(n=1)]).sample(frac=1)
+        elif len(available_candidates) >= 2:
+            selected_candidates = available_candidates.sample(n=2)
+        else:
+            selected_candidates = available_candidates
 
         fact_sheets = []
         for _, row in selected_candidates.iterrows():
@@ -55,8 +68,28 @@ def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
                 "Unknown"
             )
 
-            prediction_result = predict_candidate(row, xgb_model)
-
+            # Get the original prediction from static predictions
+            pred_row = static_predictions[
+                (static_predictions["Candidate_ID"] == row["Candidate_ID"]) &
+                (static_predictions["Modified_Attribute"].isnull())
+            ]
+            if pred_row.empty:
+                raise HTTPException(status_code=404, detail="Original prediction not found for candidate.")
+            pred_row = pred_row.iloc[0]
+            # Ensure TopFeatures is a list (parse if needed)
+            top_features = pred_row["Top_Features"]
+            if not isinstance(top_features, list):
+                try:
+                    top_features = json.loads(top_features)
+                except Exception:
+                    top_features = []
+            
+            prediction_result = {
+                "is_good_fit": bool(pred_row["GoodFit"]),
+                "prediction_probability": float(round(pred_row["Prediction_Probability"], 2)),
+                "top_features": top_features
+            }
+            
             race_column_mapping = {
                 "White": "RaceDesc_White",
                 "Black or African American": "RaceDesc_Black or African American",
@@ -91,13 +124,13 @@ def get_candidates_data(exclude_ids: list[int] = Query([], alias="exclude")):
                 "GoodFit": prediction_result["is_good_fit"],
                 "Probability": round(prediction_result["prediction_probability"], 2),
                 "TopFeatures": prediction_result["top_features"]
-            }) # TODO: Add predictions
+            })
 
         return fact_sheets
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e.__traceback__.tb_lineno},{str(type(e).__name__)}: {str(e)}")
-
+    
 
 @router.get("/candidates", response_class=HTMLResponse, tags=["Candidates"])
 def show_candidates_frontend(): # TODO: modify frontend serving to show one recommended and one not-recommended candidate?
