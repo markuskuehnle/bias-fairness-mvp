@@ -703,7 +703,7 @@
                 prediction_probability: result.prediction_probability,
                 is_good_fit: result.is_good_fit,
                 xai_features: result.top_features,
-                timestamp: Date.now()
+                timestamp: new Date().toISOString()
             });
 
             // Once any manipulation occurs, mark the candidate as manipulated (always true thereafter)
@@ -763,8 +763,12 @@
         document.getElementById("profiles").addEventListener("mouseout", function(e) {
             if (e.target.classList.contains("hoverable-feature")) {
                 if (e.target.dataset.hoverStart) {
-                    // Calculate the hover duration.
-                    let hoverTime = Date.now() - parseInt(e.target.dataset.hoverStart);
+                // Calculate the hover duration in milliseconds.
+                let hoverTimeMs = Date.now() - parseInt(e.target.dataset.hoverStart);
+                // Only record if the hover time is greater than 100 ms.
+                if (hoverTimeMs > 100) {
+                    // Convert hover time to seconds and format it to two decimal places.
+                    let hoverTimeSec = (hoverTimeMs / 1000).toFixed(2);
                     // Get candidate id from the closest parent profile card.
                     let candidateId = e.target.closest(".profile-card").getAttribute("data-candidate-id");
                     // Get the feature name by stripping any trailing colon and whitespace.
@@ -773,17 +777,18 @@
                     let candidate = currentRoundCandidates.find(c => String(c.candidate_id) === candidateId) ||
                                     lastRoundCandidates.find(c => String(c.candidate_id) === candidateId);
                     if (candidate) {
-                        candidate.hover_events = candidate.hover_events || [];
-                        candidate.hover_events.push({
-                            feature: featureName,
-                            hover_duration: hoverTime
-                        });
+                    candidate.hover_events = candidate.hover_events || [];
+                    candidate.hover_events.push({
+                        feature: featureName,
+                        hover_duration: Number(hoverTimeSec) // stored in seconds
+                    });
                     }
-                    // Clean up.
-                    delete e.target.dataset.hoverStart;
+                }
+                // Clean up the hover start timestamp.
+                delete e.target.dataset.hoverStart;
                 }
             }
-        });
+            });
 
         async function fetchCandidates() {
             if (currentRound > maxRounds) {

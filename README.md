@@ -559,6 +559,9 @@ To **strengthen** our analysis, consider adding:
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend? [TBD]
    - Add: Total candidates invited display?
 
+2. **Result**
+   - Should the change back to the original xai feature be logged in the result?
+   
 ---
 
 ### Additional Notes and Considerations
