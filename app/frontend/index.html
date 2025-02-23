@@ -629,6 +629,7 @@
                     }).join('');
                 }
 
+                return result; // Return the result so it can be used for tracking
             } catch (error) {
                 console.error("🚨 Fetch error:", error);
             }
@@ -652,23 +653,19 @@
         async function handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues) {
             console.log("🔹 handleManipulationChange triggered", candidateId, selectedGroup, selectedValue);
 
-            const allInputs = document.querySelectorAll(`input[name^="gender-${candidateId}"], 
-                                                        input[name^="age-${candidateId}"], 
-                                                        input[name^="race-${candidateId}"]`);
+            // Get all related radio inputs
+            const allInputs = document.querySelectorAll(`input[name^="gender-${candidateId}"], input[name^="age-${candidateId}"], input[name^="race-${candidateId}"]`);
 
-            // Get the original values
+            // Retrieve the original values from the card's dataset
             const originalGender = originalValues.gender;
             const originalAge = originalValues.age;
             const originalRace = originalValues.race;
 
-            // Check if a radio button is selected before accessing `.value`
+            // Get current selections
             const genderInput = document.querySelector(`input[name="gender-${candidateId}"]:checked`);
             const ageInput = document.querySelector(`input[name="age-${candidateId}"]:checked`);
             const raceInput = document.querySelector(`input[name="race-${candidateId}"]:checked`);
 
-            console.log(`🟢 Found selections - Gender: ${genderInput ? genderInput.value : "❌ MISSING"}, Age: ${ageInput ? ageInput.value : "❌ MISSING"}, Race: ${raceInput ? raceInput.value : "❌ MISSING"}`);
-
-            // If any input is missing, log an error and return
             if (!genderInput || !ageInput || !raceInput) {
                 console.error(`⚠️ Missing input selection for candidate ${candidateId}`);
                 return;
@@ -680,27 +677,53 @@
 
             console.log("Current selections:", currentGender, currentAge, currentRace);
 
-            const isReverted = currentGender === originalGender && currentAge === originalAge && currentRace === originalRace;
+            // Determine if the current state is different from the original
+            const isModified = !(currentGender === originalGender && currentAge === originalAge && currentRace === originalRace);
 
-            if (!isReverted) {
-                console.log("Modifications detected, updating prediction...");
-                allInputs.forEach(input => {
-                    if (input.name.includes(selectedGroup) || input.value === originalValues[selectedGroup]) return;
-                    input.disabled = true;
-                    input.parentElement.classList.add("disabled");
-                });
+            // Always call updatePrediction to get the current prediction details
+            const result = await updatePrediction(candidateId, currentGender, currentAge, currentRace);
+            if (!result) return;
 
-                await updatePrediction(candidateId, currentGender, currentAge, currentRace);
-            } else {
-                console.log("Values reverted, enabling inputs...");
-                allInputs.forEach(input => {
-                    input.disabled = false;
-                    input.parentElement.classList.remove("disabled");
-                });
-
-                await updatePrediction(candidateId, originalGender, originalAge, originalRace);
+            // Find the candidate object in the current round array
+            let candidate = currentRoundCandidates.find(c => String(c.candidate_id) === candidateId);
+            if (!candidate) {
+                console.error("Candidate not found for candidateId:", candidateId);
+                return;
             }
-        }
+
+            // Initialize the manipulations array if not already present
+            if (!candidate.manipulations) {
+                candidate.manipulations = [];
+            }
+
+            // Record this manipulation event (even if it reverts to original)
+            candidate.manipulations.push({
+                changed_attribute: selectedGroup,
+                new_value: selectedValue,
+                prediction_probability: result.prediction_probability,
+                is_good_fit: result.is_good_fit,
+                xai_features: result.top_features,
+                timestamp: Date.now()
+            });
+
+            // Once any manipulation occurs, mark the candidate as manipulated (always true thereafter)
+            candidate.manipulated = true;
+            console.log("Candidate manipulation recorded:", candidate.manipulations[candidate.manipulations.length - 1]);
+
+            // Update input states: if the current state is the original, re-enable inputs; if not, disable non-changed ones.
+            if (!isModified) {
+                allInputs.forEach(input => {
+                input.disabled = false;
+                input.parentElement.classList.remove("disabled");
+                });
+            } else {
+                allInputs.forEach(input => {
+                if (input.name.includes(selectedGroup) || input.value === originalValues[selectedGroup]) return;
+                input.disabled = true;
+                input.parentElement.classList.add("disabled");
+                });
+            }
+            }
 
         document.addEventListener("change", function (event) {
             if (event.target.type === "radio") {
