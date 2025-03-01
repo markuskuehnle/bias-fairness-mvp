@@ -1337,43 +1337,124 @@
             updateInviteCounter();
         }
 
-        // Update the completion dialog to display the elapsed session time.
+        // Global variable to track the current feedback page
+        // Global feedback variables
+        // Global feedback variables
+        let feedbackPage = 0;
+        const questionsPerPage = 5;
+        const totalFeedbackQuestions = 25;
+        const totalFeedbackPages = totalFeedbackQuestions / questionsPerPage;
+
+        // Create an array with 25 placeholder questions.
+        const feedbackQuestions = Array.from({ length: totalFeedbackQuestions }, (_, i) => 
+            `Question ${i + 1}: [Placeholder question text]`
+            );
+
         function showCompletionDialog() {
-            // Remove the header element from the candidate section
+            // Hide only the header inside the candidateSection.
             const header = document.querySelector("#candidateSection .header");
             if (header) {
-                header.remove();
+                header.style.display = "none";
             }
 
+            // Show an initial completion screen with a "Continue to Feedback" button.
             const profilesContainer = document.getElementById("profiles");
-            let elapsedDisplay = "";
-            if (sessionElapsedSeconds !== null) {
-                elapsedDisplay = `<p>Your session lasted ${sessionElapsedSeconds} seconds.</p>`;
-                console.log("Elapsed time:", sessionElapsedSeconds, "seconds");
-            } else {
-                elapsedDisplay = `<p>Session time not available.</p>`;
-            }
-            // Add a placeholder link to Google after the elapsed time.
-            const linkHTML = `<p><a href="https://www.google.com">Go to Google</a></p>`;
-            const sessionDataHTML = `<pre>${JSON.stringify(sessionData, (key, value) => key === "candidate_hover_events" ? undefined : value, 2)}</pre>`;
-
             profilesContainer.innerHTML = `
                 <div class="completion-message">
                 <h2>All Candidates Selected</h2>
                 <p>Thank you for your participation.</p>
-                ${elapsedDisplay}
-                ${linkHTML}
-                ${sessionDataHTML}
+                <button id="continueFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; margin-top: 20px;">Continue to Feedback</button>
                 </div>
             `;
 
-            // Hide the next round button.
+            // Hide the Next Round button if it exists.
             const nextRoundButton = document.querySelector(".next-round-btn");
             if (nextRoundButton) {
                 nextRoundButton.style.display = "none";
             }
+
+            document.getElementById("continueFeedback").addEventListener("click", () => {
+                feedbackPage = 1;
+                showFeedbackPage(feedbackPage);
+            });
         }
 
+        function showFeedbackPage(pageNum) {
+            // Calculate the slice of questions for the current page.
+            const startIdx = (pageNum - 1) * questionsPerPage;
+            const pageQuestions = feedbackQuestions.slice(startIdx, startIdx + questionsPerPage);
+
+            // Build the feedback HTML for this page.
+            const feedbackHTML = `
+                <div class="feedback-container">
+                <h2>Feedback Questionnaire (Page ${pageNum} of ${totalFeedbackPages})</h2>
+                ${pageQuestions.map((q, idx) => `
+                    <div class="feedback-question" style="margin-bottom: 20px;">
+                    <p>${q}</p>
+                    <div class="radio-group" style="display: flex; gap: 10px;">
+                        ${[1,2,3,4,5,6,7].map(val => `
+                        <label style="display: inline-block;">
+                            <input type="radio" name="question${startIdx + idx + 1}" value="${val}" required>
+                            ${val}
+                        </label>
+                        `).join('')}
+                    </div>
+                    </div>
+                `).join('')}
+                <div class="feedback-buttons" style="display: flex; gap: 10px;">
+                    ${pageNum > 1 ? `<button id="prevFeedback" style="background-color: #aaa; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Back</button>` : ""}
+                    ${pageNum < totalFeedbackPages 
+                    ? `<button id="nextFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Next</button>`
+                    : `<button id="submitFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Submit Feedback</button>`}
+                </div>
+                </div>
+            `;
+
+            const profilesContainer = document.getElementById("profiles");
+            profilesContainer.innerHTML = feedbackHTML;
+
+            // Add Back button event listener if applicable.
+            if (pageNum > 1) {
+                document.getElementById("prevFeedback").addEventListener("click", () => {
+                feedbackPage--;
+                showFeedbackPage(feedbackPage);
+                });
+            }
+
+            // Add Next or Submit button event listener.
+            if (pageNum < totalFeedbackPages) {
+                document.getElementById("nextFeedback").addEventListener("click", () => {
+                feedbackPage++;
+                showFeedbackPage(feedbackPage);
+                });
+            } else {
+                document.getElementById("submitFeedback").addEventListener("click", () => {
+                showFinalThankYou();
+                });
+            }
+        }
+
+        function showFinalThankYou() {
+            const profilesContainer = document.getElementById("profiles");
+            profilesContainer.innerHTML = `
+                <div class="final-message">
+                <h2>Thank You!</h2>
+                <p>Your feedback has been submitted.</p>
+                <p><a href="https://www.google.com" target="_blank" style="background-color: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Google</a></p>
+                </div>
+            `;
+        }
+
+        // profilesContainer.innerHTML = `
+        //     <div class="completion-message">
+        //     <h2>All Candidates Selected</h2>
+        //     <p>Thank you for your participation.</p>
+        //     ${elapsedDisplay}
+        //     ${linkHTML}
+        //     ${sessionDataHTML}
+        //     <button id="feedbackButton">Give Feedback</button>
+        //     </div>
+        // `;
     </script>
 </body>
 
