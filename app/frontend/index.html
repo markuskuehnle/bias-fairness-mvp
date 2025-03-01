@@ -1059,27 +1059,6 @@
             });
         }
 
-        function showCompletionDialog() {
-            const profilesContainer = document.getElementById("profiles");
-            let elapsedDisplay = "";
-            if (sessionElapsedSeconds !== null) {
-                elapsedDisplay = `<p>Your session lasted ${sessionElapsedSeconds} seconds.</p>`;
-            } else {
-                elapsedDisplay = `<p>Session time not available.</p>`;
-            }
-            profilesContainer.innerHTML = `
-                <div class="completion-message">
-                    <h2>All Candidates Selected</h2>
-                    <p>Thank you for your participation.</p>
-                    ${elapsedDisplay}
-                </div>
-            `;
-            const nextRoundButton = document.querySelector(".next-round-btn");
-            if (nextRoundButton) {
-                nextRoundButton.style.display = "none";
-            }
-        }
-
         function closeCompletionDialog() {
             // Instead of clearing the dialog, disable the OK button to indicate that the session is finished.
             const okButton = document.querySelector('.completion-message button');
@@ -1360,6 +1339,12 @@
 
         // Update the completion dialog to display the elapsed session time.
         function showCompletionDialog() {
+            // Remove the header element from the candidate section
+            const header = document.querySelector("#candidateSection .header");
+            if (header) {
+                header.remove();
+            }
+
             const profilesContainer = document.getElementById("profiles");
             let elapsedDisplay = "";
             if (sessionElapsedSeconds !== null) {
@@ -1368,19 +1353,20 @@
             } else {
                 elapsedDisplay = `<p>Session time not available.</p>`;
             }
-            // Add a placeholder link to google.com after the elapsed time.
+            // Add a placeholder link to Google after the elapsed time.
             const linkHTML = `<p><a href="https://www.google.com">Go to Google</a></p>`;
             const sessionDataHTML = `<pre>${JSON.stringify(sessionData, (key, value) => key === "candidate_hover_events" ? undefined : value, 2)}</pre>`;
 
             profilesContainer.innerHTML = `
                 <div class="completion-message">
-                    <h2>All Candidates Selected</h2>
-                    <p>Thank you for your participation.</p>
-                    ${elapsedDisplay}
-                    ${linkHTML}
-                    ${sessionDataHTML}
+                <h2>All Candidates Selected</h2>
+                <p>Thank you for your participation.</p>
+                ${elapsedDisplay}
+                ${linkHTML}
+                ${sessionDataHTML}
                 </div>
             `;
+
             // Hide the next round button.
             const nextRoundButton = document.querySelector(".next-round-btn");
             if (nextRoundButton) {
