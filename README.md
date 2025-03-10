@@ -555,7 +555,8 @@ Result json structure for storage:
       ]
     },
     ...
-  "feedback": {
+  "feedbackTime": 22.282,
+  "feedbackAnswers": {
       "1": "5",
       "2": "4",
       "3": "5",

@@ -1348,6 +1348,9 @@
             `Question ${i + 1}: [Placeholder question text]`
             );
 
+        // Global variable to track questionnaire start time
+        let feedbackStartTime = null;
+
         function showCompletionDialog() {
             // Hide only the header inside the candidateSection.
             const header = document.querySelector("#candidateSection .header");
@@ -1372,6 +1375,7 @@
             }
 
             document.getElementById("continueFeedback").addEventListener("click", () => {
+                feedbackStartTime = Date.now();  // Start tracking questionnaire time
                 feedbackPage = 1;
                 showFeedbackPage(feedbackPage);
             });
@@ -1386,24 +1390,27 @@
             const pageQuestions = feedbackQuestions.slice(startIdx, startIdx + questionsPerPage);
 
             // Build the feedback HTML for this page.
+            // We check if an answer for a question exists in feedbackAnswers and mark it as checked.
             const feedbackHTML = `
                 <div class="feedback-container">
                 <h2>Feedback Questionnaire (Page ${pageNum} of ${totalFeedbackPages})</h2>
                 <form id="feedbackForm">
                     ${pageQuestions.map((q, idx) => {
-                    const questionNumber = startIdx + idx + 1;
-                    // Retrieve saved answer if available.
-                    const savedAnswer = feedbackAnswers[questionNumber] || "";
+                    const questionName = `question${startIdx + idx + 1}`;
                     return `
                         <div class="feedback-question" style="margin-bottom: 20px;">
                         <p>${q}</p>
                         <div class="radio-group" style="display: flex; gap: 10px;">
-                            ${[1, 2, 3, 4, 5, 6, 7].map(val => `
-                            <label style="display: inline-block;">
-                                <input type="radio" name="question${questionNumber}" value="${val}" ${savedAnswer == val ? "checked" : ""} required>
+                            ${[1,2,3,4,5,6,7].map(val => {
+                            // Check if there's a saved answer for this question.
+                            const isChecked = feedbackAnswers[questionName] == val ? "checked" : "";
+                            return `
+                                <label style="display: inline-block;">
+                                <input type="radio" name="${questionName}" value="${val}" ${isChecked} required>
                                 ${val}
-                            </label>
-                            `).join('')}
+                                </label>
+                            `;
+                            }).join('')}
                         </div>
                         </div>
                     `;
@@ -1421,12 +1428,12 @@
             const profilesContainer = document.getElementById("profiles");
             profilesContainer.innerHTML = feedbackHTML;
 
-            // Function to save current page's answers into feedbackAnswers.
-            function saveCurrentAnswers() {
+            // Before moving on (either back, next, or submit), save the current page's answers.
+            function saveCurrentPageAnswers() {
                 for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
-                const selected = document.querySelector(`input[name="question${i}"]:checked`);
-                if (selected) {
-                    feedbackAnswers[i] = selected.value;
+                const answer = document.querySelector(`input[name="question${i}"]:checked`);
+                if (answer) {
+                    feedbackAnswers[`question${i}`] = answer.value;
                 }
                 }
             }
@@ -1434,7 +1441,7 @@
             // Add Back button event listener if applicable.
             if (pageNum > 1) {
                 document.getElementById("prevFeedback").addEventListener("click", () => {
-                saveCurrentAnswers();
+                saveCurrentPageAnswers();
                 feedbackPage--;
                 showFeedbackPage(feedbackPage);
                 });
@@ -1455,13 +1462,12 @@
                     alert("Please answer all questions before proceeding.");
                     return;
                 }
-                saveCurrentAnswers();
+                saveCurrentPageAnswers();
                 feedbackPage++;
                 showFeedbackPage(feedbackPage);
                 });
             } else {
                 document.getElementById("submitFeedback").addEventListener("click", () => {
-                // Validate that all questions on this page have a selected value.
                 let valid = true;
                 for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
                     if (!document.querySelector(`input[name="question${i}"]:checked`)) {
@@ -1473,9 +1479,7 @@
                     alert("Please answer all questions before submitting.");
                     return;
                 }
-                saveCurrentAnswers();
-                // Save all feedback answers to the session data.
-                sessionData.feedback = feedbackAnswers;
+                saveCurrentPageAnswers();
                 showFinalThankYou();
                 });
             }
@@ -1483,13 +1487,19 @@
 
         function showFinalThankYou() {
             const profilesContainer = document.getElementById("profiles");
+            // Calculate total time spent on questionnaire.
+            const feedbackEndTime = Date.now();
+            const feedbackElapsed = (feedbackEndTime - feedbackStartTime) / 1000;
+            // Save feedback answers and time to sessionData.
+            sessionData.feedbackTime = feedbackElapsed;
+            sessionData.feedbackAnswers = feedbackAnswers;
             const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
-
             profilesContainer.innerHTML = `
                 <div class="final-message">
                 <h2>Thank You!</h2>
                 <p>Your feedback has been submitted.</p>
-                  ${sessionDataHTML}
+                <p>Time spent on questionnaire: ${feedbackElapsed.toFixed(2)} seconds.</p>
+                ${sessionDataHTML}
                 <p><a href="https://www.google.com" target="_blank" style="background-color: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Google</a></p>
                 </div>
             `;
