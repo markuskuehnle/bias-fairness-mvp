@@ -642,11 +642,29 @@ To **strengthen** our analysis, consider adding:
 
 ![key_decisions](imgs/key_decisions_banner.png)
 
+
+###  Ground Truth Considerations
+
+Establishing a reliable ground truth is essential for evaluating our AI-assisted candidate selection system and ensuring fairness in decision-making. We propose two potential metrics as the basis for a single ground truth variable that can objectively benchmark candidate quality.
+
+#### Option 1: Aggregated Star Rating (Skill Score)
+
+This metric aggregates individual star ratings for a candidate’s skills into a single, intuitive score. It provides a clear, easy-to-understand measure of technical proficiency based on predefined skill assessments. By using this aggregated star rating, we can objectively compare candidates’ abilities, independent of model predictions.
+
+#### Option 2: Aggregated Composite Score
+
+This approach combines technical skills and certification ratings into one comprehensive metric. The composite score reflects not only the candidate’s technical abilities but also the credibility provided by relevant certifications. This holistic measure offers a broader perspective on a candidate's overall qualifications and can serve as a robust ground truth for assessing both AI recommendations and user decision-making.
+
+Both options provide objective benchmarks; however, the choice between them depends on whether a more straightforward evaluation of skills (Option 1) or a comprehensive assessment that includes certifications (Option 2) is preferred for the research context.
+
+--- 
+
 ### Topics for Discussion
 
 1. **Frontend Display:**
    - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend? [TBD]
    - Add: Total candidates invited display?
+  - Drop Social Skills rating because always 3?
 
 2. **Result**
    - Should the change back to the original xai feature be logged in the result?
