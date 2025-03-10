@@ -662,13 +662,9 @@ Both options provide objective benchmarks; however, the choice between them depe
 ### Topics for Discussion
 
 1. **Frontend Display:**
-   - Should the binary label (`GoodFit`) and its associated probability be displayed to the user in the frontend? [TBD]
    - Add: Total candidates invited display?
-  - Drop Social Skills rating because always 3?
+   - Drop Social Skills rating because always 3?
 
-2. **Result**
-   - Should the change back to the original xai feature be logged in the result?
-   
 ---
 
 ### Additional Notes and Considerations
