@@ -555,7 +555,15 @@ Result json structure for storage:
       ]
     },
     ...
-
+  "feedback": {
+      "1": "5",
+      "2": "4",
+      "3": "5",
+      ...
+      "23": "4",
+      "24": "4",
+      "25": "4"
+    }
 ```
 
 With the current **result structure**, we can analyze several **key aspects** of **user behavior, AI influence, and bias effects** in the decision-making process. Below is a breakdown of what we can analyze and potential additions to **improve the data collection for deeper analysis**.

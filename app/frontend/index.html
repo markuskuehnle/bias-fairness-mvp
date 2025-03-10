@@ -1338,8 +1338,6 @@
         }
 
         // Global variable to track the current feedback page
-        // Global feedback variables
-        // Global feedback variables
         let feedbackPage = 0;
         const questionsPerPage = 5;
         const totalFeedbackQuestions = 25;
@@ -1379,6 +1377,9 @@
             });
         }
 
+        // Global variable to store answers across feedback pages.
+        let feedbackAnswers = {};
+
         function showFeedbackPage(pageNum) {
             // Calculate the slice of questions for the current page.
             const startIdx = (pageNum - 1) * questionsPerPage;
@@ -1388,47 +1389,93 @@
             const feedbackHTML = `
                 <div class="feedback-container">
                 <h2>Feedback Questionnaire (Page ${pageNum} of ${totalFeedbackPages})</h2>
-                ${pageQuestions.map((q, idx) => `
-                    <div class="feedback-question" style="margin-bottom: 20px;">
-                    <p>${q}</p>
-                    <div class="radio-group" style="display: flex; gap: 10px;">
-                        ${[1,2,3,4,5,6,7].map(val => `
-                        <label style="display: inline-block;">
-                            <input type="radio" name="question${startIdx + idx + 1}" value="${val}" required>
-                            ${val}
-                        </label>
-                        `).join('')}
-                    </div>
-                    </div>
-                `).join('')}
-                <div class="feedback-buttons" style="display: flex; gap: 10px;">
-                    ${pageNum > 1 ? `<button id="prevFeedback" style="background-color: #aaa; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Back</button>` : ""}
+                <form id="feedbackForm">
+                    ${pageQuestions.map((q, idx) => {
+                    const questionNumber = startIdx + idx + 1;
+                    // Retrieve saved answer if available.
+                    const savedAnswer = feedbackAnswers[questionNumber] || "";
+                    return `
+                        <div class="feedback-question" style="margin-bottom: 20px;">
+                        <p>${q}</p>
+                        <div class="radio-group" style="display: flex; gap: 10px;">
+                            ${[1, 2, 3, 4, 5, 6, 7].map(val => `
+                            <label style="display: inline-block;">
+                                <input type="radio" name="question${questionNumber}" value="${val}" ${savedAnswer == val ? "checked" : ""} required>
+                                ${val}
+                            </label>
+                            `).join('')}
+                        </div>
+                        </div>
+                    `;
+                    }).join('')}
+                    <div class="feedback-buttons" style="display: flex; gap: 10px;">
+                    ${pageNum > 1 ? `<button type="button" id="prevFeedback" style="background-color: #aaa; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Back</button>` : ""}
                     ${pageNum < totalFeedbackPages 
-                    ? `<button id="nextFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Next</button>`
-                    : `<button id="submitFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Submit Feedback</button>`}
-                </div>
+                        ? `<button type="button" id="nextFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Next</button>`
+                        : `<button type="button" id="submitFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Submit Feedback</button>`}
+                    </div>
+                </form>
                 </div>
             `;
 
             const profilesContainer = document.getElementById("profiles");
             profilesContainer.innerHTML = feedbackHTML;
 
+            // Function to save current page's answers into feedbackAnswers.
+            function saveCurrentAnswers() {
+                for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
+                const selected = document.querySelector(`input[name="question${i}"]:checked`);
+                if (selected) {
+                    feedbackAnswers[i] = selected.value;
+                }
+                }
+            }
+
             // Add Back button event listener if applicable.
             if (pageNum > 1) {
                 document.getElementById("prevFeedback").addEventListener("click", () => {
+                saveCurrentAnswers();
                 feedbackPage--;
                 showFeedbackPage(feedbackPage);
                 });
             }
 
-            // Add Next or Submit button event listener.
+            // Add Next or Submit button event listener with validation.
             if (pageNum < totalFeedbackPages) {
                 document.getElementById("nextFeedback").addEventListener("click", () => {
+                // Validate that all questions on this page have a selected value.
+                let valid = true;
+                for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
+                    if (!document.querySelector(`input[name="question${i}"]:checked`)) {
+                    valid = false;
+                    break;
+                    }
+                }
+                if (!valid) {
+                    alert("Please answer all questions before proceeding.");
+                    return;
+                }
+                saveCurrentAnswers();
                 feedbackPage++;
                 showFeedbackPage(feedbackPage);
                 });
             } else {
                 document.getElementById("submitFeedback").addEventListener("click", () => {
+                // Validate that all questions on this page have a selected value.
+                let valid = true;
+                for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
+                    if (!document.querySelector(`input[name="question${i}"]:checked`)) {
+                    valid = false;
+                    break;
+                    }
+                }
+                if (!valid) {
+                    alert("Please answer all questions before submitting.");
+                    return;
+                }
+                saveCurrentAnswers();
+                // Save all feedback answers to the session data.
+                sessionData.feedback = feedbackAnswers;
                 showFinalThankYou();
                 });
             }
@@ -1436,10 +1483,13 @@
 
         function showFinalThankYou() {
             const profilesContainer = document.getElementById("profiles");
+            const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
+
             profilesContainer.innerHTML = `
                 <div class="final-message">
                 <h2>Thank You!</h2>
                 <p>Your feedback has been submitted.</p>
+                  ${sessionDataHTML}
                 <p><a href="https://www.google.com" target="_blank" style="background-color: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Google</a></p>
                 </div>
             `;
