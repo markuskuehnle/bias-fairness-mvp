@@ -198,7 +198,7 @@ This section outlines the key steps taken to prepare the data for classifier tra
 
 The MVP dataset preparation follows a similar structure but is tailored to meet the requirements of the **Bias & Fairness Demonstrator Application**.
 
-### 1. Counterfactual Calculation (Notebook: `11 - Counterfactual Calculation`)
+### 1. Counterfactual Calculation (Notebook: `10 - Counterfactual Calculation`)
 
 - Loaded the trained `XGBoost` model and the test dataset (`X_test.parquet`).
 - Predicted probability scores for each row.
@@ -208,7 +208,7 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 - Identified individuals whose predictions significantly changed due to these modifications.
 - Extracted key candidates for further analysis in the Bias & Fairness Demonstrator.
 
-### 2. Creating Static Data for the App MVP (Notebook: `12 - Create Static Data for App MVP`)
+### 2. Creating Static Data for the App MVP (Notebook: `11 - Create Static Data for App MVP`)
 
 - Filtered the test dataset to include candidates for a specific role (`Production Technician I`).
 - Merged this filtered dataset with HR metadata to retain **employee names** and additional attributes.
@@ -223,7 +223,7 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
   - Counterfactual probabilities
 - Saved the **final dataset** as `static_data.parquet` for integration into the Bias & Fairness Demonstrator.
 
-### 3. Feature Description Generation (Notebook: `13 - Create Feature Descriptions`)
+### 3. Feature Description Generation (Notebook: `12 - Create Feature Descriptions`)
 
 - Defined a detailed mapping of feature names to descriptions.
 - Mapped skills, certifications, and job positions to meaningful business terms.
@@ -231,7 +231,7 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 - Identified and resolved missing feature descriptions.
 - Exported the final feature descriptions as `feature_description.json` for use in the MVP app.
 
-### 4. Reviewing Predictions & Dataset Balancing (Notebook: `14 - Review Predictions`)
+### 4. Reviewing Predictions & Dataset Balancing (Notebook: `13 - Review Predictions`)
 
 - Loaded the **static dataset** (`static_data.parquet`) and pre-trained `XGBoost` model.
 - Predicted `GoodFit` probabilities and classified candidates accordingly.
@@ -239,6 +239,15 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 - Identified fairness concerns by examining demographic patterns in the model’s decisions.
 - Downsampled **"Good Fit"** predictions to **balance** the dataset for fair analysis.
 - Saved the **resampled dataset** as `static_data.parquet` for use in the Bias & Fairness Demonstrator.
+
+### 5. Precomputing GoodFit Predictions (Notebook: `15 - GoodFit Prediction Static Data`)
+
+- Loaded the **processed dataset** (`static_data.parquet`) and pre-trained `XGBoost` model.  
+- Systematically **varied protected attributes** (age, sex, race) for each candidate to generate counterfactual predictions.  
+- Predicted `GoodFit` probabilities and identified **top contributing features** using **SHAP**.  
+- Evaluated **potential biases** by comparing original and modified predictions.  
+- Filtered candidates whose `GoodFit` status **changed** due to multiple attribute modifications.  
+- Saved the **precomputed dataset** as `static_predictions.parquet` for use in the Bias & Fairness Demonstrator.  
 
 ---
 
@@ -258,7 +267,61 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 - **12_create_feature_description_json**: Creates a JSON file that documents feature descriptions, aligning them with role-specific skills and certifications. The notebook ensures consistency between feature names and role attributes while validating completeness.
 - **13_review_predictions**: Applies a pre-trained XGBoost model to predict candidate suitability and visualizes the prediction distribution. It also explores SHAP-based feature importance, balances the dataset via downsampling, and prepares the data for further analysis.
 - **14_run_pipeline**: Executes the full data pipeline, integrating all preprocessing, model training, and evaluation steps.  
-- **15_bias_demonstration**: Analyzes potential bias in model predictions using statistical tests, confusion matrices, calibration checks, and SHAP explainability. It examines demographic disparities and evaluates fairness across different subgroups.
+- **15_goodfit_prediction_static_data**:  Precomputes GoodFit predictions for a static dataset by varying protected attributes such as age, sex, and race. It generates a structured dataset where each candidate's GoodFit score is recalculated under different attribute modifications. This enables the frontend to allow users to explore potential biases by adjusting one attribute at a time without requiring real-time model inference.
+- **16_bias_demonstration**: Analyzes potential bias in model predictions using statistical tests, confusion matrices, calibration checks, and SHAP explainability. It examines demographic disparities and evaluates fairness across different subgroups.
+
+---
+
+## Counterfactual Fairness Analysis Summary
+
+This section demonstrates our approach to evaluating bias in model predictions using counterfactual fairness metrics. By systematically altering protected attributes (sex, age, and race) for each candidate, we pre-compute counterfactual predictions. These results enable us to quantify how much a single attribute change can affect a candidate’s predicted probability of being a “Good Fit.”
+
+### Dataset Overview
+
+- **Number of Unique Candidate IDs:** 245  
+- **Distribution of Original GoodFit**  
+  - Approximately 70% labeled **True** (GoodFit)  
+  - Approximately 30% labeled **False** (not a GoodFit)  
+
+![goodfit_distribution](imgs/goodfit_distribution.png)
+
+This indicates that the majority of candidates start out with a positive GoodFit label, although a substantial minority are labeled otherwise from the outset.
+
+### Key Counterfactual Fairness Metrics
+
+- **Average Maximum Change in Prediction Probability:** 0.8101998  
+  _Interpretation:_ On average, when a protected attribute (such as sex, age, or race) is altered, the model’s predicted probability shifts by about **81 percentage points**. This high average change suggests that the model is extremely sensitive to these attributes, raising potential fairness concerns.
+
+- **Flip Rate:** 1.0  
+  _Interpretation:_ A flip rate of **1.0** (or **100%**) indicates that **every candidate** experienced a change in their GoodFit label under at least one counterfactual modification. In other words, for every candidate, there exists some attribute modification that causes the model’s decision to flip, underscoring the model’s volatility with respect to protected features.
+
+### Detailed Distribution of Counterfactual Changes
+
+- **Overall Counterfactual Changes:**  
+  - **Average Change:** 0.5399411  
+  - **Median Change:** 0.5970941  
+  - **Variance:** 0.1098562  
+  _Summary:_ The overall distribution of absolute changes in prediction probability shows that, on average, modifications lead to a change of about **54 percentage points**. The median is slightly higher, suggesting that many modifications result in substantial prediction shifts, although there is variability across candidates.
+
+- **By Attribute:**  
+  - **Sex:**  
+    - **Average Change:** 0.3592  
+    - **Median Change:** 0.3094  
+    _Summary:_ Changes in the candidate’s sex produce the smallest average change in prediction probability, indicating that the model is somewhat less sensitive to alterations in this attribute.
+  
+  - **Age:**  
+    - **Average Change:** 0.5934  
+    - **Median Change:** 0.6570  
+    _Summary:_ Age modifications lead to the largest shifts in prediction probability. This suggests that the model heavily weights age information, resulting in large swings when age is altered.
+  
+  - **Race:**  
+    - **Average Change:** 0.5233  
+    - **Median Change:** 0.5802  
+    _Summary:_ Modifications in race also cause substantial changes, highlighting the model’s sensitivity to racial attributes.
+
+### What This Means
+
+These findings point to significant fairness concerns. The high average change and a 100% flip rate imply that the model’s decisions are highly volatile when protected attributes are modified. In practice, this means that small, seemingly innocuous changes to a candidate’s demographic profile can lead to dramatic changes in the AI’s recommendation—potentially reinforcing or even amplifying existing biases.
 
 ---
 
@@ -380,7 +443,7 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 - **Visualization**: Matplotlib, Plotly, SHAP.
 - **Database**: PostgreSQL managed by Supabase.
 - **User Session Tracking**: Supabase (Auth + DB).
-- **Deployment**: Docker, Render, Supabase, Vercel.
+- **Deployment**: Vercel.
 
 ---
 
@@ -389,92 +452,109 @@ The MVP dataset preparation follows a similar structure but is tailored to meet 
 Result json structure for storage:
 
 ```json
+
 {
-  "user_id": "123456",
+  "session_id": "a574ff6d-6f72-406f-b156-5b640e886ab3",
   "user_group": "features",
+  "sessionTime": 16.371168,
   "rounds": [
     {
       "round_number": 1,
-      "candidate_count": 5,
-      "invited_count": 2,
-      "next_round_clicked": true,
-      "candidates": [
-        {
-          "candidate_id": "C001",
-          "name": "John Doe",
-          "attributes": {
-            "age": 35,
-            "sex": "Male",
-            "race": "White",
-            "years_experience": 10,
-            "technical_skills_score": 4.2,
-            "certifications_score": 3.5
-          },
-          "good_fit": true,
-          "recommended": true,
-          "invited": false,
-          "manipulated": false
-        },
-        {
-          "candidate_id": "C002",
-          "name": "Jane Smith",
-          "attributes": {
-            "age": 29,
-            "sex": "Female",
-            "race": "Asian",
-            "years_experience": 8,
-            "technical_skills_score": 3.8,
-            "certifications_score": 4.1
-          },
-          "good_fit": false,
-          "recommended": false,
-          "invited": true,
-          "manipulated": false
-        },
-        {
-          "candidate_id": "C003",
-          "name": "Michael Johnson",
-          "attributes": {
-            "age": 41,
-            "sex": "Male",
-            "race": "Black",
-            "years_experience": 15,
-            "technical_skills_score": 4.5,
-            "certifications_score": 4.0
-          },
-          "good_fit": true,
-          "recommended": true,
-          "invited": true,
-          "manipulated": true
-        }
-      ]
-    },
-    {
-      "round_number": 2,
-      "candidate_count": 4,
+      "candidate_count": 2,
       "invited_count": 1,
+      "round_duration": 9.963,
       "next_round_clicked": false,
       "candidates": [
         {
-          "candidate_id": "C004",
-          "name": "Emma Davis",
+          "candidate_id": 207,
+          "name": "Nevaeh Calhoun",
           "attributes": {
-            "age": 32,
+            "age": 50,
+            "sex": "Male",
+            "race": "White",
+            "years_experience": 0,
+            "technical_skills_score": 0,
+            "certifications_score": 2
+          },
+          "good_fit": false,
+          "recommended": false,
+          "invited": false,
+          "manipulated": false,
+          "hover_events": []
+        },
+        {
+          "candidate_id": 1219,
+          "name": "Samuel Jennings",
+          "attributes": {
+            "age": 50,
             "sex": "Female",
-            "race": "Hispanic",
-            "years_experience": 12,
-            "technical_skills_score": 4.0,
-            "certifications_score": 3.7
+            "race": "Black",
+            "years_experience": 0,
+            "technical_skills_score": 0,
+            "certifications_score": 0
           },
           "good_fit": true,
           "recommended": true,
-          "invited": false,
-          "manipulated": false
+          "invited": true,
+          "manipulated": true,
+          "hover_events": [
+            {
+              "feature": "Basic Machinery Maintenance",
+              "hover_duration": 0.21
+            },
+            {
+              "feature": "Problem Identification",
+              "hover_duration": 2.59
+            }
+          ],
+          "manipulations": [
+            {
+              "changed_attribute": "race",
+              "new_value": "White",
+              "prediction_probability": 0.009999999776482582,
+              "is_good_fit": false,
+              "xai_features": [
+                {
+                  "Feature": "Safety Protocols",
+                  "SHAP Value": 0.9836218953132629
+                },
+                {
+                  "Feature": "Problem Identification",
+                  "SHAP Value": 0.9336374402046204
+                },
+                {
+                  "Feature": "Basic Machinery Maintenance",
+                  "SHAP Value": 0.4883248209953308
+                }
+              ],
+              "timestamp": "2025-03-10T13:15:48.503Z"
+            },
+            {
+              "changed_attribute": "race",
+              "new_value": "Black",
+              "prediction_probability": 0.9800000190734863,
+              "is_good_fit": true,
+              "xai_features": [
+                {
+                  "Feature": "Safety Protocols",
+                  "SHAP Value": 1.0299004316329956
+                },
+                {
+                  "Feature": "Basic Machinery Maintenance",
+                  "SHAP Value": 0.7226954698562622
+                },
+                {
+                  "Feature": "Problem Identification",
+                  "SHAP Value": 0.5744005441665649
+                }
+              ],
+              "timestamp": "2025-03-10T13:15:50.699Z"
+            }
+          ]
         }
       ]
-    }
-  ]
-}
+    },
+    ...
 
 ```
 
