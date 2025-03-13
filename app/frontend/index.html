@@ -576,6 +576,117 @@
                 font-size: 1.1em;
                 color: #555;
             }
+            #completion-wrapper {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh; /* Full viewport height */
+            }
+
+            .completion-container {
+                background: #FAFBFC;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                max-width: 600px;
+                text-align: center;
+                width: 90%; /* Prevent it from being too wide on small screens */
+            }
+
+            .completion-container h1 {
+                color: #1D2127;
+                margin-bottom: 15px;
+            }
+
+            .completion-container p {
+                color: #555;
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+
+            .session-data {
+                background-color: #F8F9FA;
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 15px;
+                text-align: left;
+                font-size: 0.9em;
+                word-break: break-word;
+                max-height: 250px;
+                overflow-y: auto;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .session-data h3 {
+                margin-top: 0;
+                color: #007BFF;
+            }
+
+            .completion-btn {
+                display: inline-block;
+                margin-top: 15px;
+                background-color: #007BFF;
+                color: white;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-size: 1.1em;
+                transition: background-color 0.3s ease;
+            }
+
+            .completion-btn:hover {
+                background-color: #0056b3;
+            }
+
+            .feedback-container {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 20px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                text-align: left;
+            }
+
+            .feedback-question {
+                margin-bottom: 20px;
+            }
+
+            .radio-group {
+                display: flex;
+                gap: 10px;
+            }
+
+            .feedback-buttons button {
+                padding: 10px 15px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+            #prevFeedback {
+                background-color: #aaa; /* Grey */
+                color: white;
+            }
+
+            #prevFeedback:hover {
+                background-color: #888; /* Darker Grey on Hover */
+            }
+
+            #nextFeedback, #submitFeedback {
+                background-color: #007BFF; /* Blue */
+                color: white;
+            }
+
+            #nextFeedback:hover, #submitFeedback:hover {
+                background-color: #0056b3; /* Darker Blue on Hover */
+            }
+
+            .feedback-buttons button:hover {
+                background-color: #0056b3;
+            }
+
         </style>
         
     </head>
@@ -1244,7 +1355,7 @@
 
                 // Update counter text
                 inviteCounter.textContent = 
-                    `Applicants invited: ${displayedInvitedCount}/${maxInvites} · Round: ${displayedRound}/${maxRounds}`;
+                    `Round: ${displayedRound}/${maxRounds}`;
 
                 // Show the counter only after correct values are set
                 inviteCounter.style.visibility = "visible";
@@ -1516,19 +1627,27 @@
             let feedbackStartTime = null;
 
             function showCompletionDialog() {
-                // Hide only the header inside the candidateSection.
+                // Hide the header inside the candidateSection.
                 const header = document.querySelector("#candidateSection .header");
                 if (header) {
                     header.style.display = "none";
                 }
-                
-                // Show an initial completion screen with a "Continue to Feedback" button.
+
+                // Hide the sidebar
+                const sidebar = document.getElementById("sidebar");
+                if (sidebar) {
+                    sidebar.style.display = "none";
+                }
+
+                // Set up a flex container to center the completion dialog
                 const profilesContainer = document.getElementById("profiles");
                 profilesContainer.innerHTML = `
-                    <div class="completion-message">
-                    <h2>All Candidates Selected</h2>
-                    <p>Thank you for your participation.</p>
-                    <button id="continueFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; margin-top: 20px;">Continue to Feedback</button>
+                    <div id="completion-wrapper">
+                        <div id="completion" class="completion-container">
+                            <h1>All Candidates Selected</h1>
+                            <p>Thank you for your participation.</p>
+                            <button id="continueFeedback" class="start-button">Continue to Feedback</button>
+                        </div>
                     </div>
                 `;
 
@@ -1538,8 +1657,9 @@
                     nextRoundButton.style.display = "none";
                 }
 
+                // Start feedback on button click
                 document.getElementById("continueFeedback").addEventListener("click", () => {
-                    feedbackStartTime = Date.now();  // Start tracking questionnaire time
+                    feedbackStartTime = Date.now();
                     feedbackPage = 1;
                     showFeedbackPage(feedbackPage);
                 });
@@ -1554,38 +1674,36 @@
                 const pageQuestions = feedbackQuestions.slice(startIdx, startIdx + questionsPerPage);
 
                 // Build the feedback HTML for this page.
-                // We check if an answer for a question exists in feedbackAnswers and mark it as checked.
                 const feedbackHTML = `
                     <div class="feedback-container">
-                    <h2>Feedback Questionnaire (Page ${pageNum} of ${totalFeedbackPages})</h2>
-                    <form id="feedbackForm">
-                        ${pageQuestions.map((q, idx) => {
-                        const questionName = `question${startIdx + idx + 1}`;
-                        return `
-                            <div class="feedback-question" style="margin-bottom: 20px;">
-                            <p>${q}</p>
-                            <div class="radio-group" style="display: flex; gap: 10px;">
-                                ${[1,2,3,4,5,6,7].map(val => {
-                                // Check if there's a saved answer for this question.
-                                const isChecked = feedbackAnswers[questionName] == val ? "checked" : "";
+                        <h2>Feedback Questionnaire (Page ${pageNum} of ${totalFeedbackPages})</h2>
+                        <form id="feedbackForm">
+                            ${pageQuestions.map((q, idx) => {
+                                const questionName = `question${startIdx + idx + 1}`;
                                 return `
-                                    <label style="display: inline-block;">
-                                    <input type="radio" name="${questionName}" value="${val}" ${isChecked} required>
-                                    ${val}
-                                    </label>
+                                    <div class="feedback-question">
+                                        <p>${q}</p>
+                                        <div class="radio-group">
+                                            ${[1,2,3,4,5,6,7].map(val => {
+                                                const isChecked = feedbackAnswers[questionName] == val ? "checked" : "";
+                                                return `
+                                                    <label>
+                                                        <input type="radio" name="${questionName}" value="${val}" ${isChecked} required>
+                                                        ${val}
+                                                    </label>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
                                 `;
-                                }).join('')}
+                            }).join('')}
+                            <div class="feedback-buttons">
+                                ${pageNum > 1 ? `<button type="button" id="prevFeedback">Back</button>` : ""}
+                                ${pageNum < totalFeedbackPages 
+                                    ? `<button type="button" id="nextFeedback">Next</button>`
+                                    : `<button type="button" id="submitFeedback">Submit Feedback</button>`}
                             </div>
-                            </div>
-                        `;
-                        }).join('')}
-                        <div class="feedback-buttons" style="display: flex; gap: 10px;">
-                        ${pageNum > 1 ? `<button type="button" id="prevFeedback" style="background-color: #aaa; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Back</button>` : ""}
-                        ${pageNum < totalFeedbackPages 
-                            ? `<button type="button" id="nextFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Next</button>`
-                            : `<button type="button" id="submitFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Submit Feedback</button>`}
-                        </div>
-                    </form>
+                        </form>
                     </div>
                 `;
 
@@ -1651,20 +1769,30 @@
 
             function showFinalThankYou() {
                 const profilesContainer = document.getElementById("profiles");
+                
                 // Calculate total time spent on questionnaire.
                 const feedbackEndTime = Date.now();
                 const feedbackElapsed = (feedbackEndTime - feedbackStartTime) / 1000;
+                
                 // Save feedback answers and time to sessionData.
                 sessionData.feedbackTime = feedbackElapsed;
                 sessionData.feedbackAnswers = feedbackAnswers;
                 const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
+                
                 profilesContainer.innerHTML = `
-                    <div class="final-message">
-                    <h2>Thank You!</h2>
-                    <p>Your feedback has been submitted.</p>
-                    <p>Time spent on questionnaire: ${feedbackElapsed.toFixed(2)} seconds.</p>
-                    ${sessionDataHTML}
-                    <p><a href="https://www.google.com" target="_blank" style="background-color: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Google</a></p>
+                    <div id="completion-wrapper">
+                        <div id="completion" class="completion-container">
+                            <h1>🎉 Thank You!</h1>
+                            <p>Your feedback has been successfully submitted.</p>
+                            <p><strong>Time spent on questionnaire:</strong> ${feedbackElapsed.toFixed(2)} seconds.</p>
+
+                            <div class="session-data">
+                                <h3>Session Summary:</h3>
+                                ${sessionDataHTML}
+                            </div>
+
+                            <a href="https://www.google.com" target="_blank" class="completion-btn">Visit Google</a>
+                        </div>
                     </div>
                 `;
             }
