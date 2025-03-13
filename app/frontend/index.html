@@ -326,6 +326,7 @@
                 height: auto; /* Allow height to expand dynamically */
                 overflow-y: auto; /* Allow scrolling if necessary */
                 flex-shrink: 0; /* Prevents sidebar from shrinking */
+                display: none; /* Ensure it's hidden on initial load */
             }
 
             /* Wrap the header and profiles together */
@@ -713,6 +714,15 @@
                 maintaining quality, troubleshooting issues, and ensuring safety.
                 </p>
             </div>
+
+            <h3>Select Debugging Group</h3>
+            <div class="radio-group">
+                <label><input type="radio" name="userGroup" value="no-xai" checked> Group 1: No-XAI</label>
+                <label><input type="radio" name="userGroup" value="badge"> Group 2: Badge</label>
+                <label><input type="radio" name="userGroup" value="predictions"> Group 3: Predictions</label>
+                <label><input type="radio" name="userGroup" value="interactive"> Group 4: Interactive</label>
+            </div>
+
             <p>Click the button to start selecting candidates.</p>
         <button class="start-button" onclick="startApplication()">Start</button>
             </div>
@@ -1008,6 +1018,11 @@
             });
 
             document.addEventListener("DOMContentLoaded", function () {
+                let userGroup = localStorage.getItem("userGroup") || "no-xai"; // Default to no-xai if not set
+                applyUserGroupRestrictions(userGroup);
+            });
+
+            document.addEventListener("DOMContentLoaded", function () {
                 document.querySelectorAll(".accordion-content").forEach(content => {
                     content.classList.add("active"); // Ensures all accordions start open
                 });
@@ -1280,6 +1295,8 @@
                         // Append the card to the profiles container
                         profilesContainer.appendChild(card);
                     });
+                    // Apply user group restrictions after rendering
+                    applyUserGroupRestrictions(localStorage.getItem("userGroup"));
                 } catch (error) {
                     console.error('Error fetching candidates:', error);
                 } finally {
@@ -1410,6 +1427,17 @@
             // Ensure the invite counter is updated only after fetching candidates
             window.onload = async function () {
                 console.log("🔄 Performing FULL RESET...");
+                // Preserve user group from previous session
+                let userGroup = localStorage.getItem("userGroup");
+                if (!userGroup) {
+                    console.warn("⚠️ No user group selected. Defaulting to 'no-xai'.");
+                    userGroup = "no-xai";
+                    localStorage.setItem("userGroup", userGroup);
+                } else {
+                    console.log(`✅ Restoring user group from storage: ${userGroup}`);
+                }
+                applyUserGroupRestrictions(userGroup);
+
                 document.getElementById("invite-counter").style.visibility = "hidden";
                 localStorage.clear();
                 let sessionData = {
@@ -1571,12 +1599,112 @@
 
             function startApplication() {
                 console.log("startApplication triggered");
+                // Get the selected user group
+                const selectedGroupInput = document.querySelector('input[name="userGroup"]:checked');
+
+                if (!selectedGroupInput) {
+                    alert("⚠️ Please select a user group before starting.");
+                    return; // Stop execution if no selection is made
+                }
+                const selectedGroup = selectedGroupInput.value;
+                localStorage.setItem("userGroup", selectedGroup); // Save it permanently
+
+                // Apply UI restrictions based on group
+                applyUserGroupRestrictions(selectedGroup);
                 startSession(); // Start the session.
+
                 roundStartTime = Date.now();
                 document.getElementById("intro").classList.add("hidden");
                 document.getElementById("candidateSection").classList.remove("hidden");
                 document.querySelector(".sidebar").style.display = "block";
             }
+
+
+            function applyUserGroupRestrictions(userGroup) {
+                console.log("Applying restrictions for:", userGroup);
+
+                // Select elements
+                const badges = document.querySelectorAll(".badge-yellow"); // AI Recommendation badge
+                const predictions = document.querySelectorAll(".prediction-section"); // Predictions section
+                const xaiSections = document.querySelectorAll(".accordion-header, .accordion-content"); // XAI Sections
+                const sidebar = document.querySelector(".sidebar"); // Sidebar
+                const manipulationSections = document.querySelectorAll(".recommendation-manipulation"); // AI manipulation sections
+                const inviteButtons = document.querySelectorAll(".invite-btn"); // Invite buttons
+
+                // Hide sidebar for all groups except "interactive"
+                if (userGroup === "no-xai" || userGroup === "badge" || userGroup === "predictions") {
+                    if (sidebar) {
+                        sidebar.style.display = "none"; 
+                        sidebar.classList.add("hidden"); // Ensure it's completely hidden
+                    }
+                } else {
+                    if (sidebar) {
+                        sidebar.style.display = "block"; 
+                        sidebar.classList.remove("hidden");
+                    }
+                }
+
+                if (userGroup === "no-xai") {
+                    // ❌ Hide AI badges, predictions, XAI sections, and manipulation sections
+                    badges.forEach(el => el.style.display = "none");
+                    predictions.forEach(el => el.style.display = "none");
+                    xaiSections.forEach(el => el.style.display = "none");
+                    manipulationSections.forEach(el => el.style.display = "none");
+
+                    // ✅ Ensure invite buttons remain normal
+                    inviteButtons.forEach(btn => {
+                        btn.textContent = "Invite Applicant";
+                        btn.classList.remove("highlight-btn");
+                    });
+                } 
+                
+                else if (userGroup === "badge") {
+                    // ✅ Show AI recommendation badges
+                    badges.forEach(el => el.style.display = "block");
+
+                    // ✅ Show highlighted invite button for AI-recommended candidates
+                    inviteButtons.forEach(btn => {
+                        const card = btn.closest(".profile-card");
+                        if (card && card.querySelector(".badge-yellow")) {
+                            btn.textContent = ">>Invite Applicant<<";
+                            btn.classList.add("highlight-btn");
+                        }
+                    });
+
+                    // ❌ Hide predictions and XAI sections
+                    predictions.forEach(el => el.style.display = "none");
+                    xaiSections.forEach(el => el.style.display = "none");
+
+                    // ❌ Hide AI manipulation sections
+                    manipulationSections.forEach(el => el.style.display = "none");
+                } 
+                
+                else if (userGroup === "predictions") {
+                    // ✅ Show AI recommendation badges
+                    badges.forEach(el => el.style.display = "block");
+
+                    // ✅ Show AI prediction probabilities & Good Fit
+                    predictions.forEach(el => el.style.display = "block");
+
+                    // ❌ Hide XAI SHAP values (accordion)
+                    xaiSections.forEach(el => el.style.display = "none");
+
+                    // ✅ Ensure invite buttons remain highlighted for AI-recommended candidates
+                    inviteButtons.forEach(btn => {
+                        const card = btn.closest(".profile-card");
+                        if (card && card.querySelector(".badge-yellow")) {
+                            btn.textContent = ">>Invite Applicant<<";
+                            btn.classList.add("highlight-btn");
+                        }
+                    });
+
+                    // ❌ Hide AI manipulation sections
+                    manipulationSections.forEach(el => el.style.display = "none");
+                } 
+                
+                // ✅ Group 4 (Interactive) sees everything, so no need to hide anything
+            }
+
 
             async function nextRound() {
                 const roundEndTime = Date.now();
