@@ -698,7 +698,7 @@
             <h1>Welcome to the Candidate Selection Process</h1>
             <p>
                 Please review profiles of candidates applying for the <strong>Production Technician</strong> role.
-                In each round, you will choose one candidate based on the profile details.
+                In each round, you can select <strong>one candidate</strong> based on the profile details or move to the next round without selecting anyone using the <strong>'Next Round'</strong> button.
             </p>
             <ul>
                 <li><strong>Name & Identity:</strong> Candidate’s full name and profile information.</li>
@@ -1442,7 +1442,7 @@
                 localStorage.clear();
                 let sessionData = {
                     session_id: null,
-                    user_group: "features", // TODO: Change dynamically
+                    user_group: localStorage.getItem("userGroup"),
                     sessionTime: null,
                     rounds: [],
                 };
@@ -1608,6 +1608,8 @@
                 }
                 const selectedGroup = selectedGroupInput.value;
                 localStorage.setItem("userGroup", selectedGroup); // Save it permanently
+                sessionData.user_group = selectedGroup;
+                console.log("✅ User group set in sessionData:", sessionData.user_group);
 
                 // Apply UI restrictions based on group
                 applyUserGroupRestrictions(selectedGroup);
@@ -1919,7 +1921,7 @@
                                 ${sessionDataHTML}
                             </div>
 
-                            <a href="https://www.google.com" target="_blank" class="completion-btn">Visit Google</a>
+                            <a href="https://www.prolific.com" target="_blank" class="completion-btn">Visit Prolific</a>
                         </div>
                     </div>
                 `;
