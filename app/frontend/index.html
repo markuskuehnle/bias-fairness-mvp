@@ -1,1521 +1,1794 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Applicant Profiles</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-    
-        .header {
-            background-color: #f8f9fa;
-            color: #333;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-    
-        .header-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-    
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 800px;
-        }
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Applicant Profiles</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                background-color: #232A38;
+                margin: 0;
+                padding: 0;
+            }
         
-        .header-row h2 {
-            margin: 0;
-            font-size: 1.2em;
-            color: #555;
-        }
+            .header {
+                background-color: #404854;
+                color: #A1A9B7;
+                padding: 20px;
+                text-align: center;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
         
-        .header h1 {
-            margin: 0;
-            font-size: 1.8em;
-            color: #555;
-        }
-    
-        .header h2 {
-            margin: 5px 0 0 0;
-            font-size: 1.2em;
-            font-weight: normal;
-            color: #777;
-        }
-
-    
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px; /* Increased the gap between cards for better spacing */
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow: visible;
-        }
-    
-        .profile-card {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: visible; /* Prevent clipping of tooltip within the card */
-            width: 220px; /* Slightly increased width for better readability */
-            display: flex;
-            flex-direction: column;
-            position: relative; /* Ensure tooltip respects this card's positioning */
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            z-index: 1; 
-        }
-    
-        .profile-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            z-index: 100;
-        }
-    
-        .profile-card.invited {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-    
-        .profile-header {
-            background-color: #f0f0f0;
-            color: #333;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-    
-        .badge-container {
-            height: 30px;
-            background-color: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 0 10px;
-        }
-    
-        .badge-yellow {
-            background-color: #FFFACD;
-            color: #333;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.75em;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            min-width: 100px;
-            text-align: center;
-        }
-    
-        .badge-green {
-            background-color: #DFF2BF;
-            color: #333;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.75em;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            min-width: 100px;
-            text-align: center;
-        }
-    
-        .profile-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #eee;
-        }
-    
-        .profile-section div {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-    
-        .profile-section div span:first-child {
-            font-weight: bold;
-        }
-    
-        .skills, .prediction-section, .invite-section {
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #eee;
-        }
-    
-        .invite-section {
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-    
-        .accordion-header {
-            cursor: pointer;
-            color: #007BFF;
-            font-weight: bold;
-            margin-top: 10px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 0;
-        }
-    
-        .accordion-content {
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-top: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-    
-        .accordion-content.active {
-            display: flex;
-        }
-    
-        .accordion-content div {
-            margin-bottom: 5px;
-        }
-    
-        .info-icon {
-            margin-left: 5px;
-            font-size: 0.9em;
-            color: #888;
-            cursor: pointer;
-            position: relative; /* Ensure tooltip is positioned relative to the icon */
-            z-index: 2; /* Tooltip is above other cards */
-        }
-    
-        .info-icon:hover::after {
-            content: "These values represent the impact of features on the AI's decision-making process. Higher values indicate stronger influence.";
-            position: absolute;
-            top: -60px;
-            left: 50%; /* Center the tooltip horizontally */
-            transform: translateX(-50%); /* Adjust for tooltip width */
-            background-color: #fff;
-            color: #333;
-            font-size: 0.8em;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 5px;
-            width: 250px; /* Increased width for better readability */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000; /* Ensure tooltip is above other cards */
-            white-space: normal;
-            pointer-events: none;
-        }
-    
-        .info-icon:hover {
-            z-index: 1000; /* Bring the icon and tooltip above all cards */
-        }
-    
-        .stars {
-            color: #000;
-        }
-    
-        .invite-btn {
-            padding: 5px 10px;
-            border: none;
-            background-color: #FFFACD;
-            color: #333;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em; 
-            transition: background-color 0.3s ease;
-        }
-    
-        .invite-btn.highlight-btn {
-            background-color: #FFECB3;
-        }
-    
-        .invite-btn.highlight-btn:hover {
-            background-color: #FFE082;
-        }
-    
-        .hoverable-feature {
-            position: relative;
-            cursor: pointer;
-            color: #007BFF;
-            text-decoration: underline dotted;
-        }
-    
-        .hoverable-feature:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            top: -65px; /* Moves the tooltip further upward */
-            left: 60%;  /* Shifts the tooltip to the right */
-            transform: translateX(0); /* Removes the centering transformation */
-            background-color: #fff;
-            color: #333;
-            font-size: 0.8em;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 5px 10px;
-            width: 280px; /* Increased tooltip width */
-            white-space: normal; 
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 9999;       /* High z-index to ensure it appears above other elements */
-        }
-
-        .recommendation-manipulation {
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #eee;
-            margin-top: 15px;
-            border-radius: 8px;
-        }
-
-        .manipulation-columns {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-
-        .manipulation-column {
-            width: 30%; /* Ensure 3 columns fit in one row */
-        }
-
-        .manipulation-column h5 {
-            margin-bottom: 10px;
-            font-size: 1em;
-            color: #555;
-        }
-
-        .manipulation-column label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            color: #333;
-        }
-
-        .manipulation-column input[type="radio"] {
-            margin-right: 5px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            color: #333;
-            cursor: pointer;
-        }
-
-        button.highlighted {
-            background-color: #f0f8ff; /* Light blue background */
-            color: #333; /* Text color */
-            border: 2px solid #007bff; /* Blue border */
-            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Glow effect */
-            transition: all 0.3s ease; /* Smooth transition for the highlight */
-        }
-
-        label.disabled {
-            opacity: 0.5; /* Grey out the label */
-            pointer-events: none; /* Prevent interaction */
-            cursor: not-allowed; /* Show a "not-allowed" cursor */
-        }
-
-        .good-fit-no {
-            color: red;
-            font-weight: bold;
-        }
-
-        .probability-low {
-            color: red;
-            font-weight: bold;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal h2 {
-            margin: 0 0 10px;
-        }
-
-        .modal button {
-            padding: 10px 20px;
-            border: none;
-            background: #007BFF;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .modal button:hover {
-            background: #0056b3;
-        }
-
-        .next-round-btn {
-            padding: 10px 15px;
-            background-color: #007BFF;
-            color: white;
-            font-size: 1em;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .next-round-btn:hover {
-            background-color: #0056b3;
-        }
-
-        .hidden { 
-            display: none !important;
-        }
-        #intro {
-            padding: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        #intro .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 600px;
-            text-align: left;
-        }
-        #intro h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        #intro p {
-            color: #666;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-        }
-        #intro .start-button {
-            background-color: #007BFF;
-            color: white;
-            padding: 10px 20px;
-            font-size: 1.1em;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        #intro .start-button:hover {
-            background-color: #0056b3;
-        }
-        #intro .role-description {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        #intro .role-description strong {
-            font-size: 1.1em;
-            color: #555;
-        }
-    </style>
-    
-</head>
-<body>
-    <!-- Intro Section -->
-    <div id="intro">
-        <div class="container">
-          <h1>Welcome to the Candidate Selection Process</h1>
-          <p>
-            Please review profiles of candidates applying for the <strong>Production Technician</strong> role.
-            In each round, you will choose one candidate based on the profile details.
-          </p>
-          <ul>
-            <li><strong>Name & Identity:</strong> Candidate’s full name and profile information.</li>
-            <li>
-                <strong>Skills, Certificates, and Competencies:</strong>
-                Shown using star ratings (0–5), where 0 indicates low performance and 5 indicates excellent performance.
-              </li>
-        </ul>
-          <div class="role-description">
-            <h2>About the Role</h2>
-            <p>
-              Production Technicians ensure manufacturing operations run smoothly by operating equipment,
-              maintaining quality, troubleshooting issues, and ensuring safety.
-            </p>
-          </div>
-          <p>Click the button to start selecting candidates.</p>
-      <button class="start-button" onclick="startApplication()">Start</button>
-        </div>
-      </div>
-    
-      <!-- Candidate Section (initially hidden) -->
-    <div id="candidateSection" class="hidden">
-        <div class="header">
-            <div class="header-content">
-                <h1>Applicant Profiles</h1>
-                <div class="header-row">
-                    <h2 id="invite-counter">Applicants invited: 0/2 · Round: 1/6</h2>
-                    <button class="next-round-btn" onclick="nextRound()">Next Round</button>
-                </div>            
-            </div>
-        </div>    
-
-        <div class="container" id="profiles">
-            <!-- Profiles will be injected here -->
-        </div>
-    </div>
-
-    <script>
-        let sessionData = {
-            session_id: null,
-            user_group: "features", // TODO: Change dynamically
-            sessionTime: null,
-            rounds: [],
-        };
-        let currentRoundCandidates = [];
-        let lastRoundCandidates = [];
-        let invitedCount = 0;
-        const maxInvites = 1;
-        const maxRounds = 6;
-        let currentRound = parseInt(localStorage.getItem("currentRound")) || 1;
-        let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
-        let isFetching = false;  // Global lock to prevent duplicate calls
-
-        async function updatePrediction(candidateId, gender, age, race) {
-            const updatePayload = {
-                candidate_id: candidateId,
-                updated_features: {
-                    Sex: gender === "Female" ? 0 : 1,
-                    Age: age
-                }
-            };
-
-            // Reset all race values to 0
-            const raceColumnMap = {
-                "Black": "RaceDesc_Black or African American",
-                "White": "RaceDesc_White",
-                "Asian": "RaceDesc_Asian",
-                "American Indian": "RaceDesc_American Indian or Alaska Native",
-                "Hispanic": "RaceDesc_Hispanic"
-            };
-            Object.values(raceColumnMap).forEach(raceKey => updatePayload.updated_features[raceKey] = 0);
-
-            // Set the selected race to 1
-            if (raceColumnMap[race]) {
-                updatePayload.updated_features[raceColumnMap[race]] = 1;
+            .layout-container {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                height: auto; /* Allow height to expand */
+                min-height: 100vh; /* Ensure it covers full screen height */
+            }
+            .header-content {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                max-width: 1200px; /* Adjust width for better layout */
+                margin: 0 auto;
+            }
+        
+            .header-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
             }
 
-            console.log("📤 Sending request to backend:", JSON.stringify(updatePayload));
-
-            try {
-                const response = await fetch("/predict/update", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(updatePayload)
-                });
-
-                console.log("🔄 Waiting for backend response...");
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("❌ Backend returned an error:", errorText);
-                    throw new Error("Failed to update prediction.");
-                }
-
-                const result = await response.json();
-                console.log("✅ Backend response:", result);
-
-                // Fetch feature descriptions
-                const featureDescriptions = await fetchFeatureDescriptions();
-
-                // Find the correct candidate profile card
-                const candidateCard = document.querySelector(`.profile-card[data-candidate-id="${candidateId}"]`);
-                if (!candidateCard) {
-                    console.error("❌ Candidate card not found for ID:", candidateId);
-                    return;
-                }
-
-                // Update the Good Fit section correctly
-                const goodFitElement = candidateCard.querySelector(".prediction-section strong:nth-of-type(1)");
-                if (goodFitElement) {
-                    goodFitElement.nextSibling.nodeValue = ` ${result.is_good_fit ? "Yes" : "No"}`;
-                    if (!result.is_good_fit) {
-                        goodFitElement.classList.add("good-fit-no"); // Apply red color for "No"
-                    } else {
-                        goodFitElement.classList.remove("good-fit-no"); // Remove red color for "Yes"
-                    }
-                }
-
-                // Update the Probability correctly
-                const probabilityElement = candidateCard.querySelector(".prediction-section div:nth-of-type(2) strong");
-                if (probabilityElement) {
-                    probabilityElement.nextSibling.nodeValue = ` ${result.prediction_probability.toFixed(2)}`;
-                    if (result.prediction_probability < 0.5) {
-                        probabilityElement.classList.add("probability-low"); // Apply red color for low probability
-                    } else {
-                        probabilityElement.classList.remove("probability-low"); // Remove red color if above threshold
-                    }
-                }   
-
-                // Update the AI Recommendation Badge (Add/Remove)
-                const badgeContainer = candidateCard.querySelector(".badge-container");
-                if (result.is_good_fit) {
-                    // Add AI Recommendation badge if it doesn't exist
-                    if (!badgeContainer.querySelector(".badge-yellow")) {
-                        badgeContainer.innerHTML = `<div class="badge-yellow">AI Recommendation</div>`;
-                    }
-                } else {
-                    // Remove AI Recommendation badge if Good Fit is No
-                    const aiBadge = badgeContainer.querySelector(".badge-yellow");
-                    if (aiBadge) {
-                        aiBadge.remove();
-                    }
-                }
-
-                // Update the invite button text and styling based on GoodFit
-                const inviteButton = candidateCard.querySelector(".invite-btn");
-                if (result.is_good_fit) {
-                    inviteButton.textContent = ">>Invite Applicant<<";
-                    inviteButton.classList.add("highlight-btn");
-                } else {
-                    inviteButton.textContent = "Invite Applicant";
-                    inviteButton.classList.remove("highlight-btn");
-                }
-
-                // Update the XAI explanation
-                const xaiSection = candidateCard.querySelector(".accordion-content");
-                if (xaiSection) {
-                    xaiSection.innerHTML = result.top_features.map(feature => {
-                        const description = featureDescriptions[feature.Feature] || "No description available.";
-                        return `
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="hoverable-feature" title="${description}">
-                                    ${feature.Feature}:
-                                </span>
-                                <span>${feature["SHAP Value"].toFixed(2)}</span>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                return result; // Return the result so it can be used for tracking
-            } catch (error) {
-                console.error("🚨 Fetch error:", error);
+            #invite-counter {
+                margin-left: 20px; /* Ensures it stays on the left */
+                font-weight: bold;
+                font-size: 1.2em;
             }
-        }
-
-        function getRandomAge(ageRange) {
-            const ranges = {
-                "20-30": [20, 30],
-                "30-40": [30, 40],
-                "40-50": [40, 50],
-                ">60": [61, 75]
-            };
-
-            if (ranges[ageRange]) {
-                const [min, max] = ranges[ageRange];
-                return Math.floor(Math.random() * (max - min + 1)) + min;
+                    
+            .header-row h2 {
+                margin: 0;
+                font-size: 1.2em;
+                color: #b1b1b1;
             }
-            return 35; // Default fallback
-        }
-
-        async function handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues) {
-            console.log("🔹 handleManipulationChange triggered", candidateId, selectedGroup, selectedValue);
-
-            // Get all related radio inputs
-            const allInputs = document.querySelectorAll(`input[name^="gender-${candidateId}"], input[name^="age-${candidateId}"], input[name^="race-${candidateId}"]`);
-
-            // Retrieve the original values from the card's dataset
-            const originalGender = originalValues.gender;
-            const originalAge = originalValues.age;
-            const originalRace = originalValues.race;
-
-            // Get current selections
-            const genderInput = document.querySelector(`input[name="gender-${candidateId}"]:checked`);
-            const ageInput = document.querySelector(`input[name="age-${candidateId}"]:checked`);
-            const raceInput = document.querySelector(`input[name="race-${candidateId}"]:checked`);
-
-            if (!genderInput || !ageInput || !raceInput) {
-                console.error(`⚠️ Missing input selection for candidate ${candidateId}`);
-                return;
-            }
-
-            const currentGender = genderInput.value;
-            const currentAge = ageInput.value;
-            const currentRace = raceInput.value;
-
-            console.log("Current selections:", currentGender, currentAge, currentRace);
-
-            // Determine if the current state is different from the original
-            const isModified = !(currentGender === originalGender && currentAge === originalAge && currentRace === originalRace);
-
-            // Always call updatePrediction to get the current prediction details
-            const result = await updatePrediction(candidateId, currentGender, currentAge, currentRace);
-            if (!result) return;
-
-            // Find the candidate object in the current round array
-            let candidate = currentRoundCandidates.find(c => String(c.candidate_id) === candidateId);
-            if (!candidate) {
-                console.error("Candidate not found for candidateId:", candidateId);
-                return;
-            }
-
-            // Initialize the manipulations array if not already present
-            if (!candidate.manipulations) {
-                candidate.manipulations = [];
-            }
-
-            // Record this manipulation event (even if it reverts to original)
-            candidate.manipulations.push({
-                changed_attribute: selectedGroup,
-                new_value: selectedValue,
-                prediction_probability: result.prediction_probability,
-                is_good_fit: result.is_good_fit,
-                xai_features: result.top_features,
-                timestamp: new Date().toISOString()
-            });
-
-            // Once any manipulation occurs, mark the candidate as manipulated (always true thereafter)
-            candidate.manipulated = true;
-            console.log("Candidate manipulation recorded:", candidate.manipulations[candidate.manipulations.length - 1]);
-
-            // Update input states: if the current state is the original, re-enable inputs; if not, disable non-changed ones.
-            if (!isModified) {
-                allInputs.forEach(input => {
-                input.disabled = false;
-                input.parentElement.classList.remove("disabled");
-                });
-            } else {
-                allInputs.forEach(input => {
-                if (input.name.includes(selectedGroup) || input.value === originalValues[selectedGroup]) return;
-                input.disabled = true;
-                input.parentElement.classList.add("disabled");
-                });
-            }
-            }
-
-        document.addEventListener("change", function (event) {
-            if (event.target.type === "radio") {
-                const candidateId = event.target.name.split('-')[1]; // Extract Candidate_ID
-                const selectedGroup = event.target.name.split('-')[0]; // e.g., "gender", "age", "race"
-                const selectedValue = event.target.value;
-
-                // Find the profile card and get the original values
-                const card = event.target.closest('.profile-card');
-                if (!card) return;
-
-                const originalValues = {
-                    gender: card.dataset.originalGender,
-                    age: card.dataset.originalAge,
-                    race: card.dataset.originalRace,
-                };
-
-                handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues);
-            }
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".accordion-content").forEach(content => {
-                content.classList.add("active"); // Ensures all accordions start open
-            });
-        });
-
-        document.getElementById("profiles").addEventListener("mouseover", function(e) {
-            if (e.target.classList.contains("hoverable-feature")) {
-                // Record the hover start time if not already set.
-                if (!e.target.dataset.hoverStart) {
-                    e.target.dataset.hoverStart = Date.now();
-                }
-            }
-        });
-
-        document.getElementById("profiles").addEventListener("mouseout", function(e) {
-            if (e.target.classList.contains("hoverable-feature")) {
-                if (e.target.dataset.hoverStart) {
-                // Calculate the hover duration in milliseconds.
-                let hoverTimeMs = Date.now() - parseInt(e.target.dataset.hoverStart);
-                // Only record if the hover time is greater than 100 ms.
-                if (hoverTimeMs > 100) {
-                    // Convert hover time to seconds and format it to two decimal places.
-                    let hoverTimeSec = (hoverTimeMs / 1000).toFixed(2);
-                    // Get candidate id from the closest parent profile card.
-                    let candidateId = e.target.closest(".profile-card").getAttribute("data-candidate-id");
-                    // Get the feature name by stripping any trailing colon and whitespace.
-                    let featureName = e.target.textContent.replace(":", "").trim();
-                    // Find the candidate in currentRoundCandidates or lastRoundCandidates.
-                    let candidate = currentRoundCandidates.find(c => String(c.candidate_id) === candidateId) ||
-                                    lastRoundCandidates.find(c => String(c.candidate_id) === candidateId);
-                    if (candidate) {
-                    candidate.hover_events = candidate.hover_events || [];
-                    candidate.hover_events.push({
-                        feature: featureName,
-                        hover_duration: Number(hoverTimeSec) // stored in seconds
-                    });
-                    }
-                }
-                // Clean up the hover start timestamp.
-                delete e.target.dataset.hoverStart;
-                }
-            }
-            });
-
-        async function fetchCandidates() {
-            if (currentRound > maxRounds) {
-                console.log("Max rounds reached. Not fetching any more candidates.");
-                await endSession();
-                disableAllInvites();
-                showCompletionDialog();
-                return;
-            }
-            try {
-                if (isFetching) {
-                    console.warn("🚫 Skipping duplicate fetchCandidates call.");
-                    return; // Prevent a second call
-                }
-
-                isFetching = true; // Set the lock
-                currentRoundCandidates.length = 0;
-
-                // Retrieve the seenCandidates list
-                let seenCandidates = JSON.parse(localStorage.getItem("seenCandidates")) || [];
-                let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
-                console.log("📌 LocalStorage seenCandidates:", JSON.parse(localStorage.getItem("seenCandidates")) || []);
-                console.log("📌 LocalStorage invitedCandidates:", JSON.parse(localStorage.getItem("invitedCandidates")) || []);
-
-                // Combine seen and invited candidates for exclusion
-                let excludeList = [...new Set(seenCandidates.concat(invitedCandidates))];
-
-                console.log("📤 Fetching candidates. Excluding:", excludeList);
-
-                // Ensure we send exclude correctly formatted
-                const queryString = excludeList.length > 0 
-                    ? `?exclude=${excludeList.join("&exclude=")}` 
-                    : "";
-
-                // Fetch candidates and feature descriptions in parallel
-                const [candidatesResponse, featureDescriptions] = await Promise.all([
-                    fetch(`/candidates/data${queryString}`).then(res => res.json()), // Fetch candidates
-                    fetchFeatureDescriptions() // Fetch feature descriptions
-                ]);
-
-                // Handle errors if candidates response fails
-                if (!candidatesResponse) {
-                    throw new Error("Failed to fetch candidates.");
-                }
-
-                const data = candidatesResponse; // Assign the JSON response
-
-                // Extract new candidate IDs
-                let newSeenCandidates = data.map(c => c.Candidate_ID);
-                
-                // Ensure `seenCandidates` updates correctly
-                seenCandidates = [...new Set([...seenCandidates, ...newSeenCandidates])]; 
-                localStorage.setItem("seenCandidates", JSON.stringify(seenCandidates));
-
-                updateInviteCounter();
-
-                // Select the container where profiles will be displayed
-                const profilesContainer = document.getElementById('profiles');
-                profilesContainer.innerHTML = ''; // Clear previous content
-                        
-                // Store the newly fetched candidates as "seen"
-                currentRoundCandidates = [];
-                // localStorage.setItem("seenCandidates", JSON.stringify([...new Set(seenCandidates.concat(currentRoundCandidates))]));
-
-                // Iterate through each candidate
-                data.forEach(candidate => {
-                    currentRoundCandidates.push({
-                        candidate_id: candidate.Candidate_ID,
-                        name: candidate.Prename + " " + candidate.Name,
-                        attributes: {
-                        age: candidate.Age || "N/A",
-                        sex: candidate.Gender,
-                        race: candidate.Race,
-                        years_experience: candidate.Skills.YearsExperience || 0,
-                        technical_skills_score: candidate.Skills.TechnicalSkills || 0,
-                        certifications_score: candidate.Skills.Certifications || 0
-                        },
-                        good_fit: candidate.GoodFit,
-                        recommended: candidate.GoodFit,
-                        invited: false,
-                        manipulated: false
-                    });
-                    lastRoundCandidates = JSON.parse(JSON.stringify(currentRoundCandidates));
-
-                    const card = document.createElement('div');
-                    card.setAttribute('data-candidate-id', candidate.Candidate_ID);
-                    card.className = 'profile-card';
-
-                    // Store the original values in data attributes
-                    card.dataset.originalGender = candidate.Gender;
-                    card.dataset.originalAge = getAgeBin(candidate.Age);
-                    card.dataset.originalRace = candidate.Race;
-
-                    // Add AI Recommendation badge if applicable
-                    const badge = candidate.GoodFit
-                        ? `<div class="badge-yellow">AI Recommendation</div>`
-                        : "";
-
-                    // Generate accordion content for XAI features
-                    const accordionContent = candidate.GoodFit
-                        ? generateAccordionContent(candidate, featureDescriptions)
-                        : '';
-
-                    // Build the card HTML
-                    card.innerHTML = `
-                        <div class="profile-header">
-                            <span>${candidate.Prename} ${candidate.Name}</span>
-                        </div>
-                        <div class="badge-container">${badge}</div>
-
-                        <div class="profile-section">
-                            <div>
-                                <span>Name:</span>
-                                <span>${candidate.Name}</span>
-                            </div>
-                            <div>
-                                <span>Prename:</span>
-                                <span>${candidate.Prename}</span>
-                            </div>
-                            <div>
-                                <span>Gender:</span>
-                                <span>${candidate.Gender}</span>
-                            </div>
-                            <div>
-                                <span>Age:</span>
-                                <span>${candidate.Age || 'N/A'}</span>
-                            </div>
-                            <div>
-                                <span>Nationality:</span>
-                                <span>${candidate.Nationality || 'N/A'}</span>
-                            </div>
-                            <div>
-                                <span>Birthplace:</span>
-                                <span>${candidate.Birthplace || 'N/A'}</span>
-                            </div>
-                        </div>
-
-                        <div class="skills">
-                            <h4>Skills:</h4>
-                            ${Object.entries(candidate.Skills).map(([skill, stars]) => `
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>${skill}</span>
-                                    <span class="stars">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <div class="invite-section"></div> <!-- Invite button will be appended here -->
-
-                        <div class="prediction-section">
-                            <div>
-                                <strong>Good Fit?:</strong> ${candidate.GoodFit ? "Yes" : "No"}
-                            </div>
-                            <div>
-                                <strong>Probability:</strong> ${candidate.Probability ? candidate.Probability.toFixed(2) : "0.00"}
-                            </div>
-                        </div>
-
-                        ${accordionContent}
-
-                        ${candidate.GoodFit ? `
-                            <div class="recommendation-manipulation">
-                                <h4>Manipulate AI Recommendation:</h4>
-                                <strong>Take a look at how the recommendation changes when you manipulate protected data:</strong>
-                                <div class="manipulation-columns">
-                                    <div class="manipulation-column">
-                                        <h5>Gender</h5>
-                                        ${["Male", "Female"].map(value => `
-                                            <label>
-                                                <input type="radio" name="gender-${candidate.Candidate_ID}" value="${value}"
-                                                    ${candidate.Gender === value ? "checked" : ""}>
-                                                ${value}
-                                            </label>
-                                        `).join('')}
-                                    </div>
-
-                                    <div class="manipulation-column">
-                                        <h5>Age</h5>
-                                        ${["20-30", "30-40", "40-50", "50-60", ">60"].map(value => `
-                                            <label>
-                                                <input type="radio" name="age-${candidate.Candidate_ID}" value="${value}"
-                                                    ${getAgeBin(candidate.Age) === value ? "checked" : ""}>
-                                                ${value} years
-                                            </label>
-                                        `).join('')}
-                                    </div>
-
-                                    <div class="manipulation-column">
-                                        <h5>Race</h5>
-                                        ${["Black", "White", "Asian"].map(value => `
-                                            <label>
-                                                <input type="radio" name="race-${candidate.Candidate_ID}" value="${value}"
-                                                    ${candidate.Race === value ? "checked" : ""}>
-                                                ${value}
-                                            </label>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            </div>
-                        ` : ""}
-
-                    `;
-
-                    // **Create Invite Button**
-                    const inviteButton = document.createElement("button");
-                        inviteButton.className = candidate.GoodFit ? "invite-btn highlight-btn" : "invite-btn";
-                        inviteButton.textContent = candidate.GoodFit ? ">>Invite Applicant<<" : "Invite Applicant";
-                        inviteButton.addEventListener("click", function () {
-                            inviteCandidate(candidate.Candidate_ID, inviteButton);
-                        });
-
-                    // Append the invite button to the card
-                    card.querySelector(".invite-section").appendChild(inviteButton);
-
-                    // Append the card to the profiles container
-                    profilesContainer.appendChild(card);
-                });
-            } catch (error) {
-                console.error('Error fetching candidates:', error);
-            } finally {
-                isFetching = false; // Unlock after fetch completes
-            }
-        }
-
-        // Helper function to fetch feature descriptions
-        async function fetchFeatureDescriptions() {
-            try {
-                const response = await fetch('/data/feature_description.json');
-                if (!response.ok) {
-                    throw new Error('Failed to load feature descriptions');
-                }
-                return await response.json(); // Parse and return JSON
-            } catch (error) {
-                console.error('Error fetching feature descriptions:', error);
-                return {};
-            }
-        }
-
-        function generateAccordionContent(candidate, featureDescriptions) {
-            if (!candidate.GoodFit) return '';
-
-            return `
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    XAI: Top 3 Features
-                    <span class="info-icon" data-tooltip="These values represent the top factors influencing the AI's decision-making. Higher values indicate stronger influence.">ℹ</span>
-                </div>
-                <div class="accordion-content">
-                    ${candidate.TopFeatures.map(feature => {
-                        const description = featureDescriptions[feature.Feature] || 'No description available.';
-                        return `
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="hoverable-feature" data-tooltip="${description}">
-                                    ${feature.Feature}:
-                                </span>
-                                <span>${feature["SHAP Value"].toFixed(2)}</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        }
-
-        function disableAllInvites() {
-            document.querySelectorAll(".invite-btn").forEach(btn => {
-                btn.disabled = true;
-                btn.style.opacity = "0.5";
-                btn.style.cursor = "not-allowed";
-            });
-        }
-
-        function closeCompletionDialog() {
-            // Instead of clearing the dialog, disable the OK button to indicate that the session is finished.
-            const okButton = document.querySelector('.completion-message button');
-            if (okButton) {
-                okButton.disabled = true;
-                okButton.textContent = "Session Ended";
-            }
-            // The dialog content (including the elapsed time) remains on screen.
-        }
-
-        function updateInviteCounter() {
-            const inviteCounter = document.getElementById('invite-counter');
-
-            // Hide the counter initially to prevent incorrect display
-            inviteCounter.style.visibility = "hidden";
-
-            // Ensure values are fetched from localStorage or set default values
-            const displayedInvitedCount = Math.min(invitedCount, maxInvites);
-            const displayedRound = Math.min(currentRound, maxRounds);
-
-            // Update counter text
-            inviteCounter.textContent = 
-                `Applicants invited: ${displayedInvitedCount}/${maxInvites} · Round: ${displayedRound}/${maxRounds}`;
-
-            // Show the counter only after correct values are set
-            inviteCounter.style.visibility = "visible";
-        }
-
-        function toggleAccordion(element) {
-            const content = element.nextElementSibling;
-
-            if (content.classList.contains("active")) {
-                content.classList.remove("active");
-                content.style.display = "none"; // Hide the content
-            } else {
-                content.classList.add("active");
-                content.style.display = "flex"; // Show the content
-            }
-        }
-
-        function getDefaultValue(group, candidate) {
-            if (group.includes("gender")) {
-                return candidate.Gender; // Use Gender directly
-            } else if (group.includes("age")) {
-                return getAgeBin(candidate.Age); // Calculate age bin
-            } else if (group.includes("race")) {
-                return candidate.Race; // Use Race directly from the fact sheet
-            }
-            return ""; // Default fallback
-        }
-
-        function getAgeBin(age) {
             
-            if (age >= 20 && age <= 30) return "20-30";
-            if (age >= 30 && age <= 40) return "30-40";
-            if (age >= 40 && age <= 50) return "40-50";
-            if (age >= 50 && age <= 60) return "50-60";
-            if (age > 60) return ">60";
+            .header h1 {
+                margin: 0;
+                font-size: 1.8em;
+                color: #F5F7FA;
+            }
+        
+            .header h2 {
+                margin: 5px 0 0 0;
+                font-size: 1.2em;
+                font-weight: normal;
+                color: #B8C0CC;
+            }
+        
+            .container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                justify-content: center;
+                padding: 20px;
+                position: relative;
+            }
 
-            console.warn(`⚠️ Age ${age} does not match any category.`);
-            return ""; // Return empty string if no match
-        }
+            .profile-card {
+                background: #fff;
+                border: 1px solid #D1D5DB;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                width: 320px;
+                padding: 15px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                position: relative;
+            }
 
-        function attachHoverEventsToCandidates(candidatesArray) {
-            candidatesArray.forEach(candidate => {
-                candidate.hover_events = candidate.hover_events || [];
-            });
-        }
+            .profile-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                z-index: 100;
+            }
+        
+            .profile-card.invited {
+                opacity: 0.6;
+                pointer-events: none;
+            }
+        
+            .profile-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                min-height: 30px; /* Ensure consistent height for all profile headers */
+            }
 
-        // Fetch candidates and set up interactivity after the profiles are rendered
-        fetchCandidates();
+            .badge-container {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                min-width: 130px; /* Ensures space for the badge */
+            }
 
-        let hasFetchedCandidates = false;  // Prevent double fetch
+            .profiles-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                justify-content: center; /* ✅ Centers the cards */
+                align-items: flex-start;
+                padding: 20px;
+                width: calc(100% - 250px); /* ✅ Takes the sidebar into account */
+                max-width: 900px; /* ✅ Prevents it from being too wide */
+                margin-left: auto; /* ✅ Centers relative to the available space */
+                margin-right: auto; /* ✅ Ensures equal spacing on both sides */
+                overflow-y: auto;
+            }
 
-        // Ensure the invite counter is updated only after fetching candidates
-        window.onload = async function () {
-            console.log("🔄 Performing FULL RESET...");
-            document.getElementById("invite-counter").style.visibility = "hidden";
-            localStorage.clear();
+            .profile-header span {
+                flex-grow: 1;
+            }
+
+            .badge-yellow {
+                background: #ffdf2b;
+                padding: 5px 10px;
+                font-size: 0.75em;
+                font-weight: bold;
+                border-radius: 5px;
+            }
+
+            .badge-green {
+                background-color: #A3D9A5;
+                color: #333;
+                padding: 5px 10px;
+                border-radius: 5px;
+                font-size: 0.75em;
+                font-weight: bold;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                min-width: 100px;
+                text-align: center;
+            }
+
+            .profile-info {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                width: 100%;
+                padding: 10px 0;
+            }
+
+            .profile-info div {
+                display: flex;
+                flex-direction: column;
+                font-size: 0.9em;
+            }
+        
+            .profile-section {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                padding: 10px;
+                background-color: #F2F4F7;
+                border-top: 1px solid #eee;
+            }
+        
+            .profile-section div {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+        
+            .profile-section div span:first-child {
+                font-weight: bold;
+            }
+        
+            .profile-section,
+            .skills-section,
+            .prediction-section,
+            .recommendation-manipulation {
+                width: calc(100% - 20px);
+                padding: 10px;
+                background-color: #f9f9f9;
+                border-radius: 8px;
+                border-top: 1px solid #eee;
+                margin: 10px auto;
+            }
+        
+            .profile-section div,
+            .skills-section div,
+            .prediction-section div,
+            .recommendation-manipulation div {
+                display: flex;
+                justify-content: space-between;
+                padding: 5px 0;
+            }
+        
+            .profile-section span:first-child,
+            .skills-section span:first-child,
+            .prediction-section span:first-child,
+            .recommendation-manipulation span:first-child {
+                font-weight: bold;
+            }
+
+            .prediction-section {
+                width: calc(100% - 20px);
+                padding: 8px;  /* Reduce padding slightly */
+                background-color: #f9f9f9;
+                border-radius: 8px;
+                border-top: 1px solid #eee;
+                margin-top: 5px; /* Reduce the margin to decrease spacing */
+            }
+
+            .skills-section {
+                padding: 5px 10px; /* Reduce padding for more compact look */
+                display: flex;
+                flex-direction: column;
+                background-color: #f9f9f9;
+                border-radius: 8px;
+                border-top: 1px solid #eee;
+                margin: 2px auto; /* Reduce margin */
+            }
+
+            .skills-section h4 {
+                margin: 0;
+                padding: 10px 0px; /* Reduce padding for more compact look */
+                font-size: 1em;
+                font-weight: bold;
+                align-self: flex-start; /* Aligns with Name/Prename */
+                padding-bottom: 7px; /* Ensure slight separation from skills */
+            }
+        
+            .accordion-header {
+                cursor: pointer;
+                color: #0072C6;
+                font-weight: bold;
+                margin-top: 10px;
+                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 10px 0;
+            }
+        
+            .accordion-content div {
+                display: flex;
+                justify-content: flex-start; /* Aligns text closer together */
+                gap: 10px; /* Reduces spacing between text and SHAP values */
+                align-items: center;
+            }
+            .accordion-content span:first-child {
+                min-width: 150px; /* Ensures the feature name doesn’t shrink too much */
+                max-width: 200px; /* Prevents overly wide spacing */
+                text-align: left; /* Keeps alignment clean */
+            }
+            .accordion-content span:last-child {
+                min-width: 60px; /* Keeps SHAP value from spreading out */
+                text-align: right; /* Align values neatly */
+            }
+
+            .accordion-content.active {
+                display: flex;
+            }
+        
+            .accordion-content div {
+                margin-bottom: 5px;
+            }
+        
+            .info-icon {
+                margin-left: 5px;
+                font-size: 0.9em;
+                color: #888;
+                cursor: pointer;
+                position: relative; /* Ensure tooltip is positioned relative to the icon */
+                z-index: 2; /* Tooltip is above other cards */
+            }
+        
+            .info-icon:hover::after {
+                content: "These values represent the impact of features on the AI's decision-making process. Higher values indicate stronger influence.";
+                position: absolute;
+                top: -60px;
+                left: 50%; /* Center the tooltip horizontally */
+                transform: translateX(-50%); /* Adjust for tooltip width */
+                background-color: #fff;
+                color: #333;
+                font-size: 0.8em;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 5px;
+                width: 250px; /* Increased width for better readability */
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 1000; /* Ensure tooltip is above other cards */
+                white-space: normal;
+                pointer-events: none;
+            }
+        
+            .info-icon:hover {
+                z-index: 1000; /* Bring the icon and tooltip above all cards */
+            }
+        
+            .stars {
+                color: #000;
+            }
+
+            .sidebar {
+                width: 250px;
+                background-color: #E6E9EF;
+                padding: 15px;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+                height: auto; /* Allow height to expand dynamically */
+                overflow-y: auto; /* Allow scrolling if necessary */
+                flex-shrink: 0; /* Prevents sidebar from shrinking */
+            }
+
+            /* Wrap the header and profiles together */
+            .main-content {
+                display: flex;
+                flex-direction: row;
+                justify-content: center; /* ✅ Centers the profiles while keeping the sidebar */
+                align-items: flex-start;
+                width: 100%;
+                gap: 20px; /* Adds spacing between sidebar and profiles */
+            }
+                                            
+            .invite-section {
+                width: 100%;  /* Ensure it spans the full width */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 15px 0;
+            }
+
+            .invite-btn {
+                background: #0056A3;
+                color: white;
+                padding: 10px 10px;
+                font-size: 1em;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background 0.3s ease;
+            }
+
+            .invite-btn:hover {
+                background: #003F7D;
+            }
+        
+            .invite-btn.highlight-btn {
+                background-color: #ffdc68;
+                color: #333;
+            }
+        
+            .invite-btn.highlight-btn:hover {
+                background-color: #cc9f17;
+                color: #000;
+            }
+        
+            .hoverable-feature {
+                position: relative;
+                cursor: pointer;
+                color: #007BFF;
+                text-decoration: underline dotted;
+            }
+        
+            .hoverable-feature:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                top: -65px; /* Moves the tooltip further upward */
+                left: 60%;  /* Shifts the tooltip to the right */
+                transform: translateX(0); /* Removes the centering transformation */
+                background-color: #F9FAFB;
+                color: #495057;
+                font-size: 0.8em;
+                border: 1px solid #CED4DA;
+                border-radius: 5px;
+                padding: 5px 10px;
+                width: 280px; /* Increased tooltip width */
+                white-space: normal; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+                z-index: 9999;       /* High z-index to ensure it appears above other elements */
+            }
+
+            /* Bring columns closer */
+            .manipulation-columns {
+                display: flex;
+                justify-content: space-between; /* Keeps them evenly spaced */
+                align-items: flex-start; /* Aligns titles at the same height */
+                flex-wrap: nowrap; /* Prevents them from stacking on smaller screens */
+            }
+
+            .manipulation-column {
+                flex: 1; /* Ensure equal width */
+                min-width: 30px; /* Prevents shrinking */
+                max-width: 90px; /* Keeps size consistent */
+                text-align: left;
+                display: flex;
+                flex-direction: column; /* Ensures radio options appear vertically */
+                gap: 5px; /* Adds slight spacing between options */
+            }
+
+            .manipulation-column h5 {
+                font-size: 1em;
+                margin-bottom: 5px;
+                text-align: left; /* Aligns titles properly */
+            }
+
+            .manipulation-column label {
+                font-size: 0.85em;
+                margin-bottom: 5px; /* Reduces spacing between radio buttons */
+                display: flex;
+                align-items: center; /* Aligns radio buttons with text */
+            }
+
+            .manipulation-column input[type="radio"] {
+                margin-right: 5px;
+            }
+
+            .recommendation-manipulation {
+                width: 100%;
+                padding: 10px;
+                background-color: #f9f9f9;
+                border-radius: 8px;
+                border-top: 1px solid #eee;
+                margin: 10px auto;
+                max-width: 300px; /* Set a maximum width to align with other sections */
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-size: 0.9em;
+                color: #333;
+                cursor: pointer;
+            }
+
+            button.highlighted {
+                background-color: #f0f8ff; /* Light blue background */
+                color: #333; /* Text color */
+                border: 2px solid #007bff; /* Blue border */
+                box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Glow effect */
+                transition: all 0.3s ease; /* Smooth transition for the highlight */
+            }
+
+            label.disabled {
+                opacity: 0.5; /* Grey out the label */
+                pointer-events: none; /* Prevent interaction */
+                cursor: not-allowed; /* Show a "not-allowed" cursor */
+            }
+
+            .good-fit-no {
+                color: #C62828;
+                font-weight: bold;
+            }
+
+            .probability-low {
+                color: #B71C1C;
+                font-weight: bold;
+            }
+
+            .modal-overlay {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+
+            .modal {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            }
+
+            .modal h2 {
+                margin: 0 0 10px;
+            }
+
+            .modal button {
+                padding: 10px 20px;
+                border: none;
+                background: #007BFF;
+                color: white;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-top: 10px;
+            }
+
+            .modal button:hover {
+                background: #0056b3;
+            }
+
+            .next-round-btn {
+                padding: 10px 15px;
+                background-color: #0056A3;
+                color: white;
+                font-size: 1em;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+            .next-round-btn:hover {
+                background-color: #0056b3;
+            }
+
+            .hidden { 
+                display: none !important;
+            }
+            #intro {
+                padding: 50px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+            #intro .container {
+                background: #FAFBFC;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                max-width: 600px;
+                text-align: left;
+            }
+            #intro h1 {
+                color: #1D2127;
+                margin-bottom: 10px;
+            }
+            #intro p {
+                color: #666;
+                font-size: 1.1em;
+                margin-bottom: 15px;
+            }
+            #intro .start-button {
+                background-color: #0056A3;
+                color: white;
+                padding: 10px 20px;
+                font-size: 1.1em;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+            #intro .start-button:hover {
+                background-color: #0056b3;
+            }
+            #intro .role-description {
+                background-color: #f9f9f9;
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 20px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            #intro .role-description strong {
+                font-size: 1.1em;
+                color: #555;
+            }
+        </style>
+        
+    </head>
+    <body>
+        <!-- Intro Section -->
+        <div id="intro">
+            <div class="container">
+            <h1>Welcome to the Candidate Selection Process</h1>
+            <p>
+                Please review profiles of candidates applying for the <strong>Production Technician</strong> role.
+                In each round, you will choose one candidate based on the profile details.
+            </p>
+            <ul>
+                <li><strong>Name & Identity:</strong> Candidate’s full name and profile information.</li>
+                <li>
+                    <strong>Skills, Certificates, and Competencies:</strong>
+                    Shown using star ratings (0–5), where 0 indicates low performance and 5 indicates excellent performance.
+                </li>
+            </ul>
+            <div class="role-description">
+                <h2>About the Role</h2>
+                <p>
+                Production Technicians ensure manufacturing operations run smoothly by operating equipment,
+                maintaining quality, troubleshooting issues, and ensuring safety.
+                </p>
+            </div>
+            <p>Click the button to start selecting candidates.</p>
+        <button class="start-button" onclick="startApplication()">Start</button>
+            </div>
+        </div>
+        
+        <!-- Candidate Section (initially hidden) -->
+        <div id="candidateSection" class="hidden">
+
+            <!-- Main Content (Header + Profiles) -->
+            <div class="layout-container">
+                <!-- Header at the top -->
+                <div class="header">
+                    <div class="header-content">
+                        <div class="header-row">
+                            <h2 id="invite-counter">Applicants invited: 0/2 · Round: 1/6</h2>
+                            <button class="next-round-btn" onclick="nextRound()">
+                                Next Round →
+                            </button>
+                        </div>            
+                    </div>
+                </div>
+
+                <!-- Sidebar & Profiles side by side -->
+                <div class="main-content">
+                    <!-- Sidebar (Initially Hidden) -->
+                    <div class="sidebar" id="sidebar">
+                        <h3>Manipulate AI Recommendation</h3>
+                        <p>Modify attributes to see how AI recommendation changes.</p>
+                        <div id="sidebar-content">
+                            <!-- Dynamic content will be injected here -->
+                            <p>Select a candidate to view and manipulate AI recommendation.</p>
+                        </div>
+                    </div>
+
+                <div class="profiles-container" id="profiles">
+                    <!-- Profiles will be injected here -->
+                </div>
+            </div>
+
+        <script>
             let sessionData = {
                 session_id: null,
                 user_group: "features", // TODO: Change dynamically
                 sessionTime: null,
                 rounds: [],
             };
-            invitedCount = 0;
-            invitedCandidates = [];
-            currentRound = 1;
-            isFetching = false;
-            document.getElementById("profiles").innerHTML = "";
-            try {
-                console.log("🔄 Requesting backend reset...");
-                const response = await fetch("/candidates/reset", { method: "POST" });
-                const data = await response.json();
-                console.log("✅ Backend Reset:", data);
-                localStorage.setItem("seenCandidates", JSON.stringify([]));
-                localStorage.setItem("invitedCandidates", JSON.stringify([]));
-                localStorage.setItem("currentRound", "1");
-                localStorage.setItem("invitedCount", "0");
-                await fetchCandidates();
-                updateInviteCounter();
-            } catch (error) {
-                console.error("🚨 Backend Reset Error:", error);
-            }
-        };
+            let currentRoundCandidates = [];
+            let lastRoundCandidates = [];
+            let invitedCount = 0;
+            const maxInvites = 1;
+            const maxRounds = 6;
+            let currentRound = parseInt(localStorage.getItem("currentRound")) || 1;
+            let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
+            let isFetching = false;  // Global lock to prevent duplicate calls
 
-        async function inviteCandidate(candidateId, button) {
-            console.log("inviteCandidate called");
-            if (currentRound > maxRounds) {
-                disableAllInvites();
-                showCompletionDialog();
-                return;
-            }
-            const card = button.closest('.profile-card');
-            if (!card) {
-                console.error("⚠️ No profile card found for this button.");
-                return;
-            }
-            if (!candidateId) {
-                console.error("⚠️ Candidate ID missing on the profile card.");
-                return;
-            }
-            if (invitedCount < maxInvites) {
-                // Mark candidate as invited visually
-                card.classList.add('invited');
-                button.outerHTML = `<div class="badge-green">Invited</div>`;
-                
-                // Update invite counters and session data
-                invitedCount++;
-                invitedCandidates.push(candidateId);
-                localStorage.setItem("invitedCandidates", JSON.stringify([...new Set(invitedCandidates)]));
-                currentRoundCandidates = currentRoundCandidates.map(cand =>
-                cand.candidate_id === candidateId ? { ...cand, invited: true } : cand
-                );
-                
-                // Send invitation to the backend
+            async function updatePrediction(candidateId, gender, age, race) {
+                const updatePayload = {
+                    candidate_id: candidateId,
+                    updated_features: {
+                        Sex: gender === "Female" ? 0 : 1,
+                        Age: age
+                    }
+                };
+
+                // Reset all race values to 0
+                const raceColumnMap = {
+                    "Black": "RaceDesc_Black or African American",
+                    "White": "RaceDesc_White",
+                    "Asian": "RaceDesc_Asian",
+                    "American Indian": "RaceDesc_American Indian or Alaska Native",
+                    "Hispanic": "RaceDesc_Hispanic"
+                };
+                Object.values(raceColumnMap).forEach(raceKey => updatePayload.updated_features[raceKey] = 0);
+
+                // Set the selected race to 1
+                if (raceColumnMap[race]) {
+                    updatePayload.updated_features[raceColumnMap[race]] = 1;
+                }
+
+                console.log("📤 Sending request to backend:", JSON.stringify(updatePayload));
+
                 try {
-                const response = await fetch("/candidates/invite", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ candidate_id: candidateId })
-                });
-                if (!response.ok) {
-                    console.error("❌ Error inviting candidate:", await response.text());
-                } else {
-                    console.log(`✅ Candidate ${candidateId} invited successfully.`);
-                }
+                    const response = await fetch("/predict/update", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(updatePayload)
+                    });
+
+                    console.log("🔄 Waiting for backend response...");
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("❌ Backend returned an error:", errorText);
+                        throw new Error("Failed to update prediction.");
+                    }
+
+                    const result = await response.json();
+                    console.log("✅ Backend response:", result);
+
+                    // Fetch feature descriptions
+                    const featureDescriptions = await fetchFeatureDescriptions();
+
+                    // Find the correct candidate profile card
+                    const candidateCard = document.querySelector(`.profile-card[data-candidate-id="${candidateId}"]`);
+                    if (!candidateCard) {
+                        console.error("❌ Candidate card not found for ID:", candidateId);
+                        return;
+                    }
+
+                    // Update the Good Fit section correctly
+                    const goodFitElement = candidateCard.querySelector(".prediction-section strong:nth-of-type(1)");
+                    if (goodFitElement) {
+                        goodFitElement.nextSibling.nodeValue = ` ${result.is_good_fit ? "Yes" : "No"}`;
+                        if (!result.is_good_fit) {
+                            goodFitElement.classList.add("good-fit-no"); // Apply red color for "No"
+                        } else {
+                            goodFitElement.classList.remove("good-fit-no"); // Remove red color for "Yes"
+                        }
+                    }
+
+                    // Update the Probability correctly
+                    const probabilityElement = candidateCard.querySelector(".prediction-section div:nth-of-type(2) strong");
+                    if (probabilityElement) {
+                        probabilityElement.nextSibling.nodeValue = ` ${result.prediction_probability.toFixed(2)}`;
+                        if (result.prediction_probability < 0.5) {
+                            probabilityElement.classList.add("probability-low"); // Apply red color for low probability
+                        } else {
+                            probabilityElement.classList.remove("probability-low"); // Remove red color if above threshold
+                        }
+                    }   
+
+                    const badgeContainer = candidateCard.querySelector(".badge-container");
+                    const profileHeader = candidateCard.querySelector(".profile-header"); // Ensures badge is placed correctly
+
+                    if (result.is_good_fit) {
+                        // Check if the badge already exists inside the profile header
+                        if (!profileHeader.querySelector(".badge-yellow")) {
+                            const badge = document.createElement("div");
+                            badge.className = "badge-yellow";
+                            badge.textContent = "AI Recommendation";
+                            profileHeader.appendChild(badge); // Append badge inside the profile header
+                        }
+                    } else {
+                        // Remove AI Recommendation badge if Good Fit is No
+                        const aiBadge = profileHeader.querySelector(".badge-yellow");
+                        if (aiBadge) {
+                            aiBadge.remove(); // Remove the badge when changed to No Good Fit
+                        }
+                    }
+
+                    // Update the invite button text and styling based on GoodFit
+                    const inviteButton = candidateCard.querySelector(".invite-btn");
+                    if (result.is_good_fit) {
+                        inviteButton.textContent = ">>Invite Applicant<<";
+                        inviteButton.classList.add("highlight-btn");
+                    } else {
+                        inviteButton.textContent = "Invite Applicant";
+                        inviteButton.classList.remove("highlight-btn");
+                    }
+
+                    // Update the XAI explanation
+                    const xaiSection = candidateCard.querySelector(".accordion-content");
+                    if (xaiSection) {
+                        xaiSection.innerHTML = result.top_features.map(feature => {
+                            const description = featureDescriptions[feature.Feature] || "No description available.";
+                            return `
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="hoverable-feature" data-tooltip="${description}">
+                                        ${feature.Feature}:
+                                    </span>
+                                    <span>${feature["SHAP Value"].toFixed(2)}</span>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+
+                    return result; // Return the result so it can be used for tracking
                 } catch (error) {
-                console.error("🚨 Fetch error:", error);
+                    console.error("🚨 Fetch error:", error);
                 }
-                updateInviteCounter();
-                console.log(`✅ Candidate ${candidateId} invited.`);
-                // Attach hover events to each candidate in currentRoundCandidates.
-                attachHoverEventsToCandidates(currentRoundCandidates);
-                // When maximum invites for the round are reached,
-                const roundEndTime = Date.now();
-                const roundDuration = (roundEndTime - roundStartTime) / 1000;
-                // push the current round's data into sessionData and move to the next round.
-                if (invitedCount >= maxInvites) {
+            }
+
+            function getRandomAge(ageRange) {
+                const ranges = {
+                    "20-30": [20, 30],
+                    "30-40": [30, 40],
+                    "40-50": [40, 50],
+                    ">60": [61, 75]
+                };
+
+                if (ranges[ageRange]) {
+                    const [min, max] = ranges[ageRange];
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                }
+                return 35; // Default fallback
+            }
+
+            async function handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues) {
+                console.log("🔹 handleManipulationChange triggered", candidateId, selectedGroup, selectedValue);
+
+                // Get all related radio inputs
+                const allInputs = document.querySelectorAll(`input[name^="gender-${candidateId}"], input[name^="age-${candidateId}"], input[name^="race-${candidateId}"]`);
+
+                // Retrieve the original values from the card's dataset
+                const originalGender = originalValues.gender;
+                const originalAge = originalValues.age;
+                const originalRace = originalValues.race;
+
+                // Get current selections
+                const genderInput = document.querySelector(`input[name="gender-${candidateId}"]:checked`);
+                const ageInput = document.querySelector(`input[name="age-${candidateId}"]:checked`);
+                const raceInput = document.querySelector(`input[name="race-${candidateId}"]:checked`);
+
+                if (!genderInput || !ageInput || !raceInput) {
+                    console.error(`⚠️ Missing input selection for candidate ${candidateId}`);
+                    return;
+                }
+
+                const currentGender = genderInput.value;
+                const currentAge = ageInput.value;
+                const currentRace = raceInput.value;
+
+                console.log("Current selections:", currentGender, currentAge, currentRace);
+
+                // Determine if the current state is different from the original
+                const isModified = !(currentGender === originalGender && currentAge === originalAge && currentRace === originalRace);
+
+                // Always call updatePrediction to get the current prediction details
+                const result = await updatePrediction(candidateId, currentGender, currentAge, currentRace);
+                if (!result) return;
+
+                // Find the candidate object in the current round array
+                let candidate = currentRoundCandidates.find(c => String(c.candidate_id) === candidateId);
+                if (!candidate) {
+                    console.error("Candidate not found for candidateId:", candidateId);
+                    return;
+                }
+
+                // Initialize the manipulations array if not already present
+                if (!candidate.manipulations) {
+                    candidate.manipulations = [];
+                }
+
+                // Record this manipulation event (even if it reverts to original)
+                candidate.manipulations.push({
+                    changed_attribute: selectedGroup,
+                    new_value: selectedValue,
+                    prediction_probability: result.prediction_probability,
+                    is_good_fit: result.is_good_fit,
+                    xai_features: result.top_features,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Once any manipulation occurs, mark the candidate as manipulated (always true thereafter)
+                candidate.manipulated = true;
+                console.log("Candidate manipulation recorded:", candidate.manipulations[candidate.manipulations.length - 1]);
+
+                // Update input states: if the current state is the original, re-enable inputs; if not, disable non-changed ones.
+                if (!isModified) {
+                    allInputs.forEach(input => {
+                    input.disabled = false;
+                    input.parentElement.classList.remove("disabled");
+                    });
+                } else {
+                    allInputs.forEach(input => {
+                    if (input.name.includes(selectedGroup) || input.value === originalValues[selectedGroup]) return;
+                    input.disabled = true;
+                    input.parentElement.classList.add("disabled");
+                    });
+                }
+                }
+
+            document.addEventListener("change", function (event) {
+                if (event.target.type === "radio") {
+                    const candidateId = event.target.name.split('-')[1]; // Extract Candidate_ID
+                    const selectedGroup = event.target.name.split('-')[0]; // e.g., "gender", "age", "race"
+                    const selectedValue = event.target.value;
+
+                    // Find the profile card and get the original values
+                    const card = event.target.closest('.profile-card');
+                    if (!card) return;
+
+                    const originalValues = {
+                        gender: card.dataset.originalGender,
+                        age: card.dataset.originalAge,
+                        race: card.dataset.originalRace,
+                    };
+
+                    handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues);
+                }
+            });
+
+            document.addEventListener("DOMContentLoaded", function () {
+                document.querySelectorAll(".accordion-content").forEach(content => {
+                    content.classList.add("active"); // Ensures all accordions start open
+                });
+            });
+
+            document.getElementById("profiles").addEventListener("mouseover", function(e) {
+                if (e.target.classList.contains("hoverable-feature")) {
+                    // Record the hover start time if not already set.
+                    if (!e.target.dataset.hoverStart) {
+                        e.target.dataset.hoverStart = Date.now();
+                    }
+                }
+            });
+
+            document.getElementById("profiles").addEventListener("mouseout", function(e) {
+                if (e.target.classList.contains("hoverable-feature")) {
+                    if (e.target.dataset.hoverStart) {
+                    // Calculate the hover duration in milliseconds.
+                    let hoverTimeMs = Date.now() - parseInt(e.target.dataset.hoverStart);
+                    // Only record if the hover time is greater than 100 ms.
+                    if (hoverTimeMs > 100) {
+                        // Convert hover time to seconds and format it to two decimal places.
+                        let hoverTimeSec = (hoverTimeMs / 1000).toFixed(2);
+                        // Get candidate id from the closest parent profile card.
+                        let candidateId = e.target.closest(".profile-card").getAttribute("data-candidate-id");
+                        // Get the feature name by stripping any trailing colon and whitespace.
+                        let featureName = e.target.textContent.replace(":", "").trim();
+                        // Find the candidate in currentRoundCandidates or lastRoundCandidates.
+                        let candidate = currentRoundCandidates.find(c => String(c.candidate_id) === candidateId) ||
+                                        lastRoundCandidates.find(c => String(c.candidate_id) === candidateId);
+                        if (candidate) {
+                        candidate.hover_events = candidate.hover_events || [];
+                        candidate.hover_events.push({
+                            feature: featureName,
+                            hover_duration: Number(hoverTimeSec) // stored in seconds
+                        });
+                        }
+                    }
+                    // Clean up the hover start timestamp.
+                    delete e.target.dataset.hoverStart;
+                    }
+                }
+                });
+
+            async function fetchCandidates() {
+                if (currentRound > maxRounds) {
+                    console.log("Max rounds reached. Not fetching any more candidates.");
+                    await endSession();
+                    disableAllInvites();
+                    showCompletionDialog();
+                    return;
+                }
+                try {
+                    if (isFetching) {
+                        console.warn("🚫 Skipping duplicate fetchCandidates call.");
+                        return; // Prevent a second call
+                    }
+
+                    isFetching = true; // Set the lock
+                    currentRoundCandidates.length = 0;
+
+                    // Retrieve the seenCandidates list
+                    let seenCandidates = JSON.parse(localStorage.getItem("seenCandidates")) || [];
+                    let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
+                    console.log("📌 LocalStorage seenCandidates:", JSON.parse(localStorage.getItem("seenCandidates")) || []);
+                    console.log("📌 LocalStorage invitedCandidates:", JSON.parse(localStorage.getItem("invitedCandidates")) || []);
+
+                    // Combine seen and invited candidates for exclusion
+                    let excludeList = [...new Set(seenCandidates.concat(invitedCandidates))];
+
+                    console.log("📤 Fetching candidates. Excluding:", excludeList);
+
+                    // Ensure we send exclude correctly formatted
+                    const queryString = excludeList.length > 0 
+                        ? `?exclude=${excludeList.join("&exclude=")}` 
+                        : "";
+
+                    // Fetch candidates and feature descriptions in parallel
+                    const [candidatesResponse, featureDescriptions] = await Promise.all([
+                        fetch(`/candidates/data${queryString}`).then(res => res.json()), // Fetch candidates
+                        fetchFeatureDescriptions() // Fetch feature descriptions
+                    ]);
+
+                    // Handle errors if candidates response fails
+                    if (!candidatesResponse) {
+                        throw new Error("Failed to fetch candidates.");
+                    }
+
+                    const data = candidatesResponse; // Assign the JSON response
+
+                    // Extract new candidate IDs
+                    let newSeenCandidates = data.map(c => c.Candidate_ID);
+                    
+                    // Ensure `seenCandidates` updates correctly
+                    seenCandidates = [...new Set([...seenCandidates, ...newSeenCandidates])]; 
+                    localStorage.setItem("seenCandidates", JSON.stringify(seenCandidates));
+
+                    updateInviteCounter();
+
+                    // Select the container where profiles will be displayed
+                    const profilesContainer = document.getElementById('profiles');
+                    profilesContainer.innerHTML = ''; // Clear previous content
+
+                    const candidate = data.find(c => c.GoodFit); // Pick the one GoodFit candidate
+                    if (!candidate) {
+                        console.warn("⚠️ No GoodFit candidate found.");
+                        return;
+                    }
+
+                    // Update Sidebar automatically
+                    updateSidebar(candidate);
+                            
+                    // Store the newly fetched candidates as "seen"
+                    currentRoundCandidates = [];
+                    // localStorage.setItem("seenCandidates", JSON.stringify([...new Set(seenCandidates.concat(currentRoundCandidates))]));
+
+                    // Iterate through each candidate
+                    data.forEach(candidate => {
+                        currentRoundCandidates.push({
+                            candidate_id: candidate.Candidate_ID,
+                            name: candidate.Prename + " " + candidate.Name,
+                            attributes: {
+                            age: candidate.Age || "N/A",
+                            sex: candidate.Gender,
+                            race: candidate.Race,
+                            years_experience: candidate.Skills.YearsExperience || 0,
+                            technical_skills_score: candidate.Skills.TechnicalSkills || 0,
+                            certifications_score: candidate.Skills.Certifications || 0
+                            },
+                            good_fit: candidate.GoodFit,
+                            recommended: candidate.GoodFit,
+                            invited: false,
+                            manipulated: false
+                        });
+                        lastRoundCandidates = JSON.parse(JSON.stringify(currentRoundCandidates));
+
+                        const card = document.createElement('div');
+                        card.setAttribute('data-candidate-id', candidate.Candidate_ID);
+                        card.className = 'profile-card';
+
+                        // Store the original values in data attributes
+                        card.dataset.originalGender = candidate.Gender;
+                        card.dataset.originalAge = getAgeBin(candidate.Age);
+                        card.dataset.originalRace = candidate.Race;
+
+                        // Add AI Recommendation badge if applicable
+                        const badge = candidate.GoodFit
+                            ? `<div class="badge-yellow">AI Recommendation</div>`
+                            : "";
+
+                        // Generate accordion content for XAI features
+                        const accordionContent = candidate.GoodFit
+                            ? generateAccordionContent(candidate, featureDescriptions)
+                            : '';
+
+                        // Build the card HTML
+                        card.innerHTML = `
+                            <div class="profile-header">
+                                <span style="font-weight: bold;">${candidate.Prename} ${candidate.Name}</span>
+                                ${candidate.GoodFit ? `<div class="badge-yellow">AI Recommendation</div>` : ""}
+                            </div>
+                            <div class="badge-container"></div>
+
+                            <div class="profile-section">
+                                <div>
+                                    <span>Name:</span>
+                                    <span>${candidate.Name}</span>
+                                </div>
+                                <div>
+                                    <span>Prename:</span>
+                                    <span>${candidate.Prename}</span>
+                                </div>
+                                <div>
+                                    <span>Gender:</span>
+                                    <span>${candidate.Gender}</span>
+                                </div>
+                                <div>
+                                    <span>Age:</span>
+                                    <span>${candidate.Age || 'N/A'}</span>
+                                </div>
+                                <div>
+                                    <span>Nationality:</span>
+                                    <span>${candidate.Nationality || 'N/A'}</span>
+                                </div>
+                                <div>
+                                    <span>Birthplace:</span>
+                                    <span>${candidate.Birthplace || 'N/A'}</span>
+                                </div>
+                            </div>
+
+                            <div class="skills-section">
+                                <h4>Skills:</h4>
+                                ${Object.entries(candidate.Skills).map(([skill, stars]) => `
+                                    ${skill !== "Social Skills" ? `
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span>${skill}</span>
+                                        <span class="stars">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</span>
+                                    </div>
+                                    ` : ''}
+                                `).join('')}
+                            </div>
+
+                            <div class="invite-section"></div> <!-- Invite button will be appended here -->
+
+                            <div class="prediction-section">
+                                <div>
+                                    <strong>Good Fit?:</strong> ${candidate.GoodFit ? "Yes" : "No"}
+                                </div>
+                                <div>
+                                    <strong>Probability:</strong> ${candidate.Probability ? candidate.Probability.toFixed(2) : "0.00"}
+                                </div>
+                            </div>
+
+                            ${accordionContent}
+
+                            ${candidate.GoodFit ? `
+                                <div class="recommendation-manipulation">
+                                    <h4>Manipulate AI Recommendation:</h4>
+                                    <strong>Take a look at how the recommendation changes when you manipulate protected data:</strong>
+                                    <div class="manipulation-columns">
+                                        <div class="manipulation-column">
+                                            <h5>Gender</h5>
+                                            ${["Male", "Female"].map(value => `
+                                                <label>
+                                                    <input type="radio" name="gender-${candidate.Candidate_ID}" value="${value}"
+                                                        ${candidate.Gender === value ? "checked" : ""}>
+                                                    ${value}
+                                                </label>
+                                            `).join('')}
+                                        </div>
+
+                                        <div class="manipulation-column">
+                                            <h5>Age</h5>
+                                            ${["20-30", "30-40", "40-50", "50-60", ">60"].map(value => `
+                                                <label>
+                                                    <input type="radio" name="age-${candidate.Candidate_ID}" value="${value}"
+                                                        ${getAgeBin(candidate.Age) === value ? "checked" : ""}>
+                                                    ${value} years
+                                                </label>
+                                            `).join('')}
+                                        </div>
+
+                                        <div class="manipulation-column">
+                                            <h5>Race</h5>
+                                            ${["Black", "White", "Asian"].map(value => `
+                                                <label>
+                                                    <input type="radio" name="race-${candidate.Candidate_ID}" value="${value}"
+                                                        ${candidate.Race === value ? "checked" : ""}>
+                                                    ${value}
+                                                </label>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ""}
+
+                        `;
+
+                        // **Create Invite Button**
+                        const inviteButton = document.createElement("button");
+                            inviteButton.className = candidate.GoodFit ? "invite-btn highlight-btn" : "invite-btn";
+                            inviteButton.textContent = candidate.GoodFit ? ">>Invite Applicant<<" : "Invite Applicant";
+                            inviteButton.addEventListener("click", function () {
+                                inviteCandidate(candidate.Candidate_ID, inviteButton);
+                            });
+
+                        // Append the invite button to the card
+                        card.querySelector(".invite-section").appendChild(inviteButton);
+
+                        // Append the card to the profiles container
+                        profilesContainer.appendChild(card);
+                    });
+                } catch (error) {
+                    console.error('Error fetching candidates:', error);
+                } finally {
+                    isFetching = false; // Unlock after fetch completes
+                }
+            }
+
+            // Helper function to fetch feature descriptions
+            async function fetchFeatureDescriptions() {
+                try {
+                    const response = await fetch('/data/feature_description.json');
+                    if (!response.ok) {
+                        throw new Error('Failed to load feature descriptions');
+                    }
+                    return await response.json(); // Parse and return JSON
+                } catch (error) {
+                    console.error('Error fetching feature descriptions:', error);
+                    return {};
+                }
+            }
+
+            function generateAccordionContent(candidate, featureDescriptions) {
+                if (!candidate.GoodFit) return '';
+
+                return `
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        XAI: Top 3 Features
+                        <span class="info-icon" data-tooltip="These values represent the top factors influencing the AI's decision-making. Higher values indicate stronger influence.">ℹ</span>
+                    </div>
+                    <div class="accordion-content">
+                        ${candidate.TopFeatures.map(feature => {
+                            const description = featureDescriptions[feature.Feature] || 'No description available.';
+                            return `
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="hoverable-feature" data-tooltip="${description}">
+                                        ${feature.Feature}:
+                                    </span>
+                                    <span>${feature["SHAP Value"].toFixed(2)}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            function disableAllInvites() {
+                document.querySelectorAll(".invite-btn").forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.opacity = "0.5";
+                    btn.style.cursor = "not-allowed";
+                });
+            }
+
+            function closeCompletionDialog() {
+                // Instead of clearing the dialog, disable the OK button to indicate that the session is finished.
+                const okButton = document.querySelector('.completion-message button');
+                if (okButton) {
+                    okButton.disabled = true;
+                    okButton.textContent = "Session Ended";
+                }
+                // The dialog content (including the elapsed time) remains on screen.
+            }
+
+            function updateInviteCounter() {
+                const inviteCounter = document.getElementById('invite-counter');
+
+                // Hide the counter initially to prevent incorrect display
+                inviteCounter.style.visibility = "hidden";
+
+                // Ensure values are fetched from localStorage or set default values
+                const displayedInvitedCount = Math.min(invitedCount, maxInvites);
+                const displayedRound = Math.min(currentRound, maxRounds);
+
+                // Update counter text
+                inviteCounter.textContent = 
+                    `Applicants invited: ${displayedInvitedCount}/${maxInvites} · Round: ${displayedRound}/${maxRounds}`;
+
+                // Show the counter only after correct values are set
+                inviteCounter.style.visibility = "visible";
+            }
+
+            function toggleAccordion(element) {
+                const content = element.nextElementSibling;
+
+                if (content.classList.contains("active")) {
+                    content.classList.remove("active");
+                    content.style.display = "none"; // Hide the content
+                } else {
+                    content.classList.add("active");
+                    content.style.display = "flex"; // Show the content
+                }
+            }
+
+            function getDefaultValue(group, candidate) {
+                if (group.includes("gender")) {
+                    return candidate.Gender; // Use Gender directly
+                } else if (group.includes("age")) {
+                    return getAgeBin(candidate.Age); // Calculate age bin
+                } else if (group.includes("race")) {
+                    return candidate.Race; // Use Race directly from the fact sheet
+                }
+                return ""; // Default fallback
+            }
+
+            function getAgeBin(age) {
+                
+                if (age >= 20 && age <= 30) return "20-30";
+                if (age >= 30 && age <= 40) return "30-40";
+                if (age >= 40 && age <= 50) return "40-50";
+                if (age >= 50 && age <= 60) return "50-60";
+                if (age > 60) return ">60";
+
+                console.warn(`⚠️ Age ${age} does not match any category.`);
+                return ""; // Return empty string if no match
+            }
+
+            function attachHoverEventsToCandidates(candidatesArray) {
+                candidatesArray.forEach(candidate => {
+                    candidate.hover_events = candidate.hover_events || [];
+                });
+            }
+
+            // Fetch candidates and set up interactivity after the profiles are rendered
+            fetchCandidates();
+
+            let hasFetchedCandidates = false;  // Prevent double fetch
+
+            // Ensure the invite counter is updated only after fetching candidates
+            window.onload = async function () {
+                console.log("🔄 Performing FULL RESET...");
+                document.getElementById("invite-counter").style.visibility = "hidden";
+                localStorage.clear();
+                let sessionData = {
+                    session_id: null,
+                    user_group: "features", // TODO: Change dynamically
+                    sessionTime: null,
+                    rounds: [],
+                };
+                invitedCount = 0;
+                invitedCandidates = [];
+                currentRound = 1;
+                isFetching = false;
+                document.getElementById("profiles").innerHTML = "";
+                try {
+                    console.log("🔄 Requesting backend reset...");
+                    const response = await fetch("/candidates/reset", { method: "POST" });
+                    const data = await response.json();
+                    console.log("✅ Backend Reset:", data);
+                    localStorage.setItem("seenCandidates", JSON.stringify([]));
+                    localStorage.setItem("invitedCandidates", JSON.stringify([]));
+                    localStorage.setItem("currentRound", "1");
+                    localStorage.setItem("invitedCount", "0");
+                    await fetchCandidates();
+                    updateInviteCounter();
+                } catch (error) {
+                    console.error("🚨 Backend Reset Error:", error);
+                }
+            };
+
+            async function inviteCandidate(candidateId, button) {
+                console.log("inviteCandidate called");
+                if (currentRound > maxRounds) {
+                    disableAllInvites();
+                    showCompletionDialog();
+                    return;
+                }
+                const card = button.closest('.profile-card');
+                if (!card) {
+                    console.error("⚠️ No profile card found for this button.");
+                    return;
+                }
+                if (!candidateId) {
+                    console.error("⚠️ Candidate ID missing on the profile card.");
+                    return;
+                }
+                if (invitedCount < maxInvites) {
+                    // Mark candidate as invited visually
+                    card.classList.add('invited');
+                    button.outerHTML = `<div class="badge-green">Invited</div>`;
+                    
+                    // Update invite counters and session data
+                    invitedCount++;
+                    invitedCandidates.push(candidateId);
+                    localStorage.setItem("invitedCandidates", JSON.stringify([...new Set(invitedCandidates)]));
+                    currentRoundCandidates = currentRoundCandidates.map(cand =>
+                    cand.candidate_id === candidateId ? { ...cand, invited: true } : cand
+                    );
+                    
+                    // Send invitation to the backend
+                    try {
+                    const response = await fetch("/candidates/invite", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ candidate_id: candidateId })
+                    });
+                    if (!response.ok) {
+                        console.error("❌ Error inviting candidate:", await response.text());
+                    } else {
+                        console.log(`✅ Candidate ${candidateId} invited successfully.`);
+                    }
+                    } catch (error) {
+                    console.error("🚨 Fetch error:", error);
+                    }
+                    updateInviteCounter();
+                    console.log(`✅ Candidate ${candidateId} invited.`);
                     // Attach hover events to each candidate in currentRoundCandidates.
                     attachHoverEventsToCandidates(currentRoundCandidates);
-                    sessionData.rounds.push({
-                        round_number: currentRound,
-                        candidate_count: currentRoundCandidates.length,
-                        invited_count: invitedCandidates.length,
-                        round_duration: roundDuration,
-                        next_round_clicked: false, // This flag can later be updated in the nextRound function
-                        candidates: JSON.parse(JSON.stringify(currentRoundCandidates)) // deep copy
-                    });
-                    currentRound++;
-                    localStorage.setItem("currentRound", currentRound);
-                    roundStartTime = Date.now();
-                    invitedCount = 0;
-                    localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
-                    updateInviteCounter();
-                    // Clear candidate hover events for the next round.
-                    sessionData.candidate_hover_events = {};
-                    setTimeout(() => {
-                        document.getElementById("profiles").innerHTML = "";
-                        fetchCandidates();
-                    }, 500);
+                    // When maximum invites for the round are reached,
+                    const roundEndTime = Date.now();
+                    const roundDuration = (roundEndTime - roundStartTime) / 1000;
+                    // push the current round's data into sessionData and move to the next round.
+                    if (invitedCount >= maxInvites) {
+                        // Attach hover events to each candidate in currentRoundCandidates.
+                        attachHoverEventsToCandidates(currentRoundCandidates);
+                        sessionData.rounds.push({
+                            round_number: currentRound,
+                            candidate_count: currentRoundCandidates.length,
+                            invited_count: invitedCandidates.length,
+                            round_duration: roundDuration,
+                            next_round_clicked: false, // This flag can later be updated in the nextRound function
+                            candidates: JSON.parse(JSON.stringify(currentRoundCandidates)) // deep copy
+                        });
+                        currentRound++;
+                        localStorage.setItem("currentRound", currentRound);
+                        roundStartTime = Date.now();
+                        invitedCount = 0;
+                        localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
+                        updateInviteCounter();
+                        // Clear candidate hover events for the next round.
+                        sessionData.candidate_hover_events = {};
+                        setTimeout(() => {
+                            document.getElementById("profiles").innerHTML = "";
+                            fetchCandidates();
+                        }, 500);
+                        }
+                    } else {
+                    alert('Maximum number of applicants invited!');
                     }
-                } else {
-                alert('Maximum number of applicants invited!');
                 }
-            }
 
-        // Global variables for session management.
-        let sessionId = null;
-        let sessionElapsedSeconds = null;
+            // Global variables for session management.
+            let sessionId = null;
+            let sessionElapsedSeconds = null;
 
-        // Function to start a new session by calling the backend.
-        async function startSession(userId = null) {
-            const payload = userId ? { user_id: userId } : {};
-            try {
-            const response = await fetch("/session/start", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const data = await response.json();
-            sessionId = data.session_id;
-            sessionData.session_id = sessionId;
-            console.log("Session started:", data);
-            } catch (error) {
-            console.error("Error starting session:", error);
-            }
-        }
-
-        // Function to end the session by calling the backend.
-        async function endSession() {
-            try {
-                if (!sessionId) {
-                    console.error("🚨 No session ID found! Unable to end session.");
-                    return;
-                }
-            } catch (error) {
-                console.error("No session id found");
-            }            
-            try {
-                console.log("🔄 Ending session with sessionId:", sessionId);
-                const response = await fetch("/session/end", {
+            // Function to start a new session by calling the backend.
+            async function startSession(userId = null) {
+                const payload = userId ? { user_id: userId } : {};
+                try {
+                const response = await fetch("/session/start", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ session_id: sessionId })
+                    body: JSON.stringify(payload)
                 });
                 const data = await response.json();
-                console.log("✅ Session successfully ended. Duration:", data.elapsed_seconds, "seconds");
-                sessionElapsedSeconds = data.elapsed_seconds;
-                sessionData.sessionTime = sessionElapsedSeconds;
-            } catch (error) {
-                console.error("🚨 Error ending session:", error);
-                sessionElapsedSeconds = "unknown"; 
-            }
-        }
-
-        function startApplication() {
-            console.log("startApplication triggered");
-            startSession(); // Start the session.
-            roundStartTime = Date.now();
-            document.getElementById("intro").classList.add("hidden");
-            document.getElementById("candidateSection").classList.remove("hidden");
-        }
-
-        async function nextRound() {
-            const roundEndTime = Date.now();
-            const roundDuration = (roundEndTime - roundStartTime) / 1000;
-            // Attach hover events to each candidate in lastRoundCandidates.
-            attachHoverEventsToCandidates(lastRoundCandidates);
-            sessionData.rounds.push({
-                round_number: currentRound,
-                candidate_count: lastRoundCandidates.length,
-                invited_count: invitedCandidates.length,
-                round_duration: roundDuration,
-                next_round_clicked: true, 
-                candidates: lastRoundCandidates 
-            });
-            // Clear candidate hover events for the round.
-            sessionData.candidate_hover_events = {};
-            console.log("DEBUG:", sessionData)
-            currentRound++;
-            localStorage.setItem("currentRound", currentRound);
-            roundStartTime = Date.now();
-
-            if (currentRound > maxRounds) {
-                console.log("🏁 Final round reached. Ending session.");
-                await endSession();
-                disableAllInvites();
-                showCompletionDialog();
-                return;
-            }
-            invitedCount = 0;
-            localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
-            document.getElementById("profiles").innerHTML = "";
-            fetchCandidates();
-            updateInviteCounter();
-        }
-
-        // Global variable to track the current feedback page
-        let feedbackPage = 0;
-        const questionsPerPage = 5;
-        const totalFeedbackQuestions = 25;
-        const totalFeedbackPages = totalFeedbackQuestions / questionsPerPage;
-
-        // Create an array with 25 placeholder questions.
-        const feedbackQuestions = Array.from({ length: totalFeedbackQuestions }, (_, i) => 
-            `Question ${i + 1}: [Placeholder question text]`
-            );
-
-        // Global variable to track questionnaire start time
-        let feedbackStartTime = null;
-
-        function showCompletionDialog() {
-            // Hide only the header inside the candidateSection.
-            const header = document.querySelector("#candidateSection .header");
-            if (header) {
-                header.style.display = "none";
-            }
-            
-            // Show an initial completion screen with a "Continue to Feedback" button.
-            const profilesContainer = document.getElementById("profiles");
-            profilesContainer.innerHTML = `
-                <div class="completion-message">
-                <h2>All Candidates Selected</h2>
-                <p>Thank you for your participation.</p>
-                <button id="continueFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; margin-top: 20px;">Continue to Feedback</button>
-                </div>
-            `;
-
-            // Hide the Next Round button if it exists.
-            const nextRoundButton = document.querySelector(".next-round-btn");
-            if (nextRoundButton) {
-                nextRoundButton.style.display = "none";
+                sessionId = data.session_id;
+                sessionData.session_id = sessionId;
+                console.log("Session started:", data);
+                } catch (error) {
+                console.error("Error starting session:", error);
+                }
             }
 
-            document.getElementById("continueFeedback").addEventListener("click", () => {
-                feedbackStartTime = Date.now();  // Start tracking questionnaire time
-                feedbackPage = 1;
-                showFeedbackPage(feedbackPage);
-            });
-        }
+            // Function to end the session by calling the backend.
+            async function endSession() {
+                try {
+                    if (!sessionId) {
+                        console.error("🚨 No session ID found! Unable to end session.");
+                        return;
+                    }
+                } catch (error) {
+                    console.error("No session id found");
+                }            
+                try {
+                    console.log("🔄 Ending session with sessionId:", sessionId);
+                    const response = await fetch("/session/end", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ session_id: sessionId })
+                    });
+                    const data = await response.json();
+                    console.log("✅ Session successfully ended. Duration:", data.elapsed_seconds, "seconds");
+                    sessionElapsedSeconds = data.elapsed_seconds;
+                    sessionData.sessionTime = sessionElapsedSeconds;
+                } catch (error) {
+                    console.error("🚨 Error ending session:", error);
+                    sessionElapsedSeconds = "unknown"; 
+                }
+            }
 
-        // Global variable to store answers across feedback pages.
-        let feedbackAnswers = {};
+            function startApplication() {
+                console.log("startApplication triggered");
+                startSession(); // Start the session.
+                roundStartTime = Date.now();
+                document.getElementById("intro").classList.add("hidden");
+                document.getElementById("candidateSection").classList.remove("hidden");
+                document.querySelector(".sidebar").style.display = "block";
+            }
 
-        function showFeedbackPage(pageNum) {
-            // Calculate the slice of questions for the current page.
-            const startIdx = (pageNum - 1) * questionsPerPage;
-            const pageQuestions = feedbackQuestions.slice(startIdx, startIdx + questionsPerPage);
+            async function nextRound() {
+                const roundEndTime = Date.now();
+                const roundDuration = (roundEndTime - roundStartTime) / 1000;
+                // Attach hover events to each candidate in lastRoundCandidates.
+                attachHoverEventsToCandidates(lastRoundCandidates);
+                sessionData.rounds.push({
+                    round_number: currentRound,
+                    candidate_count: lastRoundCandidates.length,
+                    invited_count: invitedCandidates.length,
+                    round_duration: roundDuration,
+                    next_round_clicked: true, 
+                    candidates: lastRoundCandidates 
+                });
+                // Clear candidate hover events for the round.
+                sessionData.candidate_hover_events = {};
+                console.log("DEBUG:", sessionData)
+                currentRound++;
+                localStorage.setItem("currentRound", currentRound);
+                roundStartTime = Date.now();
 
-            // Build the feedback HTML for this page.
-            // We check if an answer for a question exists in feedbackAnswers and mark it as checked.
-            const feedbackHTML = `
-                <div class="feedback-container">
-                <h2>Feedback Questionnaire (Page ${pageNum} of ${totalFeedbackPages})</h2>
-                <form id="feedbackForm">
-                    ${pageQuestions.map((q, idx) => {
-                    const questionName = `question${startIdx + idx + 1}`;
-                    return `
-                        <div class="feedback-question" style="margin-bottom: 20px;">
-                        <p>${q}</p>
-                        <div class="radio-group" style="display: flex; gap: 10px;">
-                            ${[1,2,3,4,5,6,7].map(val => {
-                            // Check if there's a saved answer for this question.
-                            const isChecked = feedbackAnswers[questionName] == val ? "checked" : "";
-                            return `
-                                <label style="display: inline-block;">
-                                <input type="radio" name="${questionName}" value="${val}" ${isChecked} required>
-                                ${val}
-                                </label>
-                            `;
-                            }).join('')}
-                        </div>
-                        </div>
-                    `;
-                    }).join('')}
-                    <div class="feedback-buttons" style="display: flex; gap: 10px;">
-                    ${pageNum > 1 ? `<button type="button" id="prevFeedback" style="background-color: #aaa; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Back</button>` : ""}
-                    ${pageNum < totalFeedbackPages 
-                        ? `<button type="button" id="nextFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Next</button>`
-                        : `<button type="button" id="submitFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Submit Feedback</button>`}
+                if (currentRound > maxRounds) {
+                    console.log("🏁 Final round reached. Ending session.");
+                    await endSession();
+                    disableAllInvites();
+                    showCompletionDialog();
+                    return;
+                }
+                invitedCount = 0;
+                localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
+                document.getElementById("profiles").innerHTML = "";
+                fetchCandidates();
+                updateInviteCounter();
+            }
+
+            // Global variable to track the current feedback page
+            let feedbackPage = 0;
+            const questionsPerPage = 5;
+            const totalFeedbackQuestions = 25;
+            const totalFeedbackPages = totalFeedbackQuestions / questionsPerPage;
+
+            // Create an array with 25 placeholder questions.
+            const feedbackQuestions = Array.from({ length: totalFeedbackQuestions }, (_, i) => 
+                `Question ${i + 1}: [Placeholder question text]`
+                );
+
+            // Global variable to track questionnaire start time
+            let feedbackStartTime = null;
+
+            function showCompletionDialog() {
+                // Hide only the header inside the candidateSection.
+                const header = document.querySelector("#candidateSection .header");
+                if (header) {
+                    header.style.display = "none";
+                }
+                
+                // Show an initial completion screen with a "Continue to Feedback" button.
+                const profilesContainer = document.getElementById("profiles");
+                profilesContainer.innerHTML = `
+                    <div class="completion-message">
+                    <h2>All Candidates Selected</h2>
+                    <p>Thank you for your participation.</p>
+                    <button id="continueFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; margin-top: 20px;">Continue to Feedback</button>
                     </div>
-                </form>
-                </div>
-            `;
+                `;
 
-            const profilesContainer = document.getElementById("profiles");
-            profilesContainer.innerHTML = feedbackHTML;
-
-            // Before moving on (either back, next, or submit), save the current page's answers.
-            function saveCurrentPageAnswers() {
-                for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
-                const answer = document.querySelector(`input[name="question${i}"]:checked`);
-                if (answer) {
-                    feedbackAnswers[`question${i}`] = answer.value;
+                // Hide the Next Round button if it exists.
+                const nextRoundButton = document.querySelector(".next-round-btn");
+                if (nextRoundButton) {
+                    nextRoundButton.style.display = "none";
                 }
-                }
-            }
 
-            // Add Back button event listener if applicable.
-            if (pageNum > 1) {
-                document.getElementById("prevFeedback").addEventListener("click", () => {
-                saveCurrentPageAnswers();
-                feedbackPage--;
-                showFeedbackPage(feedbackPage);
+                document.getElementById("continueFeedback").addEventListener("click", () => {
+                    feedbackStartTime = Date.now();  // Start tracking questionnaire time
+                    feedbackPage = 1;
+                    showFeedbackPage(feedbackPage);
                 });
             }
 
-            // Add Next or Submit button event listener with validation.
-            if (pageNum < totalFeedbackPages) {
-                document.getElementById("nextFeedback").addEventListener("click", () => {
-                // Validate that all questions on this page have a selected value.
-                let valid = true;
-                for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
-                    if (!document.querySelector(`input[name="question${i}"]:checked`)) {
-                    valid = false;
-                    break;
+            // Global variable to store answers across feedback pages.
+            let feedbackAnswers = {};
+
+            function showFeedbackPage(pageNum) {
+                // Calculate the slice of questions for the current page.
+                const startIdx = (pageNum - 1) * questionsPerPage;
+                const pageQuestions = feedbackQuestions.slice(startIdx, startIdx + questionsPerPage);
+
+                // Build the feedback HTML for this page.
+                // We check if an answer for a question exists in feedbackAnswers and mark it as checked.
+                const feedbackHTML = `
+                    <div class="feedback-container">
+                    <h2>Feedback Questionnaire (Page ${pageNum} of ${totalFeedbackPages})</h2>
+                    <form id="feedbackForm">
+                        ${pageQuestions.map((q, idx) => {
+                        const questionName = `question${startIdx + idx + 1}`;
+                        return `
+                            <div class="feedback-question" style="margin-bottom: 20px;">
+                            <p>${q}</p>
+                            <div class="radio-group" style="display: flex; gap: 10px;">
+                                ${[1,2,3,4,5,6,7].map(val => {
+                                // Check if there's a saved answer for this question.
+                                const isChecked = feedbackAnswers[questionName] == val ? "checked" : "";
+                                return `
+                                    <label style="display: inline-block;">
+                                    <input type="radio" name="${questionName}" value="${val}" ${isChecked} required>
+                                    ${val}
+                                    </label>
+                                `;
+                                }).join('')}
+                            </div>
+                            </div>
+                        `;
+                        }).join('')}
+                        <div class="feedback-buttons" style="display: flex; gap: 10px;">
+                        ${pageNum > 1 ? `<button type="button" id="prevFeedback" style="background-color: #aaa; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Back</button>` : ""}
+                        ${pageNum < totalFeedbackPages 
+                            ? `<button type="button" id="nextFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Next</button>`
+                            : `<button type="button" id="submitFeedback" style="background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;">Submit Feedback</button>`}
+                        </div>
+                    </form>
+                    </div>
+                `;
+
+                const profilesContainer = document.getElementById("profiles");
+                profilesContainer.innerHTML = feedbackHTML;
+
+                // Before moving on (either back, next, or submit), save the current page's answers.
+                function saveCurrentPageAnswers() {
+                    for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
+                    const answer = document.querySelector(`input[name="question${i}"]:checked`);
+                    if (answer) {
+                        feedbackAnswers[`question${i}`] = answer.value;
+                    }
                     }
                 }
-                if (!valid) {
-                    alert("Please answer all questions before proceeding.");
-                    return;
+
+                // Add Back button event listener if applicable.
+                if (pageNum > 1) {
+                    document.getElementById("prevFeedback").addEventListener("click", () => {
+                    saveCurrentPageAnswers();
+                    feedbackPage--;
+                    showFeedbackPage(feedbackPage);
+                    });
                 }
-                saveCurrentPageAnswers();
-                feedbackPage++;
-                showFeedbackPage(feedbackPage);
-                });
-            } else {
-                document.getElementById("submitFeedback").addEventListener("click", () => {
-                let valid = true;
-                for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
-                    if (!document.querySelector(`input[name="question${i}"]:checked`)) {
-                    valid = false;
-                    break;
+
+                // Add Next or Submit button event listener with validation.
+                if (pageNum < totalFeedbackPages) {
+                    document.getElementById("nextFeedback").addEventListener("click", () => {
+                    // Validate that all questions on this page have a selected value.
+                    let valid = true;
+                    for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
+                        if (!document.querySelector(`input[name="question${i}"]:checked`)) {
+                        valid = false;
+                        break;
+                        }
                     }
+                    if (!valid) {
+                        alert("Please answer all questions before proceeding.");
+                        return;
+                    }
+                    saveCurrentPageAnswers();
+                    feedbackPage++;
+                    showFeedbackPage(feedbackPage);
+                    });
+                } else {
+                    document.getElementById("submitFeedback").addEventListener("click", () => {
+                    let valid = true;
+                    for (let i = startIdx + 1; i <= startIdx + questionsPerPage; i++) {
+                        if (!document.querySelector(`input[name="question${i}"]:checked`)) {
+                        valid = false;
+                        break;
+                        }
+                    }
+                    if (!valid) {
+                        alert("Please answer all questions before submitting.");
+                        return;
+                    }
+                    saveCurrentPageAnswers();
+                    showFinalThankYou();
+                    });
                 }
-                if (!valid) {
-                    alert("Please answer all questions before submitting.");
+            }
+
+            function showFinalThankYou() {
+                const profilesContainer = document.getElementById("profiles");
+                // Calculate total time spent on questionnaire.
+                const feedbackEndTime = Date.now();
+                const feedbackElapsed = (feedbackEndTime - feedbackStartTime) / 1000;
+                // Save feedback answers and time to sessionData.
+                sessionData.feedbackTime = feedbackElapsed;
+                sessionData.feedbackAnswers = feedbackAnswers;
+                const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
+                profilesContainer.innerHTML = `
+                    <div class="final-message">
+                    <h2>Thank You!</h2>
+                    <p>Your feedback has been submitted.</p>
+                    <p>Time spent on questionnaire: ${feedbackElapsed.toFixed(2)} seconds.</p>
+                    ${sessionDataHTML}
+                    <p><a href="https://www.google.com" target="_blank" style="background-color: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Google</a></p>
+                    </div>
+                `;
+            }
+
+            function updateSidebar(candidate) {
+                const sidebarContent = document.getElementById("sidebar-content");
+
+                if (!candidate.GoodFit) {
+                    sidebarContent.innerHTML = `<p>This candidate is not marked as a good fit by the AI.</p>`;
                     return;
                 }
-                saveCurrentPageAnswers();
-                showFinalThankYou();
+
+                // Get candidate name and title (defaulting to "Candidate" if no title is provided)
+                const candidateName = `${candidate.Prename} ${candidate.Name}`;
+
+                // Generate the recommendation manipulation section
+                const manipulationHTML = `
+                    <div class="sidebar-header">
+                        <h3>${candidateName}</h3>
+                    </div>
+                    <div class="recommendation-manipulation">
+                        <div class="manipulation-columns">
+                            <div class="manipulation-column">
+                                <h5>Gender</h5>
+                                ${["Male", "Female"].map(value => `
+                                    <label>
+                                        <input type="radio" name="gender-sidebar-${candidate.Candidate_ID}" value="${value}"
+                                            ${candidate.Gender === value ? "checked" : ""}>
+                                        ${value}
+                                    </label>
+                                `).join('')}
+                            </div>
+
+                            <div class="manipulation-column">
+                                <h5>Age</h5>
+                                ${["20-30", "30-40", "40-50", "50-60", ">60"].map(value => `
+                                    <label>
+                                        <input type="radio" name="age-sidebar-${candidate.Candidate_ID}" value="${value}"
+                                            ${getAgeBin(candidate.Age) === value ? "checked" : ""}>
+                                        ${value} years
+                                    </label>
+                                `).join('')}
+                            </div>
+
+                            <div class="manipulation-column">
+                                <h5>Race</h5>
+                                ${["Black", "White", "Asian"].map(value => `
+                                    <label>
+                                        <input type="radio" name="race-sidebar-${candidate.Candidate_ID}" value="${value}"
+                                            ${candidate.Race === value ? "checked" : ""}>
+                                        ${value}
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Inject the manipulation section into the sidebar
+                sidebarContent.innerHTML = manipulationHTML;
+
+                // Select all inputs in the sidebar
+                const genderInputs = document.querySelectorAll(`input[name="gender-sidebar-${candidate.Candidate_ID}"]`);
+                const ageInputs = document.querySelectorAll(`input[name="age-sidebar-${candidate.Candidate_ID}"]`);
+                const raceInputs = document.querySelectorAll(`input[name="race-sidebar-${candidate.Candidate_ID}"]`);
+                const allInputs = [...genderInputs, ...ageInputs, ...raceInputs];
+
+                // Store original values for later comparison
+                const originalValues = {
+                    gender: candidate.Gender,
+                    age: getAgeBin(candidate.Age),
+                    race: candidate.Race
+                };
+
+                function disableOtherInputs(changedGroup) {
+                    allInputs.forEach(input => {
+                        if (!input.name.includes(changedGroup)) {
+                            input.disabled = true;
+                            input.parentElement.classList.add("disabled");
+                        }
+                    });
+                }
+
+                function enableAllInputs() {
+                    allInputs.forEach(input => {
+                        input.disabled = false;
+                        input.parentElement.classList.remove("disabled");
+                    });
+                }
+
+                document.querySelectorAll(`#sidebar-content input[type="radio"]`).forEach(input => {
+                    input.addEventListener("change", () => {
+                        const selectedGender = document.querySelector(`input[name="gender-sidebar-${candidate.Candidate_ID}"]:checked`).value;
+                        const selectedAge = document.querySelector(`input[name="age-sidebar-${candidate.Candidate_ID}"]:checked`).value;
+                        const selectedRace = document.querySelector(`input[name="race-sidebar-${candidate.Candidate_ID}"]:checked`).value;
+
+                        // Check if the selected values are different from the original
+                        const isModified =
+                            selectedGender !== originalValues.gender ||
+                            selectedAge !== originalValues.age ||
+                            selectedRace !== originalValues.race;
+
+                        if (isModified) {
+                            disableOtherInputs(input.name.split('-')[0]); // Disable the other two groups
+                        } else {
+                            enableAllInputs(); // Re-enable all if the original state is restored
+                        }
+
+                        updatePrediction(candidate.Candidate_ID, selectedGender, selectedAge, selectedRace);
+                    });
                 });
             }
-        }
 
-        function showFinalThankYou() {
-            const profilesContainer = document.getElementById("profiles");
-            // Calculate total time spent on questionnaire.
-            const feedbackEndTime = Date.now();
-            const feedbackElapsed = (feedbackEndTime - feedbackStartTime) / 1000;
-            // Save feedback answers and time to sessionData.
-            sessionData.feedbackTime = feedbackElapsed;
-            sessionData.feedbackAnswers = feedbackAnswers;
-            const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
-            profilesContainer.innerHTML = `
-                <div class="final-message">
-                <h2>Thank You!</h2>
-                <p>Your feedback has been submitted.</p>
-                <p>Time spent on questionnaire: ${feedbackElapsed.toFixed(2)} seconds.</p>
-                ${sessionDataHTML}
-                <p><a href="https://www.google.com" target="_blank" style="background-color: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Google</a></p>
-                </div>
-            `;
-        }
+            // profilesContainer.innerHTML = `
+            //     <div class="completion-message">
+            //     <h2>All Candidates Selected</h2>
+            //     <p>Thank you for your participation.</p>
+            //     ${elapsedDisplay}
+            //     ${linkHTML}
+            //     ${sessionDataHTML}
+            //     <button id="feedbackButton">Give Feedback</button>
+            //     </div>
+            // `;
+        </script>
+    </body>
 
-        // profilesContainer.innerHTML = `
-        //     <div class="completion-message">
-        //     <h2>All Candidates Selected</h2>
-        //     <p>Thank you for your participation.</p>
-        //     ${elapsedDisplay}
-        //     ${linkHTML}
-        //     ${sessionDataHTML}
-        //     <button id="feedbackButton">Give Feedback</button>
-        //     </div>
-        // `;
-    </script>
-</body>
-
-</html>
+    </html>
