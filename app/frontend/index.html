@@ -323,11 +323,17 @@
                 background-color: #E6E9EF;
                 padding: 15px;
                 box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-                height: auto; /* Allow height to expand dynamically */
-                overflow-y: auto; /* Allow scrolling if necessary */
-                flex-shrink: 0; /* Prevents sidebar from shrinking */
-                display: none; /* Ensure it's hidden on initial load */
+                height: auto;
+                overflow-y: auto; 
+                flex-shrink: 0; 
+                display: none;
             }
+
+            /*sidebar element.style {
+                display: block;
+                position: absolute;
+                left: 0;
+            } */
 
             /* Wrap the header and profiles together */
             .main-content {
@@ -701,7 +707,7 @@
                 In each round, you can select <strong>one candidate</strong> based on the profile details or move to the next round without selecting anyone using the <strong>'Next Round'</strong> button.
             </p>
             <ul>
-                <li><strong>Name & Identity:</strong> Candidate’s full name and profile information.</li>
+                <li><strong>Name and Identity:</strong> Candidate’s full name and profile information.</li>
                 <li>
                     <strong>Skills, Certificates, and Competencies:</strong>
                     Shown using star ratings (0–5), where 0 indicates low performance and 5 indicates excellent performance.
@@ -749,18 +755,18 @@
                 <div class="main-content">
                     <!-- Sidebar (Initially Hidden) -->
                     <div class="sidebar" id="sidebar">
-                        <h3>Manipulate AI Recommendation</h3>
+                        <h3>Change AI Recommendation</h3>
                         <p>Modify attributes to see how AI recommendation changes.</p>
                         <div id="sidebar-content">
                             <!-- Dynamic content will be injected here -->
-                            <p>Select a candidate to view and manipulate AI recommendation.</p>
+                            <p>Select a candidate to view and change AI recommendation.</p>
                         </div>
                     </div>
 
-                <div class="profiles-container" id="profiles">
-                    <!-- Profiles will be injected here -->
+                    <div class="profiles-container" id="profiles">
+                        <!-- Profiles will be injected here -->
+                    </div>
                 </div>
-            </div>
 
         <script>
             let sessionData = {
@@ -1237,8 +1243,10 @@
                             </div>
 
                             ${accordionContent}
+                        `;
 
-                            ${candidate.GoodFit ? `
+                        /*
+                        ${candidate.GoodFit ? `
                                 <div class="recommendation-manipulation">
                                     <h4>Manipulate AI Recommendation:</h4>
                                     <strong>Take a look at how the recommendation changes when you manipulate protected data:</strong>
@@ -1278,8 +1286,7 @@
                                     </div>
                                 </div>
                             ` : ""}
-
-                        `;
+                        */
 
                         // **Create Invite Button**
                         const inviteButton = document.createElement("button");
@@ -1323,8 +1330,12 @@
 
                 return `
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        XAI: Top 3 Features
-                        <span class="info-icon" data-tooltip="These values represent the top factors influencing the AI's decision-making. Higher values indicate stronger influence.">ℹ</span>
+                    Why the AI picked this candidate
+                    </div>
+                    <div style="font-size: 0.9em; color: #555; margin-bottom: 8px;">
+                        These are the top 3 reasons why the AI picked this person. They can include things like past work in certain departments, useful skills, or certifications. Higher values mean these were more important in the decision. 
+                        </br></br>
+                        Hover over the feature names to see more details.
                     </div>
                     <div class="accordion-content">
                         ${candidate.TopFeatures.map(feature => {
