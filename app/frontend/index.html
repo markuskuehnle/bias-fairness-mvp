@@ -721,16 +721,16 @@
                 </p>
             </div>
 
-            <h3>Select Debugging Group</h3>
+            <!-- <h3>Select Debugging Group</h3>
             <div class="radio-group">
                 <label><input type="radio" name="userGroup" value="no-xai" checked> Group 1: No-XAI</label>
                 <label><input type="radio" name="userGroup" value="badge"> Group 2: Badge</label>
                 <label><input type="radio" name="userGroup" value="predictions"> Group 3: Predictions</label>
                 <label><input type="radio" name="userGroup" value="interactive"> Group 4: Interactive</label>
-            </div>
+            </div> -->
 
             <p>Click the button to start selecting candidates.</p>
-        <button class="start-button" onclick="startApplication()">Start</button>
+            <button class="start-button" onclick="startApplication()">Start</button>
             </div>
         </div>
         
@@ -894,6 +894,14 @@
                     // Update the XAI explanation
                     const xaiSection = candidateCard.querySelector(".accordion-content");
                     if (xaiSection) {
+                        const userGroup = localStorage.getItem("userGroup") || "no-xai";
+                        const explanationText = userGroup === "interactive" ? `
+                            <div style="font-size: 0.9em; color: #555; margin-bottom: 8px;">
+                                These are the top 3 reasons why the AI picked this candidate. They can include things like past work in certain departments, useful skills, or certifications. Higher values mean these were more important in the decision.
+                                <br><br>
+                                Hover over the feature names to see more details.
+                            </div>
+                        ` : '';
                         xaiSection.innerHTML = result.top_features.map(feature => {
                             const description = featureDescriptions[feature.Feature] || "No description available.";
                             return `
@@ -1328,30 +1336,42 @@
             function generateAccordionContent(candidate, featureDescriptions) {
                 if (!candidate.GoodFit) return '';
 
+                // Retrieve the current user group (default to "no-xai" if not set)
+                const userGroup = localStorage.getItem("userGroup") || "no-xai";
+                console.log("generateAccordionContent userGroup:", userGroup);  // Debug log
+
+                // Only show the extra descriptive text for the "interactive" group
+                const detailsText = userGroup === "interactive"
+                    ? `<div style="font-size: 0.9em; color: #555; margin-bottom: 8px;">
+                        These are the top 3 reasons why the AI picked this candidate. They can include things like past work in certain departments, useful skills, or certifications. Higher values mean these were more important in the decision.
+                        <br><br>
+                        Hover over the feature names to see more details.
+                    </div>`
+                    : '';
+
                 return `
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                    Why the AI picked this candidate
+                        Why the AI picked this candidate
                     </div>
-                    <div style="font-size: 0.9em; color: #555; margin-bottom: 8px;">
-                        These are the top 3 reasons why the AI picked this person. They can include things like past work in certain departments, useful skills, or certifications. Higher values mean these were more important in the decision. 
-                        </br></br>
-                        Hover over the feature names to see more details.
-                    </div>
-                    <div class="accordion-content">
-                        ${candidate.TopFeatures.map(feature => {
-                            const description = featureDescriptions[feature.Feature] || 'No description available.';
-                            return `
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span class="hoverable-feature" data-tooltip="${description}">
-                                        ${feature.Feature}:
-                                    </span>
-                                    <span>${feature["SHAP Value"].toFixed(2)}</span>
-                                </div>
-                            `;
-                        }).join('')}
+                    <div class="accordion-toggle" style="display: block;"> 
+                        ${detailsText}
+                        <div class="accordion-content">
+                            ${candidate.TopFeatures.map(feature => {
+                                const description = featureDescriptions[feature.Feature] || 'No description available.';
+                                return `
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="hoverable-feature" data-tooltip="${description}">
+                                            ${feature.Feature}:
+                                        </span>
+                                        <span>${feature["SHAP Value"].toFixed(2)}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
                     </div>
                 `;
             }
+
 
             function disableAllInvites() {
                 document.querySelectorAll(".invite-btn").forEach(btn => {
@@ -1390,14 +1410,13 @@
             }
 
             function toggleAccordion(element) {
-                const content = element.nextElementSibling;
-
-                if (content.classList.contains("active")) {
-                    content.classList.remove("active");
-                    content.style.display = "none"; // Hide the content
+                const toggleContainer = element.nextElementSibling; // This is the .accordion-toggle container
+                if (toggleContainer.classList.contains("active")) {
+                    toggleContainer.classList.remove("active");
+                    toggleContainer.style.display = "none"; // Hide the container
                 } else {
-                    content.classList.add("active");
-                    content.style.display = "flex"; // Show the content
+                    toggleContainer.classList.add("active");
+                    toggleContainer.style.display = "block"; // Show the container
                 }
             }
 
@@ -1430,48 +1449,46 @@
                 });
             }
 
-            // Fetch candidates and set up interactivity after the profiles are rendered
-            fetchCandidates();
+            // // Fetch candidates and set up interactivity after the profiles are rendered
+            // fetchCandidates();
 
             let hasFetchedCandidates = false;  // Prevent double fetch
 
             // Ensure the invite counter is updated only after fetching candidates
             window.onload = async function () {
                 console.log("🔄 Performing FULL RESET...");
-                // Preserve user group from previous session
-                let userGroup = localStorage.getItem("userGroup");
-                if (!userGroup) {
-                    console.warn("⚠️ No user group selected. Defaulting to 'no-xai'.");
-                    userGroup = "no-xai";
-                    localStorage.setItem("userGroup", userGroup);
-                } else {
-                    console.log(`✅ Restoring user group from storage: ${userGroup}`);
-                }
+
+                // Store userGroup before clearing storage
+                let userGroup = localStorage.getItem("userGroup") || "no-xai";
+
+                // Clear everything
+                localStorage.clear();
+
+                // Restore userGroup after clearing
+                localStorage.setItem("userGroup", userGroup);
+
                 applyUserGroupRestrictions(userGroup);
 
                 document.getElementById("invite-counter").style.visibility = "hidden";
-                localStorage.clear();
-                let sessionData = {
-                    session_id: null,
-                    user_group: localStorage.getItem("userGroup"),
-                    sessionTime: null,
-                    rounds: [],
-                };
+
                 invitedCount = 0;
                 invitedCandidates = [];
                 currentRound = 1;
                 isFetching = false;
                 document.getElementById("profiles").innerHTML = "";
+
                 try {
                     console.log("🔄 Requesting backend reset...");
                     const response = await fetch("/candidates/reset", { method: "POST" });
                     const data = await response.json();
                     console.log("✅ Backend Reset:", data);
+
+                    // Set localStorage again with defaults
                     localStorage.setItem("seenCandidates", JSON.stringify([]));
                     localStorage.setItem("invitedCandidates", JSON.stringify([]));
                     localStorage.setItem("currentRound", "1");
                     localStorage.setItem("invitedCount", "0");
-                    await fetchCandidates();
+
                     updateInviteCounter();
                 } catch (error) {
                     console.error("🚨 Backend Reset Error:", error);
@@ -1610,26 +1627,37 @@
 
             function startApplication() {
                 console.log("startApplication triggered");
-                // Get the selected user group
-                const selectedGroupInput = document.querySelector('input[name="userGroup"]:checked');
 
-                if (!selectedGroupInput) {
-                    alert("⚠️ Please select a user group before starting.");
-                    return; // Stop execution if no selection is made
+                let userGroup = localStorage.getItem("userGroup");
+                userGroup = "no-xai"
+
+                // Only assign if no group was set before
+                if (!userGroup) {
+                    const userGroups = ["no-xai", "badge", "predictions", "interactive"];
+                    const randomIndex = Math.floor(Math.random() * userGroups.length);
+                    userGroup = userGroups[randomIndex];
+                    localStorage.setItem("userGroup", userGroup);
+                    console.log("🎲 Random user group assigned:", userGroup);
+                } else {
+                    console.log("♻️ Existing user group found in localStorage:", userGroup);
                 }
-                const selectedGroup = selectedGroupInput.value;
-                localStorage.setItem("userGroup", selectedGroup); // Save it permanently
-                sessionData.user_group = selectedGroup;
-                console.log("✅ User group set in sessionData:", sessionData.user_group);
 
-                // Apply UI restrictions based on group
-                applyUserGroupRestrictions(selectedGroup);
-                startSession(); // Start the session.
+                // TEST ------------------------------
+                // const userGroup = "badge"; // TODO
+                // localStorage.setItem("userGroup", userGroup);
+                // console.log("Hardcoded user group for testing:", userGroup);
+                // -----------------------------------
+
+                sessionData.user_group = userGroup;
+                applyUserGroupRestrictions(userGroup);
+                startSession();
 
                 roundStartTime = Date.now();
                 document.getElementById("intro").classList.add("hidden");
                 document.getElementById("candidateSection").classList.remove("hidden");
                 document.querySelector(".sidebar").style.display = "block";
+
+                fetchCandidates();
             }
 
 
