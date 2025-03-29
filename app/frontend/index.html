@@ -733,6 +733,46 @@
             <button class="start-button" onclick="startApplication()">Start</button>
             </div>
         </div>
+
+        <div id="interactive-intro" class="hidden">
+            <div id="intro">
+              <div class="container">
+                <h1>Welcome to the Interactive Experience</h1>
+                <p>
+                  You’ve been selected to try a special version of the application where you can explore how the AI makes its decisions.
+                </p>
+                <div class="role-description">
+                  <h2>What You’ll See</h2>
+                  <ul style="padding-left: 20px;">
+                    <li>
+                      In the center, you’ll see two candidate profiles: one recommended by the AI, one not.
+                    </li>
+                    <li>
+                      Inside each candidate box, you’ll find a <strong>probability score</strong> showing how likely the candidate is a good fit.
+                    </li>
+                    <li>
+                      Below, there’s a section with the top characteristics that influenced the AI’s decision.
+                      <br>
+                      <em>Tip: Hover over any characteristic name to see a short explanation.</em>
+                    </li>
+                    <li>
+                      On the left, you’ll find a <strong>sidebar panel</strong> that lets you change protected attributes like <strong>age</strong>, <strong>gender</strong>, and <strong>race</strong>.
+                    </li>
+                    <li>
+                      You can only change <strong>one attribute at a time</strong>. To try another, reset the current one to its original value first.
+                    </li>
+                    <li>
+                      As you modify attributes, the AI prediction will update in real-time — so you can observe how its decision shifts.
+                    </li>
+                  </ul>
+                </div>
+                <p style="margin-top: 20px;">
+                  Click below when you're ready to start exploring.
+                </p>
+                <button class="start-button" onclick="startInteractiveApplication()">Start Exploring</button>
+              </div>
+            </div>
+          </div>
         
         <!-- Candidate Section (initially hidden) -->
         <div id="candidateSection" class="hidden">
@@ -1625,11 +1665,20 @@
                 }
             }
 
+            function startInteractiveApplication() {
+                console.log("Interactive group start confirmed");
+                roundStartTime = Date.now();
+                startSession();
+                document.getElementById("interactive-intro").classList.add("hidden");
+                document.getElementById("candidateSection").classList.remove("hidden");
+                document.querySelector(".sidebar").style.display = "block";
+                fetchCandidates();
+            }
+
             function startApplication() {
                 console.log("startApplication triggered");
 
                 let userGroup = localStorage.getItem("userGroup");
-                userGroup = "no-xai"
 
                 // Only assign if no group was set before
                 if (!userGroup) {
@@ -1643,23 +1692,29 @@
                 }
 
                 // TEST ------------------------------
-                // const userGroup = "badge"; // TODO
+                // const userGroup = "interactive"; // TODO
                 // localStorage.setItem("userGroup", userGroup);
                 // console.log("Hardcoded user group for testing:", userGroup);
                 // -----------------------------------
 
                 sessionData.user_group = userGroup;
                 applyUserGroupRestrictions(userGroup);
-                startSession();
 
-                roundStartTime = Date.now();
-                document.getElementById("intro").classList.add("hidden");
-                document.getElementById("candidateSection").classList.remove("hidden");
-                document.querySelector(".sidebar").style.display = "block";
-
-                fetchCandidates();
-            }
-
+                if (userGroup === "interactive") {
+                    // Only show explanation screen, don’t start session yet
+                    document.getElementById("intro").classList.add("hidden");
+                    document.getElementById("interactive-intro").classList.remove("hidden");
+                    return;
+                } else {
+                    // Now only non-interactive groups call startSession here
+                    startSession();
+                    roundStartTime = Date.now();
+                    document.getElementById("intro").classList.add("hidden");
+                    document.getElementById("candidateSection").classList.remove("hidden");
+                    document.querySelector(".sidebar").style.display = "block";
+                    fetchCandidates();
+                }
+}
 
             function applyUserGroupRestrictions(userGroup) {
                 console.log("Applying restrictions for:", userGroup);
