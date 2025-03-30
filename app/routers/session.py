@@ -1,7 +1,7 @@
 # session.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-import uuid
+from uuid import UUID  # Important: match Supabase uuid type exactly
 import datetime
 from supabase import create_client
 import os
@@ -18,14 +18,15 @@ sessions = {}
 
 # Pydantic Model with aliases for frontend camelCase fields
 class SessionEndRequest(BaseModel):
-    session_id: str
+    session_id: UUID  # Correct type is UUID, not str
     user_group: str
     rounds: list
-    feedback_time: float = Field(alias="feedbackTime")
-    feedback_answers: dict = Field(alias="feedbackAnswers")
+    feedback_time: float = Field(alias="feedbackTime")  # Fix camelCase
+    feedback_answers: dict = Field(alias="feedbackAnswers")  # Fix camelCase
 
     class Config:
         allow_population_by_field_name = True
+
 
 @router.post("/session/start", tags=["Session"])
 def start_session(user_id: str = None):
@@ -43,23 +44,20 @@ def start_session(user_id: str = None):
         "start": start_time.isoformat()
     }
 
+
 @router.post("/session/end", tags=["Session"])
 def end_session(payload: SessionEndRequest):
-    session_id = payload.session_id
+    session_id_str = str(payload.session_id)  # Convert UUID -> str if needed for Supabase
 
-    if session_id not in sessions:
+    if session_id_str not in sessions:
         raise HTTPException(status_code=404, detail="Session not found.")
 
     end_time = datetime.datetime.utcnow()
-    elapsed = (end_time - sessions[session_id]["start"]).total_seconds()
+    sessions[session_id_str]["end"] = end_time
+    elapsed = (end_time - sessions[session_id_str]["start"]).total_seconds()
 
-    # Explicitly create UUID for 'id' primary key
-    entry_id = str(uuid.uuid4())
-
-    # Prepare session data to insert into Supabase
     session_data = {
-        "id": entry_id,  # Add this line explicitly
-        "session_id": session_id,
+        "session_id": session_id_str,  # pass as string
         "user_group": payload.user_group,
         "session_time": elapsed,
         "rounds": payload.rounds,
@@ -68,18 +66,13 @@ def end_session(payload: SessionEndRequest):
         "created_at": end_time.isoformat()
     }
 
-    # Insert data into Supabase
     response = supabase.table("results").insert(session_data).execute()
 
-    if hasattr(response, 'data') and response.data is None:
-        print("❌ Supabase error details:", response)
-        raise HTTPException(status_code=500, detail="Failed to write session results to Supabase.")
-    elif hasattr(response, 'error') and response.error is not None:
-        print("❌ Supabase returned an error:", response.error)
-        raise HTTPException(status_code=500, detail=f"Supabase Error: {response.error}")
+    if response.data is None:
+        raise HTTPException(status_code=500, detail="Failed to write to Supabase.")
 
     return {
-        "session_id": session_id,
+        "session_id": session_id_str,
         "end": end_time.isoformat(),
         "elapsed_seconds": elapsed,
         "db_response": response.data
