@@ -16,7 +16,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Temporary in-memory storage
 sessions = {}
 
-# Correctly mapped Pydantic model with aliases for frontend camelCase
+# Pydantic Model with aliases for frontend camelCase fields
 class SessionEndRequest(BaseModel):
     session_id: str
     user_group: str
@@ -27,13 +27,11 @@ class SessionEndRequest(BaseModel):
     class Config:
         allow_population_by_field_name = True
 
-
 @router.post("/session/start", tags=["Session"])
 def start_session(user_id: str = None):
     session_id = str(uuid.uuid4())
     start_time = datetime.datetime.utcnow()
 
-    # Store temporarily in-memory
     sessions[session_id] = {
         "start": start_time,
         "end": None,
@@ -45,7 +43,6 @@ def start_session(user_id: str = None):
         "start": start_time.isoformat()
     }
 
-
 @router.post("/session/end", tags=["Session"])
 def end_session(payload: SessionEndRequest):
     session_id = payload.session_id
@@ -56,8 +53,12 @@ def end_session(payload: SessionEndRequest):
     end_time = datetime.datetime.utcnow()
     elapsed = (end_time - sessions[session_id]["start"]).total_seconds()
 
-    # Prepare session data to save in Supabase
+    # Explicitly create UUID for 'id' primary key
+    entry_id = str(uuid.uuid4())
+
+    # Prepare session data to insert into Supabase
     session_data = {
+        "id": entry_id,  # Add this line explicitly
         "session_id": session_id,
         "user_group": payload.user_group,
         "session_time": elapsed,
@@ -67,8 +68,8 @@ def end_session(payload: SessionEndRequest):
         "created_at": end_time.isoformat()
     }
 
-    # Attempt to save to Supabase and handle response
-    response = supabase.table("session_results").insert(session_data).execute()
+    # Insert data into Supabase
+    response = supabase.table("results").insert(session_data).execute()
 
     if hasattr(response, 'data') and response.data is None:
         print("❌ Supabase error details:", response)
