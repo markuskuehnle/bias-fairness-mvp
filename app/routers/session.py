@@ -20,8 +20,8 @@ class SessionEndRequest(BaseModel):
     session_id: str
     user_group: str
     rounds: list
-    feedback_time: float
-    feedback_answers: dict
+    feedbackTime: float
+    feedbackAnswers: dict
 
 @router.post("/session/start", tags=["Session"])
 def start_session(user_id: str = None):
