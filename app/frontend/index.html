@@ -1498,18 +1498,8 @@
             window.onload = async function () {
                 console.log("🔄 Performing FULL RESET...");
 
-                // Store userGroup before clearing storage
-                let userGroup = localStorage.getItem("userGroup") || "no-xai";
-
                 // Clear everything
                 localStorage.clear();
-
-                // Restore userGroup after clearing
-                localStorage.setItem("userGroup", userGroup);
-
-                applyUserGroupRestrictions(userGroup);
-
-                document.getElementById("invite-counter").style.visibility = "hidden";
 
                 invitedCount = 0;
                 invitedCandidates = [];
@@ -1523,7 +1513,7 @@
                     const data = await response.json();
                     console.log("✅ Backend Reset:", data);
 
-                    // Set localStorage again with defaults
+                    // Reset localStorage defaults explicitly
                     localStorage.setItem("seenCandidates", JSON.stringify([]));
                     localStorage.setItem("invitedCandidates", JSON.stringify([]));
                     localStorage.setItem("currentRound", "1");
@@ -1534,6 +1524,7 @@
                     console.error("🚨 Backend Reset Error:", error);
                 }
             };
+
 
             async function inviteCandidate(candidateId, button) {
                 console.log("inviteCandidate called");
@@ -1678,35 +1669,20 @@
             function startApplication() {
                 console.log("startApplication triggered");
 
-                let userGroup = localStorage.getItem("userGroup");
+                const userGroups = ["no-xai", "badge", "predictions", "interactive"];
+                const randomIndex = Math.floor(Math.random() * userGroups.length);
+                const userGroup = userGroups[randomIndex];
+                localStorage.setItem("userGroup", userGroup);
 
-                // Only assign if no group was set before
-                if (!userGroup) {
-                    const userGroups = ["no-xai", "badge", "predictions", "interactive"];
-                    const randomIndex = Math.floor(Math.random() * userGroups.length);
-                    userGroup = userGroups[randomIndex];
-                    localStorage.setItem("userGroup", userGroup);
-                    console.log("🎲 Random user group assigned:", userGroup);
-                } else {
-                    console.log("♻️ Existing user group found in localStorage:", userGroup);
-                }
-
-                // TEST ------------------------------
-                // const userGroup = "interactive"; // TODO
-                // localStorage.setItem("userGroup", userGroup);
-                // console.log("Hardcoded user group for testing:", userGroup);
-                // -----------------------------------
+                console.log("🎲 Random user group assigned:", userGroup);
 
                 sessionData.user_group = userGroup;
                 applyUserGroupRestrictions(userGroup);
 
                 if (userGroup === "interactive") {
-                    // Only show explanation screen, don’t start session yet
                     document.getElementById("intro").classList.add("hidden");
                     document.getElementById("interactive-intro").classList.remove("hidden");
-                    return;
                 } else {
-                    // Now only non-interactive groups call startSession here
                     startSession();
                     roundStartTime = Date.now();
                     document.getElementById("intro").classList.add("hidden");
@@ -1714,7 +1690,8 @@
                     document.querySelector(".sidebar").style.display = "block";
                     fetchCandidates();
                 }
-}
+            }
+
 
             function applyUserGroupRestrictions(userGroup) {
                 console.log("Applying restrictions for:", userGroup);
@@ -1994,13 +1971,12 @@
             function showFinalThankYou() {
                 const profilesContainer = document.getElementById("profiles");
                 
-                // Calculate total time spent on questionnaire.
                 const feedbackEndTime = Date.now();
                 const feedbackElapsed = (feedbackEndTime - feedbackStartTime) / 1000;
                 
-                // Save feedback answers and time to sessionData.
                 sessionData.feedbackTime = feedbackElapsed;
                 sessionData.feedbackAnswers = feedbackAnswers;
+
                 const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
                 
                 profilesContainer.innerHTML = `
@@ -2015,10 +1991,39 @@
                                 ${sessionDataHTML}
                             </div>
 
-                            <a href="https://www.prolific.com" target="_blank" class="completion-btn">Visit Prolific</a>
+                            <a href="https://www.prolific.com" target="_blank" class="completion-btn" id="visitProlificBtn">Visit Prolific</a>
                         </div>
                     </div>
                 `;
+
+                // Add event listener to save data to the database
+                document.getElementById("visitProlificBtn").addEventListener("click", async (event) => {
+                    event.preventDefault(); // temporarily prevent the default link behavior
+
+                    try {
+                        const response = await fetch("/session/end", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(sessionData)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.text();
+                            console.error("Error saving session data:", errorData);
+                            alert("Failed to save session data. Please try again.");
+                            return;
+                        }
+
+                        const data = await response.json();
+                        console.log("Session data saved successfully:", data);
+
+                        // Redirect to Prolific only after successfully saving session data
+                        window.location.href = "https://www.prolific.com";
+                    } catch (error) {
+                        console.error("Error during fetch:", error);
+                        alert("Error connecting to the server. Please try again.");
+                    }
+                });
             }
 
             function updateSidebar(candidate) {
