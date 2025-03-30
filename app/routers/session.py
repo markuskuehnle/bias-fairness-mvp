@@ -43,7 +43,6 @@ def start_session(user_id: str = None):
 @router.post("/session/end", tags=["Session"])
 def end_session(payload: SessionEndRequest):
     session_id = payload.session_id
-
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found.")
 
@@ -51,7 +50,6 @@ def end_session(payload: SessionEndRequest):
     sessions[session_id]["end"] = end_time
     elapsed = (end_time - sessions[session_id]["start"]).total_seconds()
 
-    # Prepare session data for Supabase
     session_data = {
         "session_id": session_id,
         "user_group": payload.user_group,
@@ -61,6 +59,19 @@ def end_session(payload: SessionEndRequest):
         "feedback_answers": payload.feedback_answers,
         "created_at": end_time.isoformat()
     }
+
+    response = supabase.table("session_results").insert(session_data).execute()
+
+    if response.data is None:
+        raise HTTPException(status_code=500, detail="Failed to write to Supabase.")
+
+    return {
+        "session_id": session_id,
+        "end": end_time.isoformat(),
+        "elapsed_seconds": elapsed,
+        "db_response": response.data
+    }
+
 
     # Save to Supabase
     response = supabase.table("session_results").insert(session_data).execute()
