@@ -1673,12 +1673,20 @@
                     return;
                 }
 
+                const payload = {
+                    session_id: sessionData.session_id,
+                    user_group: sessionData.user_group,
+                    rounds: sessionData.rounds,
+                    feedback_time: sessionData.feedbackTime || 0, // Ensure these exist!
+                    feedback_answers: sessionData.feedbackAnswers || {},
+                };
+
                 try {
-                    console.log("🔄 Ending session with sessionData:", sessionData);
+                    console.log("🔄 Ending session with payload:", payload);
                     const response = await fetch("/session/end", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(sessionData) // ✅ send entire sessionData
+                        body: JSON.stringify(payload)
                     });
 
                     if (!response.ok) {
@@ -1692,7 +1700,7 @@
                 } catch (error) {
                     console.error("🚨 Error ending session:", error);
                 }
-            }
+                }
 
             function startInteractiveApplication() {
                 console.log("Interactive group start confirmed");
@@ -2007,72 +2015,36 @@
             }
 
             function showFinalThankYou() {
-                const profilesContainer = document.getElementById("profiles");
-                
                 const feedbackEndTime = Date.now();
                 const feedbackElapsed = (feedbackEndTime - feedbackStartTime) / 1000;
-                
+
                 sessionData.feedbackTime = feedbackElapsed;
                 sessionData.feedbackAnswers = feedbackAnswers;
 
                 const sessionDataHTML = `<pre>${JSON.stringify(sessionData, null, 2)}</pre>`;
-                
-                profilesContainer.innerHTML = `
+
+                document.getElementById("profiles").innerHTML = `
                     <div id="completion-wrapper">
                         <div id="completion" class="completion-container">
                             <h1>🎉 Thank You!</h1>
                             <p>Your feedback has been successfully submitted.</p>
                             <p><strong>Time spent on questionnaire:</strong> ${feedbackElapsed.toFixed(2)} seconds.</p>
-
                             <div class="session-data">
                                 <h3>Session Summary:</h3>
                                 ${sessionDataHTML}
                             </div>
-
                             <a href="https://www.prolific.com" target="_blank" class="completion-btn" id="visitProlificBtn">Visit Prolific</a>
                         </div>
                     </div>
                 `;
 
-                // SINGLE, CLEAR event listener
+                // Add event listener AFTER this line (when button exists)
                 document.getElementById("visitProlificBtn").addEventListener("click", async (event) => {
                     event.preventDefault();
-
-                    const payload = {
-                        session_id: sessionData.session_id,
-                        user_group: sessionData.user_group,
-                        rounds: sessionData.rounds,
-                        feedback_time: sessionData.feedbackTime,
-                        feedback_answers: sessionData.feedbackAnswers,
-                    };
-
-                    try {
-                        const response = await fetch("/session/end", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (!response.ok) {
-                            const errorData = await response.text();
-                            console.error("❌ Error saving session data:", errorData);
-                            alert("Failed to save session data. Please try again.");
-                            return;
-                        }
-
-                        const data = await response.json();
-                        console.log("✅ Session data saved successfully:", data);
-
-                        // Redirect AFTER successful save
-                        window.location.href = "https://www.prolific.com";
-
-                    } catch (error) {
-                        console.error("🚨 Error during fetch:", error);
-                        alert("Error connecting to the server. Please try again.");
-                    }
+                    await endSession();
+                    window.location.href = "https://www.prolific.com";
                 });
             }
-
 
             function updateSidebar(candidate) {
                 const sidebarContent = document.getElementById("sidebar-content");
