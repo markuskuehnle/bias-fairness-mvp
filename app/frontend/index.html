@@ -1629,30 +1629,68 @@
                 }
             }
 
-            // Function to end the session by calling the backend.
-            async function endSession() {
+            // Instead of directly sending sessionData, map fields correctly
+            document.getElementById("visitProlificBtn").addEventListener("click", async (event) => {
+                event.preventDefault();
+
+                const payload = {
+                    session_id: sessionData.session_id,
+                    user_group: sessionData.user_group,
+                    rounds: sessionData.rounds,
+                    feedback_time: sessionData.feedbackTime,
+                    feedback_answers: sessionData.feedbackAnswers,
+                };
+
                 try {
-                    if (!sessionId) {
-                        console.error("🚨 No session ID found! Unable to end session.");
-                        return;
-                    }
-                } catch (error) {
-                    console.error("No session id found");
-                }            
-                try {
-                    console.log("🔄 Ending session with sessionId:", sessionId);
                     const response = await fetch("/session/end", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ session_id: sessionId })
+                        body: JSON.stringify(payload)
                     });
+
+                    if (!response.ok) {
+                        const errorData = await response.text();
+                        console.error("Error saving session data:", errorData);
+                        alert("Failed to save session data. Please try again.");
+                        return;
+                    }
+
                     const data = await response.json();
-                    console.log("✅ Session successfully ended. Duration:", data.elapsed_seconds, "seconds");
-                    sessionElapsedSeconds = data.elapsed_seconds;
-                    sessionData.sessionTime = sessionElapsedSeconds;
+                    console.log("Session data saved successfully:", data);
+
+                    // Redirect user after successful save
+                    window.location.href = "https://www.prolific.com";
+                } catch (error) {
+                    console.error("Error during fetch:", error);
+                    alert("Error connecting to the server. Please try again.");
+                }
+            });
+
+            // Function to end the session by calling the backend.
+            async function endSession() {
+                if (!sessionData.session_id) {
+                    console.error("🚨 No session ID found! Unable to end session.");
+                    return;
+                }
+
+                try {
+                    console.log("🔄 Ending session with sessionData:", sessionData);
+                    const response = await fetch("/session/end", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(sessionData) // ✅ send entire sessionData
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error("Error saving session data:", errorData);
+                    } else {
+                        const data = await response.json();
+                        console.log("✅ Session successfully ended. Duration:", data.elapsed_seconds, "seconds");
+                        sessionElapsedSeconds = data.elapsed_seconds;
+                    }
                 } catch (error) {
                     console.error("🚨 Error ending session:", error);
-                    sessionElapsedSeconds = "unknown"; 
                 }
             }
 
@@ -1996,35 +2034,45 @@
                     </div>
                 `;
 
-                // Add event listener to save data to the database
+                // SINGLE, CLEAR event listener
                 document.getElementById("visitProlificBtn").addEventListener("click", async (event) => {
-                    event.preventDefault(); // temporarily prevent the default link behavior
+                    event.preventDefault();
+
+                    const payload = {
+                        session_id: sessionData.session_id,
+                        user_group: sessionData.user_group,
+                        rounds: sessionData.rounds,
+                        feedback_time: sessionData.feedbackTime,
+                        feedback_answers: sessionData.feedbackAnswers,
+                    };
 
                     try {
                         const response = await fetch("/session/end", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(sessionData)
+                            body: JSON.stringify(payload)
                         });
 
                         if (!response.ok) {
                             const errorData = await response.text();
-                            console.error("Error saving session data:", errorData);
+                            console.error("❌ Error saving session data:", errorData);
                             alert("Failed to save session data. Please try again.");
                             return;
                         }
 
                         const data = await response.json();
-                        console.log("Session data saved successfully:", data);
+                        console.log("✅ Session data saved successfully:", data);
 
-                        // Redirect to Prolific only after successfully saving session data
+                        // Redirect AFTER successful save
                         window.location.href = "https://www.prolific.com";
+
                     } catch (error) {
-                        console.error("Error during fetch:", error);
+                        console.error("🚨 Error during fetch:", error);
                         alert("Error connecting to the server. Please try again.");
                     }
                 });
             }
+
 
             function updateSidebar(candidate) {
                 const sidebarContent = document.getElementById("sidebar-content");

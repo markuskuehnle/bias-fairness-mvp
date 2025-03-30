@@ -18,11 +18,11 @@ sessions = {}
 
 # Pydantic Model with aliases for frontend camelCase fields
 class SessionEndRequest(BaseModel):
-    session_id: uuid.UUID
+    session_id: str
     user_group: str
     rounds: list
-    feedback_time: float = Field(alias="feedbackTime")
-    feedback_answers: dict = Field(alias="feedbackAnswers")
+    feedback_time: float   # snake_case
+    feedback_answers: dict # snake_case
 
     class Config:
         allow_population_by_field_name = True
@@ -47,12 +47,17 @@ def start_session(user_id: str = None):
 
 @router.post("/session/end", tags=["Session"])
 def end_session(payload: SessionEndRequest):
+    session_id = payload.session_id
+    if session_id not in sessions:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
     end_time = datetime.datetime.utcnow()
+    elapsed = (end_time - sessions[session_id]["start"]).total_seconds()
 
     session_data = {
-        "session_id": str(payload.session_id),
+        "session_id": session_id,
         "user_group": payload.user_group,
-        "session_time": sum(round["round_duration"] for round in payload.rounds),
+        "session_time": elapsed,
         "rounds": payload.rounds,
         "feedback_time": payload.feedback_time,
         "feedback_answers": payload.feedback_answers,
@@ -61,10 +66,12 @@ def end_session(payload: SessionEndRequest):
 
     response = supabase.table("session_results").insert(session_data).execute()
 
-    if response.data is None:
-        raise HTTPException(status_code=500, detail="Failed to write to Supabase.")
+    if not response.data:
+        raise HTTPException(status_code=500, detail=f"Failed to write to Supabase: {response.error}")
 
     return {
-        "session_id": payload.session_id,
+        "session_id": session_id,
+        "end": end_time.isoformat(),
+        "elapsed_seconds": elapsed,
         "db_response": response.data
     }
