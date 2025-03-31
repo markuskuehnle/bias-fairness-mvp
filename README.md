@@ -403,26 +403,17 @@ These findings point to significant fairness concerns. The high average change a
      - Add a **"Next Round" button** in the frontend, prompting confirmation before proceeding.  
      - Remove all candidates from the previous round permanently when moving to the next round.  
 
-🟡 13. **Update Static Data Handling**  
-   - Ensure the `static_data_loader.py` script supports tracking the selection state for candidates.  
-   - Add logic to update and serve the selected candidate dynamically.
-
-🟡 14. **Save Candidate Selection and Flags**
+✅ 13. **Save Candidate Selection and Flags**
    - Ensure the data about invited candidates is saved. (Consider saving the alternative candidates per round - round and user-id required)
-
-15. **Add Configurations**  
-   - Use a configuration file (`config.yaml`) to manage:
-     - Data paths (e.g., CSV/JSON for candidates).
-     - Sensitive attributes (e.g., gender, race, age).
-     - Thresholds for predictions.
 
 ### **Phase 5: Deployment**
 
-16. **Containerize the Application**  
-   - Use **Docker** to containerize the backend and frontend for consistency.  
+✅ 15. **Setup the Database**  
+   - Use **Supabase** to create a table schema
+   - Connect backend with Supabase
 
-17. **Deploy the MVP**  
-   - Host the MVP on **Vercel**, **Render**, and **Supabase** for user testing and feedback.  
+✅ 16. **Deploy the MVP**  
+   - Host the application on **Railway**, and **Supabase** for user testing and feedback.  
 
 ---
 
@@ -438,12 +429,12 @@ These findings point to significant fairness concerns. The high average change a
 
 ## Tech Stack
 - **Data Processing & Modeling**: Python, Pandas, Scikit-learn.
-- **Backend**: FastAPI (Python) hosted on Render.
-- **Frontend**: Static HTML, CSS, JavaScript deployed on Vercel.
+- **Backend**: FastAPI (Python) hosted on Railway.
+- **Frontend**: Static HTML, CSS, JavaScript deployed on Railway.
 - **Visualization**: Matplotlib, Plotly, SHAP.
 - **Database**: PostgreSQL managed by Supabase.
 - **User Session Tracking**: Supabase (Auth + DB).
-- **Deployment**: Vercel.
+- **Deployment**: Railway.
 
 ---
 
@@ -662,13 +653,5 @@ Both options provide objective benchmarks; however, the choice between them depe
 ### Topics for Discussion
 
 1. **Frontend Display:**
-   - Add: Total candidates invited display?
-   - Drop Social Skills rating because always 3?
+   - Accept buttons before start / submission?
 
----
-
-### Additional Notes and Considerations
-
-**Todo:**
-- Randomized assignment to User Group? yes; 3-4 groups? distribution?
-- result json storage
