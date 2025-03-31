@@ -5,13 +5,20 @@ import uuid
 import datetime
 from supabase import create_client
 import os
+from dotenv import load_dotenv
+from postgrest.exceptions import APIError
 
 router = APIRouter()
+
+load_dotenv()
 
 # Supabase Setup
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("Supabase URL or Key missing. Check .env file.")
 
 # Temporary in-memory storage
 sessions = {}
@@ -64,14 +71,11 @@ def end_session(payload: SessionEndRequest):
         "created_at": end_time.isoformat()
     }
 
-    response = supabase.table("session_results").insert(session_data).execute()
-
-    if not response.data:
-        raise HTTPException(status_code=500, detail=f"Failed to write to Supabase: {response.error}")
-
-    return {
-        "session_id": session_id,
-        "end": end_time.isoformat(),
-        "elapsed_seconds": elapsed,
-        "db_response": response.data
-    }
+    try:
+        print("Attempting to insert:", session_data)  # debug
+        response = supabase.table("session_results").insert(session_data).execute()
+        return {"success": True, "data": response.data}
+    except APIError as e:
+        print("Supabase error:", e)
+        raise HTTPException(status_code=500, detail=f"Supabase insert error: {e}")
+    

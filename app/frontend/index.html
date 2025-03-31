@@ -1124,7 +1124,6 @@
             async function fetchCandidates() {
                 if (currentRound > maxRounds) {
                     console.log("Max rounds reached. Not fetching any more candidates.");
-                    await endSession();
                     disableAllInvites();
                     showCompletionDialog();
                     return;
@@ -1629,43 +1628,6 @@
                 }
             }
 
-            // Instead of directly sending sessionData, map fields correctly
-            document.getElementById("visitProlificBtn").addEventListener("click", async (event) => {
-                event.preventDefault();
-
-                const payload = {
-                    session_id: sessionData.session_id,
-                    user_group: sessionData.user_group,
-                    rounds: sessionData.rounds,
-                    feedback_time: sessionData.feedbackTime,
-                    feedback_answers: sessionData.feedbackAnswers,
-                };
-
-                try {
-                    const response = await fetch("/session/end", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.text();
-                        console.error("Error saving session data:", errorData);
-                        alert("Failed to save session data. Please try again.");
-                        return;
-                    }
-
-                    const data = await response.json();
-                    console.log("Session data saved successfully:", data);
-
-                    // Redirect user after successful save
-                    window.location.href = "https://www.prolific.com";
-                } catch (error) {
-                    console.error("Error during fetch:", error);
-                    alert("Error connecting to the server. Please try again.");
-                }
-            });
-
             // Function to end the session by calling the backend.
             async function endSession() {
                 if (!sessionData.session_id) {
@@ -1694,11 +1656,11 @@
                         console.error("Error saving session data:", errorData);
                     } else {
                         const data = await response.json();
-                        console.log("✅ Session successfully ended. Duration:", data.elapsed_seconds, "seconds");
+                        console.log("Session successfully ended. Duration:", data.elapsed_seconds, "seconds");
                         sessionElapsedSeconds = data.elapsed_seconds;
                     }
                 } catch (error) {
-                    console.error("🚨 Error ending session:", error);
+                    console.error("Error ending session:", error);
                 }
                 }
 
@@ -1846,8 +1808,7 @@
                 roundStartTime = Date.now();
 
                 if (currentRound > maxRounds) {
-                    console.log("🏁 Final round reached. Ending session.");
-                    await endSession();
+                    console.log("Final round reached. Ending session.");
                     disableAllInvites();
                     showCompletionDialog();
                     return;
@@ -2042,10 +2003,8 @@
                     </div>
                 `;
 
-                // Attach listener ONLY AFTER the element exists
-                const prolificBtn = document.getElementById("visitProlificBtn");
-                prolificBtn.addEventListener("click", async (event) => {
-                    event.preventDefault();
+                // Ensure element exists before adding listener
+                document.getElementById("visitProlificBtn").addEventListener("click", async (event) => {
 
                     const payload = {
                         session_id: sessionData.session_id,
@@ -2072,9 +2031,7 @@
                         const data = await response.json();
                         console.log("✅ Session data saved successfully:", data);
 
-                        // Redirect AFTER successful save
                         window.location.href = "https://www.prolific.com";
-
                     } catch (error) {
                         console.error("🚨 Error during fetch:", error);
                         alert("Error connecting to the server. Please try again.");
