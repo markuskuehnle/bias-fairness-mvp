@@ -811,7 +811,7 @@
         <script>
             let sessionData = {
                 session_id: null,
-                user_group: "features", // TODO: Change dynamically
+                user_group: "features",
                 sessionTime: null,
                 rounds: [],
             };
@@ -1495,10 +1495,32 @@
 
             // Ensure the invite counter is updated only after fetching candidates
             window.onload = async function () {
+                const preservedUserGroup = localStorage.getItem("userGroup");
+
+                const alreadySubmitted = localStorage.getItem("sessionSubmitted") === "true";
+
+                if (alreadySubmitted) {
+                    // Show thank you message again, skip reset, block access
+                    console.log("🔒 Session already submitted. Skipping reset.");
+                    document.body.innerHTML = `
+                        <div id="completion-wrapper">
+                            <div class="completion-container">
+                                <h1>🎉 Thank You!</h1>
+                                <p>Your session has already been submitted.</p>
+                                <p>Please close this window.</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
                 console.log("🔄 Performing FULL RESET...");
 
                 // Clear everything
                 localStorage.clear();
+                if (preservedUserGroup) {
+                    localStorage.setItem("userGroup", preservedUserGroup);
+                }
 
                 invitedCount = 0;
                 invitedCandidates = [];
@@ -1676,13 +1698,17 @@
 
             function startApplication() {
                 console.log("startApplication triggered");
+                let userGroup = localStorage.getItem("userGroup");
 
-                const userGroups = ["no-xai", "badge", "predictions", "interactive"];
-                const randomIndex = Math.floor(Math.random() * userGroups.length);
-                const userGroup = userGroups[randomIndex];
-                localStorage.setItem("userGroup", userGroup);
-
-                console.log("🎲 Random user group assigned:", userGroup);
+                if (!userGroup) {
+                    const userGroups = ["no-xai", "badge", "predictions", "interactive"];
+                    const randomIndex = Math.floor(Math.random() * userGroups.length);
+                    userGroup = userGroups[randomIndex];
+                    localStorage.setItem("userGroup", userGroup);
+                    console.log("Random user group assigned:", userGroup);
+                } else {
+                    console.log("Preserved user group:", userGroup);
+                }
 
                 sessionData.user_group = userGroup;
                 applyUserGroupRestrictions(userGroup);
@@ -1854,7 +1880,7 @@
                         <div id="completion" class="completion-container">
                             <h1>All Candidates Selected</h1>
                             <p>Thank you for your participation.</p>
-                            <button id="continueFeedback" class="start-button">Continue to Feedback</button>
+                            <button id="continueFeedback" class="next-round-btn start-button">Continue to Feedback</button>
                         </div>
                     </div>
                 `;
@@ -1990,15 +2016,11 @@
                     <div id="completion-wrapper">
                         <div id="completion" class="completion-container">
                             <h1>🎉 Thank You!</h1>
-                            <p>Your feedback has been successfully submitted.</p>
-                            <p><strong>Time spent on questionnaire:</strong> ${feedbackElapsed.toFixed(2)} seconds.</p>
+                            <p>Your session has ended.</p>
+                            <p>Your data and feedback will be submitted automatically when you follow the link below.</p>
+                            <p><strong>Prolific Code:</strong> CODE</p>
 
-                            <div class="session-data">
-                                <h3>Session Summary:</h3>
-                                ${sessionDataHTML}
-                            </div>
-
-                            <a href="https://www.prolific.com" target="_blank" class="completion-btn" id="visitProlificBtn">Visit Prolific</a>
+                            <button id="visitProlificBtn" class="completion-btn">Visit Prolific</button>
                         </div>
                     </div>
                 `;
@@ -2030,7 +2052,7 @@
 
                         const data = await response.json();
                         console.log("✅ Session data saved successfully:", data);
-
+                        localStorage.setItem("sessionSubmitted", "true");
                         window.location.href = "https://www.prolific.com";
                     } catch (error) {
                         console.error("🚨 Error during fetch:", error);
