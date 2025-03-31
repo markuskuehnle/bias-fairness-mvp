@@ -721,14 +721,6 @@
                 </p>
             </div>
 
-            <!-- <h3>Select Debugging Group</h3>
-            <div class="radio-group">
-                <label><input type="radio" name="userGroup" value="no-xai" checked> Group 1: No-XAI</label>
-                <label><input type="radio" name="userGroup" value="badge"> Group 2: Badge</label>
-                <label><input type="radio" name="userGroup" value="predictions"> Group 3: Predictions</label>
-                <label><input type="radio" name="userGroup" value="interactive"> Group 4: Interactive</label>
-            </div> -->
-
             <p>Click the button to start selecting candidates.</p>
             <button class="start-button" onclick="startApplication()">Start</button>
             </div>
@@ -988,18 +980,15 @@
                 const originalRace = originalValues.race;
 
                 // Get current selections
+                // Use fallback values if inputs are missing
                 const genderInput = document.querySelector(`input[name="gender-${candidateId}"]:checked`);
                 const ageInput = document.querySelector(`input[name="age-${candidateId}"]:checked`);
                 const raceInput = document.querySelector(`input[name="race-${candidateId}"]:checked`);
 
-                if (!genderInput || !ageInput || !raceInput) {
-                    console.error(`⚠️ Missing input selection for candidate ${candidateId}`);
-                    return;
-                }
+                const currentGender = genderInput?.value || originalGender;
+                const currentAge = ageInput?.value || originalAge;
+                const currentRace = raceInput?.value || originalRace;
 
-                const currentGender = genderInput.value;
-                const currentAge = ageInput.value;
-                const currentRace = raceInput.value;
 
                 console.log("Current selections:", currentGender, currentAge, currentRace);
 
@@ -1699,6 +1688,8 @@
             function startApplication() {
                 console.log("startApplication triggered");
                 let userGroup = localStorage.getItem("userGroup");
+                // userGroup = "interactive";
+                // localStorage.setItem("userGroup", userGroup); // ✅ Add this line
 
                 if (!userGroup) {
                     const userGroups = ["no-xai", "badge", "predictions", "interactive"];
@@ -1711,7 +1702,7 @@
                 }
 
                 sessionData.user_group = userGroup;
-                applyUserGroupRestrictions(userGroup);
+                // applyUserGroupRestrictions(userGroup);
 
                 if (userGroup === "interactive") {
                     document.getElementById("intro").classList.add("hidden");
@@ -1879,6 +1870,7 @@
                     <div id="completion-wrapper">
                         <div id="completion" class="completion-container">
                             <h1>All Candidates Selected</h1>
+
                             <p>Thank you for your participation.</p>
                             <button id="continueFeedback" class="next-round-btn start-button">Continue to Feedback</button>
                         </div>
@@ -2149,23 +2141,37 @@
 
                 document.querySelectorAll(`#sidebar-content input[type="radio"]`).forEach(input => {
                     input.addEventListener("change", () => {
-                        const selectedGender = document.querySelector(`input[name="gender-sidebar-${candidate.Candidate_ID}"]:checked`).value;
-                        const selectedAge = document.querySelector(`input[name="age-sidebar-${candidate.Candidate_ID}"]:checked`).value;
-                        const selectedRace = document.querySelector(`input[name="race-sidebar-${candidate.Candidate_ID}"]:checked`).value;
+                        const selectedGroup = input.name.split('-')[0].replace("sidebar", ""); // e.g., "gender"
+                        const selectedValue = input.value;
 
-                        // Check if the selected values are different from the original
+                        const selectedGender = document.querySelector(`input[name="gender-sidebar-${candidate.Candidate_ID}"]:checked`)?.value;
+                        const selectedAge = document.querySelector(`input[name="age-sidebar-${candidate.Candidate_ID}"]:checked`)?.value;
+                        const selectedRace = document.querySelector(`input[name="race-sidebar-${candidate.Candidate_ID}"]:checked`)?.value;
+
+                        const originalValues = {
+                            gender: candidate.Gender,
+                            age: getAgeBin(candidate.Age),
+                            race: candidate.Race
+                        };
+
                         const isModified =
                             selectedGender !== originalValues.gender ||
                             selectedAge !== originalValues.age ||
                             selectedRace !== originalValues.race;
 
                         if (isModified) {
-                            disableOtherInputs(input.name.split('-')[0]); // Disable the other two groups
+                            disableOtherInputs(input.name.split('-')[0]); // only disable the other two groups
                         } else {
-                            enableAllInputs(); // Re-enable all if the original state is restored
+                            enableAllInputs(); // re-enable all if original
                         }
 
-                        updatePrediction(candidate.Candidate_ID, selectedGender, selectedAge, selectedRace);
+                        // Use the shared handler for tracking, logging, and xai_features
+                        handleManipulationChange(
+                            String(candidate.Candidate_ID),
+                            selectedGroup,
+                            selectedValue,
+                            originalValues
+                        );
                     });
                 });
             }
