@@ -425,6 +425,55 @@ These findings point to significant fairness concerns. The high average change a
 
 ![Applicant Selection Screenshot 6](imgs/applicant_selection6.png)
 
+#Here’s a cleaner and more polished version for your README section titled **“Final Research Artifact Screenshots”**:
+
+---
+
+## Final Research Artifact Screenshots
+
+This tool was developed as part of a research project to explore human-AI decision-making. Below is a walkthrough of the user experience and technical setup.
+
+
+### User Experience
+
+When users access the application (hosted on **Railway**), they are greeted with an introductory screen explaining the task:
+
+![Intro Screen](imgs/final/start_1.png)
+
+Upon clicking **Start**, users are randomly assigned to one of four experimental groups:
+
+- **no-xai**: A baseline group. Users see blank candidate profiles with no AI indicators.
+- **badge**: Users see a yellow **"AI Recommendation"** badge on one profile per round.
+- **prediction**: In addition to the badge, users also see:
+  - A **Good Fit** boolean (Yes/No)
+  - A **Prediction Probability** score (e.g., 0.84)
+- **interactive**: This group receives the richest experience:
+  - Badge, Good Fit label, and Prediction Probability
+  - A detailed **XAI explanation section** (showing top influencing features)
+  - A **sidebar tool** allowing users to manipulate one protected attribute at a time (e.g., gender, age, race) and observe real-time changes in the AI’s decision
+
+Here’s an example of what users in the interactive group see before beginning the task:
+
+![Interactive Group Explanation - 1](imgs/final/grp_interactive_1.png)
+![Interactive Group Explanation - 2](imgs/final/grp_interactive_2.png)
+![Interactive Group Explanation - 3](imgs/final/grp_interactive_3.png)
+
+### Questionnaire Phase
+
+After completing all 6 rounds of candidate evaluation, users are directed to a feedback questionnaire consisting of **25 Likert-scale questions**.
+
+![Questionnaire Screenshot](imgs/final/questionaire_placeholder.png)
+
+### Technical Setup
+
+- **Frontend & Backend Deployment**: The full-stack app is deployed using [**Railway**](https://railway.app), enabling fast and easy deployment of both the frontend and backend logic.
+
+![Railway Deployment](imgs/final/railway_deployment.png)
+
+- **Database**: All session data (including user interactions, rounds, and feedback) is stored in **Supabase**, a hosted Postgres solution with built-in authentication and API access.
+
+![Supabase Database](imgs/final/supabase_db.png)
+
 ---
 
 ## Tech Stack
