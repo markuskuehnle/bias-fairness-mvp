@@ -833,6 +833,7 @@
                     "American Indian": "RaceDesc_American Indian or Alaska Native",
                     "Hispanic": "RaceDesc_Hispanic"
                 };
+
                 Object.values(raceColumnMap).forEach(raceKey => updatePayload.updated_features[raceKey] = 0);
 
                 // Set the selected race to 1
@@ -862,92 +863,60 @@
                     const result = await response.json();
                     console.log("✅ Backend response:", result);
 
-                    // Fetch feature descriptions
-                    const featureDescriptions = await fetchFeatureDescriptions();
-
-                    // Find the correct candidate profile card
+                    // Update UI with new prediction result (can be refactored in a separate function)
                     const candidateCard = document.querySelector(`.profile-card[data-candidate-id="${candidateId}"]`);
-                    if (!candidateCard) {
-                        console.error("❌ Candidate card not found for ID:", candidateId);
-                        return;
-                    }
-
-                    // Update the Good Fit section correctly
                     const goodFitElement = candidateCard.querySelector(".prediction-section strong:nth-of-type(1)");
+                    const probabilityElement = candidateCard.querySelector(".prediction-section div:nth-of-type(2) strong");
+
                     if (goodFitElement) {
                         goodFitElement.nextSibling.nodeValue = ` ${result.is_good_fit ? "Yes" : "No"}`;
                         if (!result.is_good_fit) {
-                            goodFitElement.classList.add("good-fit-no"); // Apply red color for "No"
+                            goodFitElement.classList.add("good-fit-no");
                         } else {
-                            goodFitElement.classList.remove("good-fit-no"); // Remove red color for "Yes"
+                            goodFitElement.classList.remove("good-fit-no");
                         }
                     }
 
-                    // Update the Probability correctly
-                    const probabilityElement = candidateCard.querySelector(".prediction-section div:nth-of-type(2) strong");
                     if (probabilityElement) {
                         probabilityElement.nextSibling.nodeValue = ` ${result.prediction_probability.toFixed(2)}`;
                         if (result.prediction_probability < 0.5) {
-                            probabilityElement.classList.add("probability-low"); // Apply red color for low probability
+                            probabilityElement.classList.add("probability-low");
                         } else {
-                            probabilityElement.classList.remove("probability-low"); // Remove red color if above threshold
-                        }
-                    }   
-
-                    const badgeContainer = candidateCard.querySelector(".badge-container");
-                    const profileHeader = candidateCard.querySelector(".profile-header"); // Ensures badge is placed correctly
-
-                    if (result.is_good_fit) {
-                        // Check if the badge already exists inside the profile header
-                        if (!profileHeader.querySelector(".badge-yellow")) {
-                            const badge = document.createElement("div");
-                            badge.className = "badge-yellow";
-                            badge.textContent = "AI Recommendation";
-                            profileHeader.appendChild(badge); // Append badge inside the profile header
-                        }
-                    } else {
-                        // Remove AI Recommendation badge if Good Fit is No
-                        const aiBadge = profileHeader.querySelector(".badge-yellow");
-                        if (aiBadge) {
-                            aiBadge.remove(); // Remove the badge when changed to No Good Fit
+                            probabilityElement.classList.remove("probability-low");
                         }
                     }
 
-                    // Update the invite button text and styling based on GoodFit
-                    const inviteButton = candidateCard.querySelector(".invite-btn");
-                    if (result.is_good_fit) {
-                        inviteButton.textContent = ">>Invite Applicant<<";
-                        inviteButton.classList.add("highlight-btn");
-                    } else {
-                        inviteButton.textContent = "Invite Applicant";
-                        inviteButton.classList.remove("highlight-btn");
+                    // Update Invite Button + Badge dynamically
+                    const inviteSection = candidateCard.querySelector(".invite-section");
+                    const profileHeader = candidateCard.querySelector(".profile-header");
+                    const existingBadge = profileHeader.querySelector(".badge-yellow");
+                    const existingInviteButton = inviteSection.querySelector("button.invite-btn");
+
+                    // Remove badge if it exists and shouldn't be shown
+                    if (existingBadge && result.prediction_probability < 0.5) {
+                        existingBadge.remove();
                     }
 
-                    // Update the XAI explanation
-                    const xaiSection = candidateCard.querySelector(".accordion-content");
-                    if (xaiSection) {
-                        const userGroup = localStorage.getItem("userGroup") || "no-xai";
-                        const explanationText = userGroup === "interactive" ? `
-                            <div style="font-size: 0.9em; color: #555; margin-bottom: 8px;">
-                                These are the top 3 reasons why the AI picked this candidate. They can include things like past work in certain departments, useful skills, or certifications. Higher values mean these were more important in the decision.
-                                <br><br>
-                                Hover over the feature names to see more details.
-                            </div>
-                        ` : '';
-                        xaiSection.innerHTML = result.top_features.map(feature => {
-                            const description = featureDescriptions[feature.Feature] || "No description available.";
-                            return `
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span class="hoverable-feature" data-tooltip="${description}">
-                                        ${feature.Feature}:
-                                    </span>
-                                    <span>${feature["SHAP Value"].toFixed(2)}</span>
-                                </div>
-                            `;
-                        }).join('');
+                    // Add badge if it doesn't exist and should be shown
+                    if (!existingBadge && result.prediction_probability >= 0.5) {
+                        const badge = document.createElement("div");
+                        badge.className = "badge-yellow";
+                        badge.textContent = "AI Recommendation";
+                        profileHeader.appendChild(badge);
                     }
 
-                    return result; // Return the result so it can be used for tracking
+                    // Update invite button style and text
+                    if (existingInviteButton) {
+                        if (result.prediction_probability >= 0.5) {
+                            existingInviteButton.textContent = ">>Invite Applicant<<";
+                            existingInviteButton.classList.add("highlight-btn");
+                        } else {
+                            existingInviteButton.textContent = "Invite Applicant";
+                            existingInviteButton.classList.remove("highlight-btn");
+                        }
+                    }
+
+                    return result;  // Return the result for further processing
                 } catch (error) {
                     console.error("🚨 Fetch error:", error);
                 }
@@ -971,33 +940,20 @@
             async function handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues) {
                 console.log("🔹 handleManipulationChange triggered", candidateId, selectedGroup, selectedValue);
 
-                // Get all related radio inputs
-                const allInputs = document.querySelectorAll(`input[name^="gender-${candidateId}"], input[name^="age-${candidateId}"], input[name^="race-${candidateId}"]`);
+                // Ensure we get the currently selected gender, age, and race directly before sending the payload
+                const genderInput = document.querySelector(`input[name="gender-sidebar-${candidateId}"]:checked`);
+                const ageInput = document.querySelector(`input[name="age-sidebar-${candidateId}"]:checked`);
+                const raceInput = document.querySelector(`input[name="race-sidebar-${candidateId}"]:checked`);
 
-                // Retrieve the original values from the card's dataset
-                const originalGender = originalValues.gender;
-                const originalAge = originalValues.age;
-                const originalRace = originalValues.race;
+                // Get the selected values (gender, age, race) based on the checked input
+                const currentGender = genderInput ? genderInput.value : originalValues.gender;
+                const currentAge = ageInput ? ageInput.value : originalValues.age;
+                const currentRace = raceInput ? raceInput.value : originalValues.race;
 
-                // Get current selections
-                // Use fallback values if inputs are missing
-                const genderInput = document.querySelector(`input[name="gender-${candidateId}"]:checked`);
-                const ageInput = document.querySelector(`input[name="age-${candidateId}"]:checked`);
-                const raceInput = document.querySelector(`input[name="race-${candidateId}"]:checked`);
+                console.log("Updated selections:", currentGender, currentAge, currentRace);
 
-                const currentGender = genderInput?.value || originalGender;
-                const currentAge = ageInput?.value || originalAge;
-                const currentRace = raceInput?.value || originalRace;
-
-
-                console.log("Current selections:", currentGender, currentAge, currentRace);
-
-                // Determine if the current state is different from the original
-                const isModified = !(currentGender === originalGender && currentAge === originalAge && currentRace === originalRace);
-
-                // Always call updatePrediction to get the current prediction details
-                const result = await updatePrediction(candidateId, currentGender, currentAge, currentRace);
-                if (!result) return;
+                // Check if the state is modified (different from original)
+                const isModified = !(currentGender === originalValues.gender && currentAge === originalValues.age && currentRace === originalValues.race);
 
                 // Find the candidate object in the current round array
                 let candidate = currentRoundCandidates.find(c => String(c.candidate_id) === candidateId);
@@ -1006,39 +962,57 @@
                     return;
                 }
 
+                // Store the previous prediction value if available; if not, use the new result later.
+                const previousPrediction = candidate.current_prediction || null;
+
+                // Always call updatePrediction to get the new prediction details
+                const result = await updatePrediction(candidateId, currentGender, currentAge, currentRace);
+                if (!result) return;
+                const newPrediction = result.prediction_probability;
+
                 // Initialize the manipulations array if not already present
                 if (!candidate.manipulations) {
                     candidate.manipulations = [];
                 }
 
-                // Record this manipulation event (even if it reverts to original)
+                // Create a manipulation record that includes before and after values
                 candidate.manipulations.push({
                     changed_attribute: selectedGroup,
                     new_value: selectedValue,
-                    prediction_probability: result.prediction_probability,
+                    prediction_probability: {
+                        before: previousPrediction !== null ? previousPrediction : newPrediction,
+                        after: newPrediction
+                    },
                     is_good_fit: result.is_good_fit,
                     xai_features: result.top_features,
                     timestamp: new Date().toISOString()
                 });
 
-                // Once any manipulation occurs, mark the candidate as manipulated (always true thereafter)
+                // Update the candidate's current prediction for future comparisons
+                candidate.current_prediction = newPrediction;
                 candidate.manipulated = true;
                 console.log("Candidate manipulation recorded:", candidate.manipulations[candidate.manipulations.length - 1]);
 
-                // Update input states: if the current state is the original, re-enable inputs; if not, disable non-changed ones.
+                // Disable/enable inputs based on whether the state is modified
+                const allInputs = document.querySelectorAll(
+                    `input[name^="gender-${candidateId}"], input[name^="age-${candidateId}"], input[name^="race-${candidateId}"]`
+                );
+
                 if (!isModified) {
                     allInputs.forEach(input => {
-                    input.disabled = false;
-                    input.parentElement.classList.remove("disabled");
+                        input.disabled = false;
+                        input.parentElement.classList.remove("disabled");
                     });
                 } else {
                     allInputs.forEach(input => {
-                    if (input.name.includes(selectedGroup) || input.value === originalValues[selectedGroup]) return;
-                    input.disabled = true;
-                    input.parentElement.classList.add("disabled");
+                        if (input.name.includes(selectedGroup) || input.value === originalValues[selectedGroup]) return;
+                        input.disabled = true;
+                        input.parentElement.classList.add("disabled");
                     });
                 }
-                }
+            }
+
+
 
             document.addEventListener("change", function (event) {
                 if (event.target.type === "radio") {
@@ -1170,7 +1144,7 @@
 
                     const candidate = data.find(c => c.GoodFit); // Pick the one GoodFit candidate
                     if (!candidate) {
-                        console.warn("⚠️ No GoodFit candidate found.");
+                        console.warn("No GoodFit candidate found.");
                         return;
                     }
 
@@ -1488,20 +1462,20 @@
 
                 const alreadySubmitted = localStorage.getItem("sessionSubmitted") === "true";
 
-                if (alreadySubmitted) {
-                    // Show thank you message again, skip reset, block access
-                    console.log("🔒 Session already submitted. Skipping reset.");
-                    document.body.innerHTML = `
-                        <div id="completion-wrapper">
-                            <div class="completion-container">
-                                <h1>🎉 Thank You!</h1>
-                                <p>Your session has already been submitted.</p>
-                                <p>Please close this window.</p>
-                            </div>
-                        </div>
-                    `;
-                    return;
-                }
+                // if (alreadySubmitted) {
+                //     // Show thank you message again, skip reset, block access
+                //     console.log("🔒 Session already submitted. Skipping reset.");
+                //     document.body.innerHTML = `
+                //         <div id="completion-wrapper">
+                //             <div class="completion-container">
+                //                 <h1>🎉 Thank You!</h1>
+                //                 <p>Your session has already been submitted.</p>
+                //                 <p>Please close this window.</p>
+                //             </div>
+                //         </div>
+                //     `;
+                //     return;
+                // }
 
                 console.log("🔄 Performing FULL RESET...");
 
@@ -1688,8 +1662,8 @@
             function startApplication() {
                 console.log("startApplication triggered");
                 let userGroup = localStorage.getItem("userGroup");
-                // userGroup = "interactive";
-                // localStorage.setItem("userGroup", userGroup); // ✅ Add this line
+                userGroup = "interactive";
+                localStorage.setItem("userGroup", userGroup);
 
                 if (!userGroup) {
                     const userGroups = ["no-xai", "badge", "predictions", "interactive"];
@@ -1743,13 +1717,13 @@
                 }
 
                 if (userGroup === "no-xai") {
-                    // ❌ Hide AI badges, predictions, XAI sections, and manipulation sections
+                    // Hide AI badges, predictions, XAI sections, and manipulation sections
                     badges.forEach(el => el.style.display = "none");
                     predictions.forEach(el => el.style.display = "none");
                     xaiSections.forEach(el => el.style.display = "none");
                     manipulationSections.forEach(el => el.style.display = "none");
 
-                    // ✅ Ensure invite buttons remain normal
+                    // Ensure invite buttons remain normal
                     inviteButtons.forEach(btn => {
                         btn.textContent = "Invite Applicant";
                         btn.classList.remove("highlight-btn");
@@ -1757,10 +1731,10 @@
                 } 
                 
                 else if (userGroup === "badge") {
-                    // ✅ Show AI recommendation badges
+                    // Show AI recommendation badges
                     badges.forEach(el => el.style.display = "block");
 
-                    // ✅ Show highlighted invite button for AI-recommended candidates
+                    // Show highlighted invite button for AI-recommended candidates
                     inviteButtons.forEach(btn => {
                         const card = btn.closest(".profile-card");
                         if (card && card.querySelector(".badge-yellow")) {
@@ -1769,25 +1743,25 @@
                         }
                     });
 
-                    // ❌ Hide predictions and XAI sections
+                    // Hide predictions and XAI sections
                     predictions.forEach(el => el.style.display = "none");
                     xaiSections.forEach(el => el.style.display = "none");
 
-                    // ❌ Hide AI manipulation sections
+                    // Hide AI manipulation sections
                     manipulationSections.forEach(el => el.style.display = "none");
                 } 
                 
                 else if (userGroup === "predictions") {
-                    // ✅ Show AI recommendation badges
+                    // Show AI recommendation badges
                     badges.forEach(el => el.style.display = "block");
 
-                    // ✅ Show AI prediction probabilities & Good Fit
+                    // Show AI prediction probabilities & Good Fit
                     predictions.forEach(el => el.style.display = "block");
 
-                    // ❌ Hide XAI SHAP values (accordion)
+                    // Hide XAI SHAP values (accordion)
                     xaiSections.forEach(el => el.style.display = "none");
 
-                    // ✅ Ensure invite buttons remain highlighted for AI-recommended candidates
+                    // Ensure invite buttons remain highlighted for AI-recommended candidates
                     inviteButtons.forEach(btn => {
                         const card = btn.closest(".profile-card");
                         if (card && card.querySelector(".badge-yellow")) {
@@ -1796,11 +1770,11 @@
                         }
                     });
 
-                    // ❌ Hide AI manipulation sections
+                    // Hide AI manipulation sections
                     manipulationSections.forEach(el => el.style.display = "none");
                 } 
                 
-                // ✅ Group 4 (Interactive) sees everything, so no need to hide anything
+                // Group 4 (Interactive) sees everything, so no need to hide anything
             }
 
 
@@ -2012,7 +1986,7 @@
                             <p>Your data and feedback will be submitted automatically when you follow the link below.</p>
                             <p><strong>Prolific Code:</strong> CODE</p>
 
-                            <button id="visitProlificBtn" class="completion-btn">Visit Prolific</button>
+                            <button id="visitProlificBtn" class="completion-btn">Submit and Go to Prolific</button>
                         </div>
                     </div>
                 `;
