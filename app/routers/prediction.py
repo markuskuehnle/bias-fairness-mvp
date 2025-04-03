@@ -43,7 +43,7 @@ def update_prediction(request: PredictionRequest, static_predictions: pd.DataFra
     try:
         # Load the candidate data
         candidates = load_candidates()
-        
+        print(f"DEBUG request: {request}")
         # Find the candidate in the dataset
         baseline_candidate = candidates[candidates["Candidate_ID"] == request.candidate_id]
         if baseline_candidate.empty:
@@ -99,6 +99,7 @@ def update_prediction(request: PredictionRequest, static_predictions: pd.DataFra
         
         # If more than one modifiable attribute is changed, check for race-specific changes.
         if len(differences) > 1:
+            print("DEBUG: Computed differences:", differences)
             race_keys = [k for k in differences if k.startswith("RaceDesc_")]
             if race_keys:
                 new_race = None
