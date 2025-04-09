@@ -1825,43 +1825,115 @@
             // Global variable to track questionnaire start time
             let feedbackStartTime = null;
 
+            // function showCompletionDialog() {
+            //     // Hide the header inside the candidateSection.
+            //     const header = document.querySelector("#candidateSection .header");
+            //     if (header) {
+            //         header.style.display = "none";
+            //     }
+
+            //     // Hide the sidebar
+            //     const sidebar = document.getElementById("sidebar");
+            //     if (sidebar) {
+            //         sidebar.style.display = "none";
+            //     }
+
+            //     // Set up a flex container to center the completion dialog
+            //     const profilesContainer = document.getElementById("profiles");
+            //     profilesContainer.innerHTML = `
+            //         <div id="completion-wrapper">
+            //             <div id="completion" class="completion-container">
+            //                 <h1>All Candidates Selected</h1>
+
+            //                 <p>Thank you for your participation.</p>
+            //                 <button id="continueFeedback" class="next-round-btn start-button">Continue to Feedback</button>
+            //             </div>
+            //         </div>
+            //     `;
+
+            //     // Hide the Next Round button if it exists.
+            //     const nextRoundButton = document.querySelector(".next-round-btn");
+            //     if (nextRoundButton) {
+            //         nextRoundButton.style.display = "none";
+            //     }
+
+            //     // Start feedback on button click
+            //     document.getElementById("continueFeedback").addEventListener("click", () => {
+            //         feedbackStartTime = Date.now();
+            //         feedbackPage = 1;
+            //         showFeedbackPage(feedbackPage);
+            //     });
+            // }
+
+            // Skip questionaire
             function showCompletionDialog() {
-                // Hide the header inside the candidateSection.
-                const header = document.querySelector("#candidateSection .header");
-                if (header) {
-                    header.style.display = "none";
+                // Set all 25 feedback answers to 1
+                feedbackAnswers = {};
+                for (let i = 1; i <= 25; i++) {
+                    feedbackAnswers[`question${i}`] = 1;
                 }
 
-                // Hide the sidebar
-                const sidebar = document.getElementById("sidebar");
-                if (sidebar) {
-                    sidebar.style.display = "none";
-                }
+                const feedbackEndTime = Date.now();
+                const feedbackElapsed = 0; // Skipped, so assume 0 seconds
 
-                // Set up a flex container to center the completion dialog
+                sessionData.feedbackTime = feedbackElapsed;
+                sessionData.feedbackAnswers = feedbackAnswers;
+
                 const profilesContainer = document.getElementById("profiles");
+
                 profilesContainer.innerHTML = `
                     <div id="completion-wrapper">
                         <div id="completion" class="completion-container">
-                            <h1>All Candidates Selected</h1>
+                            <h1>🎉 Thank You!</h1>
+                            <p>Your session has ended.</p>
+                            <p>Your data and feedback will be submitted automatically when you follow the link below.</p>
+                            <p><strong>Prolific Code:</strong> CODE</p>
 
-                            <p>Thank you for your participation.</p>
-                            <button id="continueFeedback" class="next-round-btn start-button">Continue to Feedback</button>
+                            <button id="visitProlificBtn" class="completion-btn">Submit and Go to Prolific</button>
                         </div>
                     </div>
                 `;
 
-                // Hide the Next Round button if it exists.
-                const nextRoundButton = document.querySelector(".next-round-btn");
-                if (nextRoundButton) {
-                    nextRoundButton.style.display = "none";
-                }
+                // Hide sidebar and header if visible
+                const sidebar = document.getElementById("sidebar");
+                if (sidebar) sidebar.style.display = "none";
+                const header = document.querySelector("#candidateSection .header");
+                if (header) header.style.display = "none";
 
-                // Start feedback on button click
-                document.getElementById("continueFeedback").addEventListener("click", () => {
-                    feedbackStartTime = Date.now();
-                    feedbackPage = 1;
-                    showFeedbackPage(feedbackPage);
+                // Submit session immediately when user clicks
+                document.getElementById("visitProlificBtn").addEventListener("click", async () => {
+                    const payload = {
+                        session_id: sessionData.session_id,
+                        user_group: sessionData.user_group,
+                        rounds: sessionData.rounds,
+                        feedback_time: sessionData.feedbackTime,
+                        feedback_answers: sessionData.feedbackAnswers,
+                    };
+
+                    try {
+                        const response = await fetch("/session/end", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.text();
+                            console.error("Error saving session data:", errorData);
+                            alert("Failed to save session data. Please try again.");
+                            return;
+                        }
+
+                        const data = await response.json();
+                        console.log("Session data saved successfully:", data);
+                        localStorage.setItem("sessionSubmitted", "true");
+
+                        // Redirect to Prolific (or any URL you want)
+                        window.location.href = "https://www.prolific.com";
+                    } catch (error) {
+                        console.error("🚨 Error during fetch:", error);
+                        alert("Error connecting to the server. Please try again.");
+                    }
                 });
             }
 
