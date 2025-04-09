@@ -1661,8 +1661,8 @@
 
             function startApplication() {
                 console.log("startApplication triggered");
+                // use local browser storage
                 let userGroup = localStorage.getItem("userGroup");
-                userGroup = "interactive";
                 localStorage.setItem("userGroup", userGroup);
 
                 if (!userGroup) {
