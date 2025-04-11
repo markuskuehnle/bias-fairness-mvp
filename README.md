@@ -696,11 +696,3 @@ This metric aggregates individual star ratings for a candidate’s skills into a
 This approach combines technical skills and certification ratings into one comprehensive metric. The composite score reflects not only the candidate’s technical abilities but also the credibility provided by relevant certifications. This holistic measure offers a broader perspective on a candidate's overall qualifications and can serve as a robust ground truth for assessing both AI recommendations and user decision-making.
 
 Both options provide objective benchmarks; however, the choice between them depends on whether a more straightforward evaluation of skills (Option 1) or a comprehensive assessment that includes certifications (Option 2) is preferred for the research context.
-
---- 
-
-### Topics for Discussion
-
-1. **Frontend Display:**
-   - Accept buttons before start / submission?
-
