@@ -425,8 +425,6 @@ These findings point to significant fairness concerns. The high average change a
 
 ![Applicant Selection Screenshot 6](imgs/applicant_selection6.png)
 
-#Here’s a cleaner and more polished version for your README section titled **“Final Research Artifact Screenshots”**:
-
 ---
 
 ## Final Research Artifact Screenshots
