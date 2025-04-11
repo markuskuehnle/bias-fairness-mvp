@@ -1,8 +1,19 @@
 ![IBA Cover](imgs/institut_fuer_business_analytics_der_universitaet_ulm_cover.jpeg)
 
-# Bias and Fairness Demonstrator: Predicting Role Fit  
+# Bias and Fairness Demonstrator 
 
-This project explores bias and fairness in machine learning decision-making systems, focusing on predicting whether a candidate is a good fit for a specific role based on historical employee data. The goal is to analyze how AI recommendations influence human decision-making in candidate selection.  
+This repository contains the research artifact for a behavioral study on human decision-making. The project examines how users interact with candidate profiles when assisted by AI-generated recommendations—and how explainable AI (XAI) influences those decisions.
+
+We simulate a realistic hiring context where participants evaluate job candidates based on attributes such as skills, certifications, experience, and demographic information. Across different experimental conditions, we vary the level of AI assistance—from simple badges to detailed explanations and interactive manipulation tools—to study how transparency and interactivity shape trust, fairness perception, and final decisions.
+
+The project combines machine learning, fairness analysis, and human-computer interaction to investigate:
+
+- The influence of AI recommendations on candidate selection behavior
+- The effect of SHAP-based explainability on user trust and decision rationale
+- User responses to interactive counterfactual tools that allow modifying candidate features
+- Emerging patterns of bias, gaming behavior, and decision fatigue
+
+This system serves as both a research artifact and an interactive tool to explore bias and fairness in algorithm-assisted decisions.
 
 ---
 
