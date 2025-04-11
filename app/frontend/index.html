@@ -937,6 +937,32 @@
                 return 35; // Default fallback
             }
 
+            function updateAccordion(candidateId, topFeatures, featureDescriptions) {
+                const candidateCard = document.querySelector(`.profile-card[data-candidate-id="${candidateId}"]`);
+                if (!candidateCard) return;
+
+                const contentContainer = candidateCard.querySelector(".accordion-content");
+                if (!contentContainer) {
+                    console.warn("No accordion content found for candidate:", candidateId);
+                    return;
+                }
+
+                // Rebuild the two-column style layout (same as original)
+                const updatedFeaturesHTML = topFeatures.map(feature => {
+                    const desc = featureDescriptions[feature.Feature] || "No description available.";
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span class="hoverable-feature" data-tooltip="${desc}">
+                                ${feature.Feature}:
+                            </span>
+                            <span>${feature["SHAP Value"].toFixed(2)}</span>
+                        </div>
+                    `;
+                }).join("");
+
+                contentContainer.innerHTML = updatedFeaturesHTML;
+            }
+
             async function handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues) {
                 console.log("🔹 handleManipulationChange triggered", candidateId, selectedGroup, selectedValue);
 
@@ -987,6 +1013,8 @@
                     xai_features: result.top_features,
                     timestamp: new Date().toISOString()
                 });
+
+                updateAccordion(candidateId, result.top_features, await fetchFeatureDescriptions());
 
                 // Update the candidate's current prediction for future comparisons
                 candidate.current_prediction = newPrediction;
