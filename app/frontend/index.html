@@ -1691,7 +1691,6 @@
                 console.log("startApplication triggered");
                 // use local browser storage
                 let userGroup = localStorage.getItem("userGroup");
-                localStorage.setItem("userGroup", userGroup);
 
                 if (!userGroup) {
                     const userGroups = ["no-xai", "badge", "predictions", "interactive"];
@@ -1704,7 +1703,7 @@
                 }
 
                 sessionData.user_group = userGroup;
-                // applyUserGroupRestrictions(userGroup);
+                applyUserGroupRestrictions(userGroup);
 
                 if (userGroup === "interactive") {
                     document.getElementById("intro").classList.add("hidden");
@@ -1915,7 +1914,7 @@
                             <h1>🎉 Thank You!</h1>
                             <p>Your session has ended.</p>
                             <p>Your data and feedback will be submitted automatically when you follow the link below.</p>
-                            <p><strong>Prolific Code:</strong> CODE</p>
+                            <p><strong>Prolific Code:</strong>CEVXQWA3</p>
 
                             <button id="visitProlificBtn" class="completion-btn">Submit and Go to Prolific</button>
                         </div>
@@ -1957,7 +1956,7 @@
                         localStorage.setItem("sessionSubmitted", "true");
 
                         // Redirect to Prolific (or any URL you want)
-                        window.location.href = "https://www.prolific.com";
+                        window.location.href = "https://app.prolific.com/submissions/complete?cc=CEVXQWA3";
                     } catch (error) {
                         console.error("🚨 Error during fetch:", error);
                         alert("Error connecting to the server. Please try again.");
