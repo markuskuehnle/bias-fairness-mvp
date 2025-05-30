@@ -964,7 +964,7 @@
             }
 
             async function handleManipulationChange(candidateId, selectedGroup, selectedValue, originalValues) {
-                console.log("🔹 handleManipulationChange triggered", candidateId, selectedGroup, selectedValue);
+                console.log("handleManipulationChange triggered", candidateId, selectedGroup, selectedValue);
 
                 // Ensure we get the currently selected gender, age, and race directly before sending the payload
                 const genderInput = document.querySelector(`input[name="gender-sidebar-${candidateId}"]:checked`);
@@ -989,7 +989,7 @@
                 }
 
                 // Store the previous prediction value if available; if not, use the new result later.
-                const previousPrediction = candidate.current_prediction || null;
+                const previousPrediction = candidate.original_prediction;
 
                 // Always call updatePrediction to get the new prediction details
                 const result = await updatePrediction(candidateId, currentGender, currentAge, currentRace);
@@ -1006,7 +1006,7 @@
                     changed_attribute: selectedGroup,
                     new_value: selectedValue,
                     prediction_probability: {
-                        before: previousPrediction !== null ? previousPrediction : newPrediction,
+                        before: candidate.original_prediction,
                         after: newPrediction
                     },
                     is_good_fit: result.is_good_fit,
@@ -1199,7 +1199,8 @@
                             good_fit: candidate.GoodFit,
                             recommended: candidate.GoodFit,
                             invited: false,
-                            manipulated: false
+                            manipulated: false,
+                            original_prediction: candidate.Probability || 0,
                         });
                         lastRoundCandidates = JSON.parse(JSON.stringify(currentRoundCandidates));
 
@@ -1487,23 +1488,22 @@
             // Ensure the invite counter is updated only after fetching candidates
             window.onload = async function () {
                 const preservedUserGroup = localStorage.getItem("userGroup");
-
                 const alreadySubmitted = localStorage.getItem("sessionSubmitted") === "true";
 
-                // if (alreadySubmitted) {
-                //     // Show thank you message again, skip reset, block access
-                //     console.log("🔒 Session already submitted. Skipping reset.");
-                //     document.body.innerHTML = `
-                //         <div id="completion-wrapper">
-                //             <div class="completion-container">
-                //                 <h1>🎉 Thank You!</h1>
-                //                 <p>Your session has already been submitted.</p>
-                //                 <p>Please close this window.</p>
-                //             </div>
-                //         </div>
-                //     `;
-                //     return;
-                // }
+                if (alreadySubmitted) {
+                    // Show thank you message again, skip reset, block access
+                    console.log("🔒 Session already submitted. Skipping reset.");
+                    document.body.innerHTML = `
+                        <div id="completion-wrapper">
+                            <div class="completion-container">
+                                <h1>🎉 Thank You!</h1>
+                                <p>Your session has already been submitted.</p>
+                                <p>Please close this window.</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
 
                 console.log("🔄 Performing FULL RESET...");
 
@@ -1520,16 +1520,16 @@
                 document.getElementById("profiles").innerHTML = "";
 
                 try {
-                    console.log("🔄 Requesting backend reset...");
+                    console.log("Requesting backend reset...");
                     const response = await fetch("/candidates/reset", { method: "POST" });
                     const data = await response.json();
-                    console.log("✅ Backend Reset:", data);
+                    console.log("Backend Reset:", data);
 
                     // Reset localStorage defaults explicitly
-                    localStorage.setItem("seenCandidates", JSON.stringify([]));
-                    localStorage.setItem("invitedCandidates", JSON.stringify([]));
-                    localStorage.setItem("currentRound", "1");
-                    localStorage.setItem("invitedCount", "0");
+                    // localStorage.setItem("seenCandidates", JSON.stringify([]));
+                    // localStorage.setItem("invitedCandidates", JSON.stringify([]));
+                    // localStorage.setItem("currentRound", "1");
+                    // localStorage.setItem("invitedCount", "0");
 
                     updateInviteCounter();
                 } catch (error) {
@@ -1611,7 +1611,7 @@
                         sessionData.candidate_hover_events = {};
                         setTimeout(() => {
                             document.getElementById("profiles").innerHTML = "";
-                            fetchCandidates();
+                            startNextRound()
                         }, 500);
                         }
                     } else {
@@ -1684,7 +1684,7 @@
                 document.getElementById("interactive-intro").classList.add("hidden");
                 document.getElementById("candidateSection").classList.remove("hidden");
                 document.querySelector(".sidebar").style.display = "block";
-                fetchCandidates();
+                startNextRound()
             }
 
             function startApplication() {
@@ -1714,7 +1714,7 @@
                     document.getElementById("intro").classList.add("hidden");
                     document.getElementById("candidateSection").classList.remove("hidden");
                     document.querySelector(".sidebar").style.display = "block";
-                    fetchCandidates();
+                    startNextRound()
                 }
             }
 
@@ -1834,7 +1834,7 @@
                 invitedCount = 0;
                 localStorage.setItem("invitedCount", JSON.stringify(invitedCount));
                 document.getElementById("profiles").innerHTML = "";
-                fetchCandidates();
+                startNextRound()
                 updateInviteCounter();
             }
 
@@ -2248,6 +2248,22 @@
                     });
                 });
             }
+
+            async function startNextRound() {
+                const res = await fetch("/round/start", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ session_id })
+                });
+
+                if (!res.ok) {
+                    alert("Max rounds reached. Please submit your feedback.");
+                    return;
+                }
+
+                await fetchCandidates(); 
+            }
+
 
             // profilesContainer.innerHTML = `
             //     <div class="completion-message">
