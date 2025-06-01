@@ -3,3 +3,4 @@ __pycache__
 *.egg-info
 .DS*
 .env
+data/experiment_results/fix

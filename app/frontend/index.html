@@ -24,8 +24,8 @@
                 display: flex;
                 flex-direction: column;
                 width: 100%;
-                height: auto; /* Allow height to expand */
-                min-height: 100vh; /* Ensure it covers full screen height */
+                height: auto; 
+                min-height: 100vh; 
             }
             .header-content {
                 display: flex;
@@ -33,7 +33,7 @@
                 justify-content: space-between;
                 align-items: center;
                 width: 100%;
-                max-width: 1200px; /* Adjust width for better layout */
+                max-width: 1200px; 
                 margin: 0 auto;
             }
         
@@ -45,7 +45,7 @@
             }
 
             #invite-counter {
-                margin-left: 20px; /* Ensures it stays on the left */
+                margin-left: 20px; 
                 font-weight: bold;
                 font-size: 1.2em;
             }
@@ -109,27 +109,27 @@
                 justify-content: space-between;
                 align-items: center;
                 width: 100%;
-                min-height: 30px; /* Ensure consistent height for all profile headers */
+                min-height: 30px;
             }
 
             .badge-container {
                 display: flex;
                 align-items: center;
                 justify-content: flex-end;
-                min-width: 130px; /* Ensures space for the badge */
+                min-width: 130px; 
             }
 
             .profiles-container {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 15px;
-                justify-content: center; /* ✅ Centers the cards */
+                justify-content: center; 
                 align-items: flex-start;
                 padding: 20px;
-                width: calc(100% - 250px); /* ✅ Takes the sidebar into account */
-                max-width: 900px; /* ✅ Prevents it from being too wide */
-                margin-left: auto; /* ✅ Centers relative to the available space */
-                margin-right: auto; /* ✅ Ensures equal spacing on both sides */
+                width: calc(100% - 250px); 
+                max-width: 900px;
+                margin-left: auto;
+                margin-right: auto; 
                 overflow-y: auto;
             }
 
@@ -220,30 +220,30 @@
 
             .prediction-section {
                 width: calc(100% - 20px);
-                padding: 8px;  /* Reduce padding slightly */
+                padding: 8px;  
                 background-color: #f9f9f9;
                 border-radius: 8px;
                 border-top: 1px solid #eee;
-                margin-top: 5px; /* Reduce the margin to decrease spacing */
+                margin-top: 5px; 
             }
 
             .skills-section {
-                padding: 5px 10px; /* Reduce padding for more compact look */
+                padding: 5px 10px; 
                 display: flex;
                 flex-direction: column;
                 background-color: #f9f9f9;
                 border-radius: 8px;
                 border-top: 1px solid #eee;
-                margin: 2px auto; /* Reduce margin */
+                margin: 2px auto;
             }
 
             .skills-section h4 {
                 margin: 0;
-                padding: 10px 0px; /* Reduce padding for more compact look */
+                padding: 10px 0px; 
                 font-size: 1em;
                 font-weight: bold;
-                align-self: flex-start; /* Aligns with Name/Prename */
-                padding-bottom: 7px; /* Ensure slight separation from skills */
+                align-self: flex-start;
+                padding-bottom: 7px;
             }
         
             .accordion-header {
@@ -260,18 +260,18 @@
         
             .accordion-content div {
                 display: flex;
-                justify-content: flex-start; /* Aligns text closer together */
-                gap: 10px; /* Reduces spacing between text and SHAP values */
+                justify-content: flex-start; 
+                gap: 10px; 
                 align-items: center;
             }
             .accordion-content span:first-child {
-                min-width: 150px; /* Ensures the feature name doesn’t shrink too much */
-                max-width: 200px; /* Prevents overly wide spacing */
-                text-align: left; /* Keeps alignment clean */
+                min-width: 150px;
+                max-width: 200px; 
+                text-align: left;
             }
             .accordion-content span:last-child {
-                min-width: 60px; /* Keeps SHAP value from spreading out */
-                text-align: right; /* Align values neatly */
+                min-width: 60px; 
+                text-align: right; 
             }
 
             .accordion-content.active {
@@ -287,31 +287,31 @@
                 font-size: 0.9em;
                 color: #888;
                 cursor: pointer;
-                position: relative; /* Ensure tooltip is positioned relative to the icon */
-                z-index: 2; /* Tooltip is above other cards */
+                position: relative;
+                z-index: 2;
             }
         
             .info-icon:hover::after {
                 content: "These values represent the impact of features on the AI's decision-making process. Higher values indicate stronger influence.";
                 position: absolute;
                 top: -60px;
-                left: 50%; /* Center the tooltip horizontally */
-                transform: translateX(-50%); /* Adjust for tooltip width */
+                left: 50%; 
+                transform: translateX(-50%);
                 background-color: #fff;
                 color: #333;
                 font-size: 0.8em;
                 border: 1px solid #ddd;
                 border-radius: 5px;
                 padding: 5px;
-                width: 250px; /* Increased width for better readability */
+                width: 250px; 
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                z-index: 1000; /* Ensure tooltip is above other cards */
+                z-index: 1000; 
                 white-space: normal;
                 pointer-events: none;
             }
         
             .info-icon:hover {
-                z-index: 1000; /* Bring the icon and tooltip above all cards */
+                z-index: 1000;
             }
         
             .stars {
@@ -329,24 +329,18 @@
                 display: none;
             }
 
-            /*sidebar element.style {
-                display: block;
-                position: absolute;
-                left: 0;
-            } */
-
             /* Wrap the header and profiles together */
             .main-content {
                 display: flex;
                 flex-direction: row;
-                justify-content: center; /* ✅ Centers the profiles while keeping the sidebar */
+                justify-content: center; 
                 align-items: flex-start;
                 width: 100%;
-                gap: 20px; /* Adds spacing between sidebar and profiles */
+                gap: 20px; 
             }
                                             
             .invite-section {
-                width: 100%;  /* Ensure it spans the full width */
+                width: 100%;  
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -388,50 +382,49 @@
             .hoverable-feature:hover::after {
                 content: attr(data-tooltip);
                 position: absolute;
-                top: -65px; /* Moves the tooltip further upward */
-                left: 60%;  /* Shifts the tooltip to the right */
-                transform: translateX(0); /* Removes the centering transformation */
+                top: -65px; 
+                left: 60%;  
+                transform: translateX(0); 
                 background-color: #F9FAFB;
                 color: #495057;
                 font-size: 0.8em;
                 border: 1px solid #CED4DA;
                 border-radius: 5px;
                 padding: 5px 10px;
-                width: 280px; /* Increased tooltip width */
+                width: 280px; 
                 white-space: normal; 
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-                z-index: 9999;       /* High z-index to ensure it appears above other elements */
+                z-index: 9999; 
             }
 
-            /* Bring columns closer */
             .manipulation-columns {
                 display: flex;
-                justify-content: space-between; /* Keeps them evenly spaced */
-                align-items: flex-start; /* Aligns titles at the same height */
-                flex-wrap: nowrap; /* Prevents them from stacking on smaller screens */
+                justify-content: space-between; 
+                align-items: flex-start; 
+                flex-wrap: nowrap; 
             }
 
             .manipulation-column {
-                flex: 1; /* Ensure equal width */
-                min-width: 30px; /* Prevents shrinking */
-                max-width: 90px; /* Keeps size consistent */
+                flex: 1; 
+                min-width: 30px; 
+                max-width: 90px; 
                 text-align: left;
                 display: flex;
-                flex-direction: column; /* Ensures radio options appear vertically */
-                gap: 5px; /* Adds slight spacing between options */
+                flex-direction: column;
+                gap: 5px; 
             }
 
             .manipulation-column h5 {
                 font-size: 1em;
                 margin-bottom: 5px;
-                text-align: left; /* Aligns titles properly */
+                text-align: left;
             }
 
             .manipulation-column label {
                 font-size: 0.85em;
-                margin-bottom: 5px; /* Reduces spacing between radio buttons */
+                margin-bottom: 5px; 
                 display: flex;
-                align-items: center; /* Aligns radio buttons with text */
+                align-items: center; 
             }
 
             .manipulation-column input[type="radio"] {
@@ -445,7 +438,7 @@
                 border-radius: 8px;
                 border-top: 1px solid #eee;
                 margin: 10px auto;
-                max-width: 300px; /* Set a maximum width to align with other sections */
+                max-width: 300px;
             }
 
             label {
@@ -457,17 +450,17 @@
             }
 
             button.highlighted {
-                background-color: #f0f8ff; /* Light blue background */
-                color: #333; /* Text color */
-                border: 2px solid #007bff; /* Blue border */
-                box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Glow effect */
-                transition: all 0.3s ease; /* Smooth transition for the highlight */
+                background-color: #f0f8ff; 
+                color: #333; 
+                border: 2px solid #007bff; 
+                box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); 
+                transition: all 0.3s ease;
             }
 
             label.disabled {
-                opacity: 0.5; /* Grey out the label */
-                pointer-events: none; /* Prevent interaction */
-                cursor: not-allowed; /* Show a "not-allowed" cursor */
+                opacity: 0.5;
+                pointer-events: none; 
+                cursor: not-allowed; 
             }
 
             .good-fit-no {
@@ -587,7 +580,7 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                height: 100vh; /* Full viewport height */
+                height: 100vh;
             }
 
             .completion-container {
@@ -597,7 +590,7 @@
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                 max-width: 600px;
                 text-align: center;
-                width: 90%; /* Prevent it from being too wide on small screens */
+                width: 90%; 
             }
 
             .completion-container h1 {
@@ -673,21 +666,21 @@
             }
 
             #prevFeedback {
-                background-color: #aaa; /* Grey */
+                background-color: #aaa; 
                 color: white;
             }
 
             #prevFeedback:hover {
-                background-color: #888; /* Darker Grey on Hover */
+                background-color: #888; 
             }
 
             #nextFeedback, #submitFeedback {
-                background-color: #007BFF; /* Blue */
+                background-color: #007BFF; 
                 color: white;
             }
 
             #nextFeedback:hover, #submitFeedback:hover {
-                background-color: #0056b3; /* Darker Blue on Hover */
+                background-color: #0056b3; 
             }
 
             .feedback-buttons button:hover {
@@ -814,7 +807,7 @@
             const maxRounds = 6;
             let currentRound = parseInt(localStorage.getItem("currentRound")) || 1;
             let invitedCandidates = JSON.parse(localStorage.getItem("invitedCandidates")) || [];
-            let isFetching = false;  // Global lock to prevent duplicate calls
+            let isFetching = false; 
 
             async function updatePrediction(candidateId, gender, age, race) {
                 const updatePayload = {
@@ -1446,9 +1439,10 @@
             window.onload = async function () {
                 const preservedSessionId = localStorage.getItem("sessionId");
                 const alreadySubmitted = localStorage.getItem("sessionSubmitted") === "true";
+                console.log("Recovered sessionId from memory:", localStorage.getItem("sessionId"));
 
                 if (alreadySubmitted) {
-                    console.log("🔒 Session already submitted. Skipping reset.");
+                    console.log("Session already submitted. Skipping reset.");
                     document.body.innerHTML = `
                         <div id="completion-wrapper">
                             <div class="completion-container">
@@ -1915,11 +1909,20 @@
                 const header = document.querySelector("#candidateSection .header");
                 if (header) header.style.display = "none";
 
+                const sessionId = localStorage.getItem("sessionId");
+                const userGroup = localStorage.getItem("userGroup");
+
+                if (!sessionId || !userGroup) {
+                    console.error("sessionId or userGroup missing in localStorage.");
+                    alert("Session error: could not identify your session. Please try again.");
+                    return;
+                }
+
                 // Submit session immediately when user clicks
                 document.getElementById("visitProlificBtn").addEventListener("click", async () => {
                     const payload = {
-                        session_id: sessionData.session_id,
-                        user_group: sessionData.user_group,
+                        session_id: sessionId,
+                        user_group: userGroup,
                         rounds: sessionData.rounds,
                         feedback_time: sessionData.feedbackTime,
                         feedback_answers: sessionData.feedbackAnswers,
@@ -1944,7 +1947,7 @@
                         localStorage.setItem("sessionSubmitted", "true");
 
                         // Redirect to Prolific (or any URL you want)
-                        window.location.href = "https://app.prolific.com/submissions/complete?cc=CEVXQWA3";
+                        window.location.href = "https://google.com";
                     } catch (error) {
                         console.error("🚨 Error during fetch:", error);
                         alert("Error connecting to the server. Please try again.");
