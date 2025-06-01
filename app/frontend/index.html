@@ -1284,49 +1284,6 @@
                             ${accordionContent}
                         `;
 
-                        /*
-                        ${candidate.GoodFit ? `
-                                <div class="recommendation-manipulation">
-                                    <h4>Manipulate AI Recommendation:</h4>
-                                    <strong>Take a look at how the recommendation changes when you manipulate protected data:</strong>
-                                    <div class="manipulation-columns">
-                                        <div class="manipulation-column">
-                                            <h5>Gender</h5>
-                                            ${["Male", "Female"].map(value => `
-                                                <label>
-                                                    <input type="radio" name="gender-${candidate.Candidate_ID}" value="${value}"
-                                                        ${candidate.Gender === value ? "checked" : ""}>
-                                                    ${value}
-                                                </label>
-                                            `).join('')}
-                                        </div>
-
-                                        <div class="manipulation-column">
-                                            <h5>Age</h5>
-                                            ${["20-30", "30-40", "40-50", "50-60", ">60"].map(value => `
-                                                <label>
-                                                    <input type="radio" name="age-${candidate.Candidate_ID}" value="${value}"
-                                                        ${getAgeBin(candidate.Age) === value ? "checked" : ""}>
-                                                    ${value} years
-                                                </label>
-                                            `).join('')}
-                                        </div>
-
-                                        <div class="manipulation-column">
-                                            <h5>Race</h5>
-                                            ${["Black", "White", "Asian"].map(value => `
-                                                <label>
-                                                    <input type="radio" name="race-${candidate.Candidate_ID}" value="${value}"
-                                                        ${candidate.Race === value ? "checked" : ""}>
-                                                    ${value}
-                                                </label>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                </div>
-                            ` : ""}
-                        */
-
                         // **Create Invite Button**
                         const inviteButton = document.createElement("button");
                             inviteButton.className = candidate.GoodFit ? "invite-btn highlight-btn" : "invite-btn";
@@ -1487,11 +1444,10 @@
 
             // Ensure the invite counter is updated only after fetching candidates
             window.onload = async function () {
-                const preservedUserGroup = localStorage.getItem("userGroup");
+                const preservedSessionId = localStorage.getItem("sessionId");
                 const alreadySubmitted = localStorage.getItem("sessionSubmitted") === "true";
 
                 if (alreadySubmitted) {
-                    // Show thank you message again, skip reset, block access
                     console.log("🔒 Session already submitted. Skipping reset.");
                     document.body.innerHTML = `
                         <div id="completion-wrapper">
@@ -1507,10 +1463,10 @@
 
                 console.log("🔄 Performing FULL RESET...");
 
-                // Clear everything
+                // Clear all localStorage first
                 localStorage.clear();
-                if (preservedUserGroup) {
-                    localStorage.setItem("userGroup", preservedUserGroup);
+                if (preservedSessionId) {
+                    localStorage.setItem("sessionId", preservedSessionId);
                 }
 
                 invitedCount = 0;
@@ -1519,21 +1475,48 @@
                 isFetching = false;
                 document.getElementById("profiles").innerHTML = "";
 
-                try {
-                    console.log("Requesting backend reset...");
-                    const response = await fetch("/candidates/reset", { method: "POST" });
-                    const data = await response.json();
-                    console.log("Backend Reset:", data);
+                if (preservedSessionId) {
+                    try {
+                        const reinitResponse = await fetch("/session/reinit", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ session_id: preservedSessionId })
+                        });
+                        const reinitData = await reinitResponse.json();
+                        console.log("✅ Session rehydrated:", reinitData);
+                    } catch (error) {
+                        console.error("🚨 Session reinit failed:", error);
+                    }
 
-                    // Reset localStorage defaults explicitly
-                    // localStorage.setItem("seenCandidates", JSON.stringify([]));
-                    // localStorage.setItem("invitedCandidates", JSON.stringify([]));
-                    // localStorage.setItem("currentRound", "1");
-                    // localStorage.setItem("invitedCount", "0");
+                    try {
+                        const resetResponse = await fetch("/candidates/reset", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ session_id: preservedSessionId })
+                        });
+                        const resetData = await resetResponse.json();
+                        console.log("✅ Backend candidate reset:", resetData);
+                    } catch (error) {
+                        console.error("🚨 Backend candidate reset failed:", error);
+                    }
+
+                    try {
+                        const groupResponse = await fetch(`/session/group?session_id=${preservedSessionId}`);
+                        if (groupResponse.ok) {
+                            const groupData = await groupResponse.json();
+                            const backendGroup = groupData.user_group;
+                            localStorage.setItem("userGroup", backendGroup);
+                            console.log(`✅ Group rehydrated from backend: ${backendGroup}`);
+                        } else {
+                            console.warn("⚠️ Failed to fetch user group from backend.");
+                        }
+                    } catch (error) {
+                        console.error("🚨 Group fetch failed:", error);
+                    }
 
                     updateInviteCounter();
-                } catch (error) {
-                    console.error("🚨 Backend Reset Error:", error);
+                } else {
+                    console.warn("⚠️ No session_id found. New session will be required.");
                 }
             };
 
@@ -1677,46 +1660,51 @@
                 }
                 }
 
-            function startInteractiveApplication() {
-                console.log("Interactive group start confirmed");
-                roundStartTime = Date.now();
-                startSession();
-                document.getElementById("interactive-intro").classList.add("hidden");
-                document.getElementById("candidateSection").classList.remove("hidden");
-                document.querySelector(".sidebar").style.display = "block";
-                startNextRound()
-            }
 
-            function startApplication() {
-                console.log("startApplication triggered");
-                // use local browser storage
-                let userGroup = localStorage.getItem("userGroup");
+                async function startApplication() {
+                    console.log("startApplication triggered");
 
-                if (!userGroup) {
-                    const userGroups = ["no-xai", "badge", "predictions", "interactive"];
-                    const randomIndex = Math.floor(Math.random() * userGroups.length);
-                    userGroup = userGroups[randomIndex];
-                    localStorage.setItem("userGroup", userGroup);
-                    console.log("Random user group assigned:", userGroup);
-                } else {
-                    console.log("Preserved user group:", userGroup);
+                    let sessionId = localStorage.getItem("sessionId");
+                    let userGroup = localStorage.getItem("userGroup");
+
+                    if (!sessionId || !userGroup) {
+                        // No existing session: create a new one
+                        const sessionResponse = await fetch("/session/start", {
+                            method: "POST"
+                        });
+
+                        const sessionData = await sessionResponse.json();
+
+                        sessionId = sessionData.session_id;
+                        userGroup = sessionData.user_group;
+
+                        localStorage.setItem("sessionId", sessionId);
+                        localStorage.setItem("userGroup", userGroup);
+                    } else {
+                        console.log("🔒 Using existing sessionId and group:", sessionId, userGroup);
+                    }
+
+                    applyUserGroupRestrictions(userGroup);
+
+                    if (userGroup === "interactive") {
+                        console.log("Interactive group start confirmed");
+                        roundStartTime = Date.now();
+
+                        document.getElementById("intro").classList.add("hidden");
+                        document.getElementById("interactive-intro").classList.add("hidden");
+                        document.getElementById("candidateSection").classList.remove("hidden");
+                        document.querySelector(".sidebar").style.display = "block";
+
+                        startNextRound();
+                    } else {
+                        roundStartTime = Date.now();
+                        document.getElementById("intro").classList.add("hidden");
+                        document.getElementById("candidateSection").classList.remove("hidden");
+                        document.querySelector(".sidebar").style.display = "block";
+
+                        startNextRound();
+                    }
                 }
-
-                sessionData.user_group = userGroup;
-                applyUserGroupRestrictions(userGroup);
-
-                if (userGroup === "interactive") {
-                    document.getElementById("intro").classList.add("hidden");
-                    document.getElementById("interactive-intro").classList.remove("hidden");
-                } else {
-                    startSession();
-                    roundStartTime = Date.now();
-                    document.getElementById("intro").classList.add("hidden");
-                    document.getElementById("candidateSection").classList.remove("hidden");
-                    document.querySelector(".sidebar").style.display = "block";
-                    startNextRound()
-                }
-            }
 
 
             function applyUserGroupRestrictions(userGroup) {
@@ -2250,20 +2238,86 @@
             }
 
             async function startNextRound() {
-                const res = await fetch("/round/start", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ session_id })
-                });
-
-                if (!res.ok) {
-                    alert("Max rounds reached. Please submit your feedback.");
+                const sessionId = localStorage.getItem("sessionId");
+                if (!sessionId) {
+                    console.error("❌ No sessionId found in localStorage.");
                     return;
                 }
 
-                await fetchCandidates(); 
+                try {
+                    // 1. Tell backend to start the round
+                    const response = await fetch("/round/start", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ session_id: sessionId })
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        console.warn("⚠️ Round start failed:", result);
+                        alert("Round start failed: " + (result.detail || "Unknown error"));
+                        return;
+                    }
+
+                    console.log("✅ Round started:", result);
+
+                    // 2. Use your proper fetching + rendering logic
+                    await fetchCandidates();
+
+                    // 3. Show candidate section (switch UI from intro)
+                    document.getElementById("candidateSection").classList.remove("hidden");
+
+                    // Optional: update counters/UI
+                    updateInviteCounter();
+                    currentRound += 1;
+
+                } catch (error) {
+                    console.error("🔥 Critical error in startNextRound:", error);
+                    alert("Something went wrong when starting the round.");
+                }
             }
 
+            async function startInteractiveApplication() {
+                console.log("✅ Interactive group start confirmed");
+
+                const sessionId = localStorage.getItem("sessionId");
+                if (!sessionId) {
+                    console.error("❌ No session ID found. Cannot start round.");
+                    return;
+                }
+
+                roundStartTime = Date.now();
+                document.getElementById("interactive-intro").classList.add("hidden");
+                document.getElementById("candidateSection").classList.remove("hidden");
+                document.querySelector(".sidebar").style.display = "block";
+
+                await startNextRound();  // Make sure this exists
+            }
+
+            window.renderCandidates = function renderCandidates(candidates) {
+                const container = document.getElementById("profiles");
+                container.innerHTML = ""; // clear old
+
+                candidates.forEach(candidate => {
+                    const card = document.createElement("div");
+                    card.className = "profile-card";
+                    card.dataset.candidateId = candidate.Candidate_ID;
+                    card.innerHTML = `
+                        <div class="profile-header">
+                            <h3>${candidate.Name || "Unnamed Candidate"}</h3>
+                            <div>Score: ${candidate.Score ?? "N/A"}</div>
+                        </div>
+                        <p>${candidate.Description || "No description available."}</p>
+                        <button onclick="inviteCandidate('${candidate.Candidate_ID}')">Select</button>
+                    `;
+                    container.appendChild(card);
+                });
+
+                currentRoundCandidates = candidates; // for tracking
+            }
+
+            
 
             // profilesContainer.innerHTML = `
             //     <div class="completion-message">
